@@ -1,0 +1,146 @@
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { mkdirSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import * as schema from "./schema";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dataDir = process.env.KONUM_DATA_DIR || path.resolve(__dirname, "data");
+mkdirSync(dataDir, { recursive: true });
+
+const dbYolu = process.env.KONUM_DB_PATH || path.join(dataDir, "konum.db");
+const sqlite = new Database(dbYolu);
+sqlite.pragma("journal_mode = WAL");
+sqlite.pragma("foreign_keys = ON");
+
+// Basit açılış göçü (Aşama 1 kapsamı; ileride drizzle-kit migrate'e taşınabilir)
+sqlite.exec(`
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, name TEXT NOT NULL, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS invites (
+  id TEXT PRIMARY KEY, eposta TEXT NOT NULL, rol TEXT NOT NULL DEFAULT 'sahip',
+  workspace_id TEXT, token TEXT NOT NULL UNIQUE,
+  son_kullanma INTEGER NOT NULL, kullanildi INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  token TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS workspaces (
+  id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, musteri_adi TEXT NOT NULL,
+  sektor TEXT NOT NULL DEFAULT '', urun_url TEXT NOT NULL DEFAULT '',
+  beyaz_etiket TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS workspace_members (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, user_id TEXT NOT NULL,
+  rol TEXT NOT NULL DEFAULT 'editor', created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS strategy_beliefs (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL UNIQUE,
+  hikaye TEXT NOT NULL DEFAULT '', konumlandirma TEXT NOT NULL DEFAULT '',
+  hedef_kitle TEXT NOT NULL DEFAULT '', yasakli_ifadeler TEXT NOT NULL DEFAULT '[]',
+  kanitlanmis_mesajlar TEXT NOT NULL DEFAULT '[]', onay_durumu TEXT NOT NULL DEFAULT 'taslak',
+  guncelleyen TEXT NOT NULL DEFAULT '', guncelleme_zamani INTEGER NOT NULL DEFAULT 0,
+  tarama_ozeti TEXT NOT NULL DEFAULT '', surum INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS crawl_snapshots (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, url TEXT NOT NULL,
+  tip TEXT NOT NULL DEFAULT 'urun', metin TEXT NOT NULL DEFAULT '',
+  hash TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS hypotheses (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, iddia TEXT NOT NULL,
+  kitle TEXT NOT NULL DEFAULT '', kanit_onerisi TEXT NOT NULL DEFAULT '',
+  durum TEXT NOT NULL DEFAULT 'oneri', created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tests (
+  id TEXT PRIMARY KEY, hypothesis_id TEXT NOT NULL, workspace_id TEXT NOT NULL,
+  varyantlar TEXT NOT NULL DEFAULT '[]', olcut TEXT NOT NULL DEFAULT '',
+  temel_oran INTEGER NOT NULL DEFAULT 0, mde INTEGER NOT NULL DEFAULT 0,
+  minimum_orneklem INTEGER NOT NULL DEFAULT 0, baslangic INTEGER,
+  durum TEXT NOT NULL DEFAULT 'taslak', sonuc TEXT NOT NULL DEFAULT '',
+  kazanan_varyant_id TEXT, p_degeri INTEGER, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS test_results (
+  id TEXT PRIMARY KEY, test_id TEXT NOT NULL, varyant_id TEXT NOT NULL,
+  gosterim INTEGER NOT NULL DEFAULT 0, tiklama INTEGER NOT NULL DEFAULT 0,
+  donusum INTEGER NOT NULL DEFAULT 0, kaynak TEXT NOT NULL DEFAULT 'manuel',
+  giren_kullanici TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS evidence_files (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, test_id TEXT NOT NULL,
+  kazanan_mesaj TEXT NOT NULL DEFAULT '', ogrenim TEXT NOT NULL DEFAULT '',
+  disa_aktarim_formati TEXT NOT NULL DEFAULT 'markdown', created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS content_items (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, evidence_id TEXT,
+  kanal TEXT NOT NULL, baslik TEXT NOT NULL DEFAULT '', govde TEXT NOT NULL,
+  durum TEXT NOT NULL DEFAULT 'denetimde', denetci_notu TEXT NOT NULL DEFAULT '',
+  surum INTEGER NOT NULL DEFAULT 1, onceki_surum_id TEXT, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS approval_events (
+  id TEXT PRIMARY KEY, content_item_id TEXT NOT NULL, user_id TEXT NOT NULL,
+  eylem TEXT NOT NULL, "not" TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS publish_packages (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, ogeler TEXT NOT NULL DEFAULT '[]',
+  olusturan TEXT NOT NULL DEFAULT '', olusturma_zamani INTEGER NOT NULL,
+  disa_aktarim_anahtari TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS agent_logs (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, ajan TEXT NOT NULL,
+  girdi_ozeti TEXT NOT NULL DEFAULT '', cikti_ozeti TEXT NOT NULL DEFAULT '',
+  denetci_karari TEXT NOT NULL DEFAULT '', token_sayisi INTEGER NOT NULL DEFAULT 0,
+  mod TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS signals (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, tip TEXT NOT NULL,
+  icerik TEXT NOT NULL DEFAULT '', okundu INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS pilot_applications (
+  id TEXT PRIMARY KEY, eposta TEXT NOT NULL, ajans_adi TEXT NOT NULL DEFAULT '',
+  musteri_sayisi TEXT NOT NULL DEFAULT '', kaynak TEXT NOT NULL DEFAULT 'landing',
+  riza_metni_surumu TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS diagnosis_requests (
+  id TEXT PRIMARY KEY, url TEXT NOT NULL, eposta TEXT, rapor TEXT NOT NULL DEFAULT '',
+  ip_hash TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_logs_ws ON agent_logs(workspace_id, zaman DESC);
+CREATE INDEX IF NOT EXISTS idx_content_ws ON content_items(workspace_id, durum);
+CREATE INDEX IF NOT EXISTS idx_members ON workspace_members(workspace_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_crawl_ws ON crawl_snapshots(workspace_id, zaman DESC);
+`);
+
+// v1.0'dan kalan veritabanları için sütun ekleri (yok sayılabilir hatalar tolere edilir)
+for (const stmt of [
+  "ALTER TABLE strategy_beliefs ADD COLUMN surum INTEGER NOT NULL DEFAULT 1",
+  "ALTER TABLE agent_logs ADD COLUMN token_sayisi INTEGER NOT NULL DEFAULT 0",
+]) {
+  try {
+    sqlite.exec(stmt);
+  } catch {
+    /* sütun zaten var */
+  }
+}
+
+// Mevcut workspace sahiplerini üyelik tablosuna taşı (tek seferlik göç)
+try {
+  sqlite.exec(`
+    INSERT INTO workspace_members (id, workspace_id, user_id, rol, created_at)
+    SELECT 'mem_' || lower(hex(randomblob(8))), w.id, w.owner_id, 'sahip', w.created_at
+    FROM workspaces w
+    WHERE NOT EXISTS (
+      SELECT 1 FROM workspace_members m WHERE m.workspace_id = w.id AND m.user_id = w.owner_id
+    );
+  `);
+} catch {
+  /* tablolar yeni oluştuysa gerek yok */
+}
+
+export const db = drizzle(sqlite, { schema });
+
+export function newId(prefix: string): string {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}

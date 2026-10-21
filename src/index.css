@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Tasarım belirteçleri — sıcak kâğıt / mürekkep / sinyal turuncusu */
+    --paper: 60 33% 98.4%;        /* #fcfcf9 */
+    --paper-2: 60 18% 91.6%;      /* #efefe4 */
+    --ink: 0 0% 9.4%;             /* #181818 */
+    --ink-soft: 0 0% 9.4%;
+    --signal: 14 100% 50%;        /* #ff3500 — vurgu/grafik */
+    --signal-strong: 14 100% 39%; /* ~#c52a00 — metin boyutunda vurgu (kontrast) */
+    --focus: 213 66% 46%;         /* odak halkası */
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: 0 0% 100%;
+    --card-foreground: var(--ink);
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: var(--paper-2);
+    --secondary-foreground: var(--ink);
+    --muted: var(--paper-2);
+    --muted-foreground: 0 0% 32%;
+    --accent: var(--paper-2);
+    --accent-foreground: var(--ink);
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 10% 84%;
+    --input: 40 10% 84%;
+    --ring: var(--focus);
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: hsl(var(--signal) / 0.85);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--focus));
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+    font-variation-settings: "opsz" 144;
+    letter-spacing: -0.02em;
+  }
+  /* İşaretleyici vurgusu — gradyan metin yerine mürekkep altı boyama */
+  .hl {
+    background-image: linear-gradient(
+      to top,
+      hsl(var(--signal) / 0.28) 0%,
+      hsl(var(--signal) / 0.28) 42%,
+      transparent 42%
+    );
+    padding: 0 0.08em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .eyebrow {
+    @apply text-xs font-bold uppercase;
+    letter-spacing: 0.18em;
+  }
+  /* Kâğıt dokusu */
+  .noise-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, hsl(var(--ink) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--ink) / 0.05) 1px, transparent 1px);
+    background-size: 120px 120px;
+  }
+  /* Marquee */
+  .marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 30s linear infinite;
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  /* Boru hattı akan çizgi */
+  .dash-flow {
+    stroke-dasharray: 6 8;
+    animation: dashflow 1.4s linear infinite;
+  }
+  @keyframes dashflow {
+    to {
+      stroke-dashoffset: -14;
+    }
+  }
+  .pulse-dot {
+    animation: pulsedot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulsedot {
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.35);
+    }
+  }
+  .cursor-blink {
+    animation: blink 1.1s step-start infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .marquee-track,
+  .dash-flow,
+  .pulse-dot,
+  .cursor-blink {
+    animation: none !important;
+  }
+}

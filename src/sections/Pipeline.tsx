@@ -1,0 +1,125 @@
+import { motion } from 'framer-motion'
+
+const easeOut = [0.16, 1, 0.3, 1] as const
+
+const stages = [
+  {
+    id: 'bellek',
+    title: 'Strateji Belleği',
+    who: 'İnsan kurar',
+    whoAccent: false,
+    body: 'Hikâye, konumlandırma, hedef kitle, yasaklı ifadeler, kanıtlanmış mesajlar. Tüm ajanların okuduğu tek doğruluk kaynağı.',
+    agents: [],
+  },
+  {
+    id: 'kanit',
+    title: 'Kanıt Motoru',
+    who: 'Ajan çalışır · insan seçer',
+    whoAccent: true,
+    body: 'Rakip mesajlarını tarar, müşteri dilinde madencilik yapar, hipotez üretir, küçük bütçeli testler tasarlar. "Yetersiz veri" demek de bir çıktıdır.',
+    agents: ['Araştırmacı', 'Stratejist Yrd.', 'Test Tasarımcısı'],
+  },
+  {
+    id: 'icra',
+    title: 'İcra Stüdyosu',
+    who: 'Ajan üretir · insan onaylar',
+    whoAccent: true,
+    body: 'Kanıtlanmış mesajdan Instagram, Meta Ads, Google Ads ve e-posta varyasyonları üretir; takvime yayar. Denetçi ajan, kurallara uymayanı onaya bile çıkarmaz.',
+    agents: ['İçerik Üretici', 'Yayıncı', 'Denetçi'],
+  },
+  {
+    id: 'sinyal',
+    title: 'Sinyal Radarı',
+    who: 'Ajan izler · insan karar verir',
+    whoAccent: true,
+    body: 'Performansı okur, haftalık "ne öğrendik" özetini çıkarır, konumlandırma eskidiğinde alarm verir. Karar her zaman sende.',
+    agents: ['Analist'],
+  },
+]
+
+export default function Pipeline() {
+  return (
+    <section id="nasil" className="py-20 md:py-32 bg-[#181818] text-[#fcfcf9] relative overflow-hidden">
+      <div className="mx-auto max-w-7xl px-5 md:px-8">
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.5, ease: easeOut }}
+          className="eyebrow text-[#ff3500] mb-4"
+        >
+          Nasıl çalışır
+        </motion.p>
+        <motion.h2
+          initial={{ opacity: 0, y: 22 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
+          className="font-display font-black text-4xl sm:text-5xl lg:text-6xl leading-[1.02] max-w-[20ch]"
+        >
+          Tek hat, dört istasyon.
+          <br />
+          <span className="text-[#fcfcf9]/60">Yayına çıkan tek kapı: senin onayın.</span>
+        </motion.h2>
+
+        <div className="relative mt-16">
+          {/* Akan bağlantı çizgisi (masaüstü) */}
+          <svg
+            className="hidden lg:block absolute top-10 left-0 w-full h-6 pointer-events-none"
+            viewBox="0 0 1200 24"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <line x1="0" y1="12" x2="1200" y2="12" stroke="#ff3500" strokeWidth="2" className="dash-flow" opacity="0.7" />
+          </svg>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stages.map((s, i) => (
+              <motion.article
+                key={s.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.55, ease: easeOut, delay: i * 0.1 }}
+                className="relative rounded-xl border border-[#fcfcf9]/15 bg-[#fcfcf9]/[0.04] p-6 backdrop-blur-[2px]"
+              >
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="relative flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                    <span className="pulse-dot absolute inline-flex h-3 w-3 rounded-full bg-[#ff3500]" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#fcfcf9]" />
+                  </span>
+                  <span className="font-mono text-xs font-bold text-[#fcfcf9]/50">0{i + 1}</span>
+                </div>
+                <h3 className="font-display font-bold text-2xl mb-1.5">{s.title}</h3>
+                <p className={`text-xs font-bold uppercase tracking-widest mb-4 ${s.whoAccent ? 'text-[#ff8a66]' : 'text-[#fcfcf9]'}`}>
+                  {s.who}
+                </p>
+                <p className="text-sm leading-relaxed text-[#fcfcf9]/70">{s.body}</p>
+                {s.agents.length > 0 && (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {s.agents.map((a) => (
+                      <span key={a} className="rounded-full border border-[#fcfcf9]/20 px-3 py-1 text-xs font-semibold text-[#fcfcf9]/80">
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </motion.article>
+            ))}
+          </div>
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-12 text-sm text-[#fcfcf9]/50 max-w-[70ch]"
+        >
+          Mimari ilke: ajanlar asla doğrudan yayına çıkamaz. Tek çıkış kapısı Onay Merkezi&apos;dir — bu hem kalite
+          kontrolü hem de sorumluluk sınırıdır.
+        </motion.p>
+      </div>
+    </section>
+  )
+}
