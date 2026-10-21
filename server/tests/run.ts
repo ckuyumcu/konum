@@ -9,6 +9,8 @@ import path from "node:path";
 
 // db import edilmeden ÖNCE test veritabanı yolu ayarlanır
 process.env.KONUM_DATA_DIR = mkdtempSync(path.join(tmpdir(), "konum-test-"));
+process.env.KONUM_SECRET_DIR = mkdtempSync(path.join(tmpdir(), "konum-secret-"));
+delete process.env.ANTHROPIC_API_KEY; // dosya yolu test edilsin
 
 let gecti = 0;
 function test(ad: string, fn: () => void | Promise<void>): Promise<void> | void {
@@ -122,6 +124,31 @@ async function main() {
     assert.ok(!m.includes("12345678901"), "TC kaldı");
     assert.ok(!m.includes("TR33 0006"), "IBAN kaldı");
     assert.ok(!m.includes("Ahmet Yılmaz"), "ad-soyad kaldı");
+  });
+
+  console.log("LLM anahtar deposu (Cem'in ek kararı):");
+  await test("anahtar proje dışı gizli dosyaya 600 izniyle yazılır ve geri okunur", async () => {
+    const { anthropicAnahtariYaz, anthropicAnahtari, anthropicAnahtariSil } = await import("../config");
+    const { statSync } = await import("node:fs");
+    assert.equal(anthropicAnahtari().kaynak, "yok");
+    anthropicAnahtariYaz("sk-ant-test-1234567890");
+    const okunan = anthropicAnahtari();
+    assert.equal(okunan.kaynak, "dosya");
+    assert.equal(okunan.anahtar, "sk-ant-test-1234567890");
+    const izin = statSync(path.join(process.env.KONUM_SECRET_DIR!, "secrets.json")).mode & 0o777;
+    assert.equal(izin, 0o600);
+    // env önceliği: env varsa dosya değil env kullanılır
+    process.env.ANTHROPIC_API_KEY = "sk-ant-env-oncelikli";
+    assert.equal(anthropicAnahtari().kaynak, "env");
+    delete process.env.ANTHROPIC_API_KEY;
+    anthropicAnahtariSil();
+    assert.equal(anthropicAnahtari().kaynak, "yok");
+  });
+  await test("zod şeması JSON Schema'ya çevrilebiliyor (tool-use zorlaması)", async () => {
+    const { z } = await import("zod");
+    const { BellekTaslagiSchema } = await import("../agents/bellek");
+    const js = z.toJSONSchema(BellekTaslagiSchema) as { properties?: Record<string, unknown> };
+    assert.ok(js.properties && "hikaye" in js.properties && "yasakliIfadeler" in js.properties);
   });
 
   console.log(`\n${gecti} test geçti.`);

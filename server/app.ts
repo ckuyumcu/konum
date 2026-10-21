@@ -6,6 +6,9 @@ import { appRouter } from "./routers";
 import { createContext, OTURUM_CEREZI } from "./trpc";
 import { db, newId } from "./db";
 import { invites, sessions, users, workspaceMembers } from "./schema";
+import { envYukle } from "./config";
+
+envYukle();
 
 const OTURUM_SURESI = 1000 * 60 * 60 * 24 * 14; // 14 gün
 

@@ -1,16 +1,19 @@
 // Strateji Belleği taslak üretimi — Araştırmacı + Stratejist Yardımcısı zinciri (Aşama 1).
 // Çıktı her zaman Denetçi'den geçer ve agent_logs'a işlenir.
 
+import { z } from "zod";
 import { generateJson } from "./llm";
 import { denetle } from "./denetci";
 import type { ScanResult } from "./scanner";
 
-export interface BellekTaslagi {
-  hikaye: string;
-  konumlandirma: string;
-  hedefKitle: string;
-  yasakliIfadeler: string[];
-}
+// Ajana özel şemalı çıktı — zod ile doğrulanır (v2 Bölüm 3 kural 1)
+export const BellekTaslagiSchema = z.object({
+  hikaye: z.string(),
+  konumlandirma: z.string(),
+  hedefKitle: z.string(),
+  yasakliIfadeler: z.array(z.string()),
+});
+export type BellekTaslagi = z.infer<typeof BellekTaslagiSchema>;
 
 // v2 Bölüm 3 kural 8: taranan metin LLM'e "veri" bloğu olarak, talimatlardan
 // ayrılmış verilir; veri bloğundaki komutlar uygulanmaz.
@@ -48,24 +51,11 @@ export async function bellekTaslagiUret(
   // KVKK: site metni de LLM'e gitmeden önce maskelenir (v2 Bölüm 6.1)
   const maskeliMetin = anonimlestir(scan.metin);
   const user = `Müşteri adı: ${musteriAdi}\nSektör: ${sektor || "belirtilmedi"}\nSite başlığı: ${scan.title}\n\n<VERI>\n${maskeliMetin}\n</VERI>`;
-  const sonuc = await generateJson<BellekTaslagi>(
+  const sonuc = await generateJson(
     SYSTEM,
     user,
+    BellekTaslagiSchema,
     () => simulasyonTaslak(scan, musteriAdi, sektor),
-    (v) => {
-      const o = v as Partial<BellekTaslagi>;
-      if (typeof o?.hikaye !== "string" || typeof o?.konumlandirma !== "string") {
-        throw new Error("Taslak şeması geçersiz");
-      }
-      return {
-        hikaye: o.hikaye,
-        konumlandirma: o.konumlandirma,
-        hedefKitle: typeof o.hedefKitle === "string" ? o.hedefKitle : "",
-        yasakliIfadeler: Array.isArray(o.yasakliIfadeler)
-          ? o.yasakliIfadeler.filter((x): x is string => typeof x === "string")
-          : [],
-      };
-    },
   );
 
   const butunMetin = [sonuc.data.hikaye, sonuc.data.konumlandirma, sonuc.data.hedefKitle].join("\n");

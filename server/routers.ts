@@ -21,6 +21,13 @@ import {
 import { scanUrl } from "./agents/scanner";
 import { bellekTaslagiUret } from "./agents/bellek";
 import { gecisZorla } from "./durum";
+import {
+  anthropicAnahtari,
+  anthropicAnahtariSil,
+  anthropicAnahtariYaz,
+  platformSahibiMi,
+} from "./config";
+import { llmAktifMi, llmSaglayici } from "./agents/llm";
 
 function logAjan(
   workspaceId: string,
@@ -82,7 +89,9 @@ export const RIZA_METNI_SURUMU = "v0.1-taslak";
 export const appRouter = router({
   auth: router({
     me: publicProcedure.query(({ ctx }) =>
-      ctx.user ? { ...ctx.user, mod: "yerel" as const } : null,
+      ctx.user
+        ? { ...ctx.user, mod: "yerel" as const, platformSahibi: platformSahibiMi(ctx.user.email) }
+        : null,
     ),
   }),
 
@@ -346,6 +355,39 @@ export const appRouter = router({
 
   ayarlar: router({
     entegrasyonlar: protectedProcedure.query(() => entegrasyonlar),
+
+    // LLM anahtar durumu — anahtarın kendisi asla dönmez, yalnız varlık bilgisi
+    llmDurumu: protectedProcedure.query(({ ctx }) => {
+      if (!platformSahibiMi(ctx.user.email)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Bu ayar yalnızca platform sahibine açıktır." });
+      }
+      const { kaynak } = anthropicAnahtari();
+      return {
+        saglayici: llmSaglayici(),
+        model: "claude-haiku-5-5",
+        anahtarKaynagi: kaynak, // env | dosya | yok
+        aktifMod: llmAktifMi() ? ("llm" as const) : ("simulasyon" as const),
+      };
+    }),
+
+    // Anahtar sunucuda proje dışı gizli dosyaya yazılır; bir daha gösterilmez (Cem'in kararı)
+    llmAnahtariKaydet: protectedProcedure
+      .input(z.object({ anahtar: z.string().trim().min(10, "Anahtar çok kısa görünüyor.") }))
+      .mutation(({ ctx, input }) => {
+        if (!platformSahibiMi(ctx.user.email)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Bu ayar yalnızca platform sahibine açıktır." });
+        }
+        anthropicAnahtariYaz(input.anahtar);
+        return { ok: true };
+      }),
+
+    llmAnahtariKaldir: protectedProcedure.mutation(({ ctx }) => {
+      if (!platformSahibiMi(ctx.user.email)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Bu ayar yalnızca platform sahibine açıktır." });
+      }
+      anthropicAnahtariSil();
+      return { ok: true };
+    }),
   }),
 });
 

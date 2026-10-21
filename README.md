@@ -34,11 +34,13 @@ aynı e-posta + kodla tekrar giriş yapabilir (yerel geliştirme eşdeğeri).
 - Landing pilot formu → `pilot_applications` tablosuna gerçek kayıt + rıza kutusu
 
 **Simülasyon (açıkça etiketli):**
-- **LLM ajan çıktıları.** `MOONSHOT_API_KEY` tanımlanmadığı sürece Stratejist
-  Yardımcısı deterministik taslak üretir; çıktı ve günlük "simülasyon" etiketli.
-  **EXTERNAL_GATE: LLM API anahtarı (Cem verecek).** Anahtar gelince
-  `LLM_PROVIDER=moonshot MOONSHOT_API_KEY=... npm run dev` ile gerçek çağrı yapılır.
-  Sağlayıcı arayüzü `server/agents/llm.ts` arkasındadır; istemciye anahtar gelmez.
+- **LLM ajan çıktıları.** Sağlayıcı: Anthropic (`claude-haiku-5-5`, resmî
+  `@anthropic-ai/sdk`, JSON çıktı zod şemasıyla zorlanır; `LLM_PROVIDER=anthropic`).
+  Anahtar iki yoldan gelir: `.env` içinde `ANTHROPIC_API_KEY` (git'e girmez) veya
+  Ayarlar → "LLM bağlantısı" (yalnız platform sahibi; anahtar proje dışı gizli
+  dosyaya `~/.konum/secrets.json` 600 izniyle yazılır, bir daha gösterilmez,
+  istemciye asla dönmez). Anahtar yoksa deterministik taslak üretilir; çıktı ve
+  günlük "simülasyon" etiketli. **EXTERNAL_GATE: LLM API anahtarı (Cem verecek).**
 
 **v1.1 (yapılmadı, "Planlandı" rozetiyle işaretli):**
 - Meta/Google Ads, e-posta ve analytics bağlantıları; API ile yayın; otomatik

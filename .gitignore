@@ -27,3 +27,4 @@ dist/
 server/data/
 *.tsbuildinfo
 tsc-test.json
+.env
