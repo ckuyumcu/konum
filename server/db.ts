@@ -60,13 +60,15 @@ CREATE TABLE IF NOT EXISTS hypotheses (
 CREATE TABLE IF NOT EXISTS tests (
   id TEXT PRIMARY KEY, hypothesis_id TEXT NOT NULL, workspace_id TEXT NOT NULL,
   varyantlar TEXT NOT NULL DEFAULT '[]', olcut TEXT NOT NULL DEFAULT '',
+  olcut_tipi TEXT NOT NULL DEFAULT '', olcut_payi TEXT NOT NULL DEFAULT '',
+  olcut_paydasi TEXT NOT NULL DEFAULT '', deneme INTEGER NOT NULL DEFAULT 1,
   temel_oran INTEGER NOT NULL DEFAULT 0, mde INTEGER NOT NULL DEFAULT 0,
   minimum_orneklem INTEGER NOT NULL DEFAULT 0, baslangic INTEGER,
   durum TEXT NOT NULL DEFAULT 'taslak', sonuc TEXT NOT NULL DEFAULT '',
   kazanan_varyant_id TEXT, p_degeri INTEGER, created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS test_results (
-  id TEXT PRIMARY KEY, test_id TEXT NOT NULL, varyant_id TEXT NOT NULL,
+  id TEXT PRIMARY KEY, test_id TEXT NOT NULL, varyant_id TEXT NOT NULL, tarih TEXT NOT NULL DEFAULT '',
   gosterim INTEGER NOT NULL DEFAULT 0, tiklama INTEGER NOT NULL DEFAULT 0,
   donusum INTEGER NOT NULL DEFAULT 0, kaynak TEXT NOT NULL DEFAULT 'manuel',
   giren_kullanici TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
@@ -122,6 +124,10 @@ for (const stmt of [
   "ALTER TABLE agent_logs ADD COLUMN token_sayisi INTEGER NOT NULL DEFAULT 0",
   "ALTER TABLE tests ADD COLUMN olcut_tipi TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE workspaces ADD COLUMN org_id TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE tests ADD COLUMN olcut_payi TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE tests ADD COLUMN olcut_paydasi TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE tests ADD COLUMN deneme INTEGER NOT NULL DEFAULT 1",
+  "ALTER TABLE test_results ADD COLUMN tarih TEXT NOT NULL DEFAULT ''",
 ]) {
   try {
     sqlite.exec(stmt);

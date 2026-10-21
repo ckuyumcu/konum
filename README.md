@@ -45,13 +45,25 @@ Tam kıyaslama: `danisma/KIYAS-1.md`. Özet:
 - **Pilot kilidi:** Kanıt Motoru'nun ticari değeri, gerçek performans verisinin
   hangi kanaldan (Meta/Google/CSV) içeri gireceği belirlenene kadar HOLD.
 
+**Tur 2 (Kapı 2 yanıtları) — uygulananlar:** ölçüt pay/payda çifti
+(tiklama|donusum × gosterim|tiklama, izinli çiftler kodda); CSV'de tarih kolonu
+zorunlu, (test, varyant, tarih) tekil — aynı dosya iki kez yüklenemez; rapor
+kimliği kriptografik rastgele; IP kimliği HMAC + günlük tuz + IPv6 /64; küresel
+günlük LLM tavanı (300/gün şalter); simülasyon PDF'inde her sayfada filigran;
+kanıt kaydında tekrarlanabilirlik bloğu (kod sürümü + α + girdi hash'i + an);
+hipotez deneme sayısı (arka-kapı peeking ölçümü); ≥3 günlük veride yön
+tutarsızsa "WEAK" etiketi. **Ertelenenler:** grup sıralı test (v2 — tetik:
+ilk 20 gerçek testte "fark gösterilemedi" oranı > %50), teşhis hunisi panosu,
+gözlem/dönüşüm penceresi, kısmi e-posta kilidi (PDF indirme e-postaya bağlanır
+— A4, önce huni ölçümü).
+
 ## Çalıştırma
 
 ```bash
 npm install
 npm run dev      # http://localhost:3000 — arayüz + API (/api) tek süreçte
 npm run build    # tsc -b && vite build
-npm test         # otomatik testler (24 adet)
+npm test         # otomatik testler (28 adet)
 ```
 
 **İlk giriş:** `/giris` → e-posta `cem@konum.local`, davet kodu `KONUM-PILOT-1`

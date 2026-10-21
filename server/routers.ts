@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createHash } from "node:crypto";
-import { desc, eq, and, gte } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
+import { desc, eq, gte } from "drizzle-orm";
 import {
   router,
   publicProcedure,
@@ -30,7 +30,8 @@ import { bellekTaslagiUret } from "./agents/bellek";
 import { hipotezUret, testPlaniUret } from "./agents/kanit";
 import { mesajHaritasiUret } from "./agents/teshis";
 import { gecisZorla } from "./durum";
-import { kazananKarari } from "./stats";
+import { kazananKarari, payPaydaGecerliMi } from "./stats";
+import { gunlukIpHash } from "./guvenlik";
 import {
   anthropicAnahtari,
   anthropicAnahtariSil,
@@ -65,17 +66,23 @@ function logAjan(
 
 // Cost protection — v2 Section 4: daily LLM call limit per workspace.
 // Threshold [DV — default]: 50/day; will be made adjustable in Settings (Phase 4).
+// Danışma turu 2 (P0): workspace sınırına ek olarak KÜRESEL günlük tavan — botnet
+// ya da çok-workspace'li suistimalde toplam fatura burada kesilir.
 const GUNLUK_LLM_SINIRI = 50;
+const GUNLUK_LLM_KURESEL_TAVAN = 300;
 
 function gunlukLlmSiniriZorla(workspaceId: string) {
   const gunBaslangic = new Date();
   gunBaslangic.setHours(0, 0, 0, 0);
-  const kayitlar = db
-    .select()
-    .from(agentLogs)
-    .where(and(eq(agentLogs.workspaceId, workspaceId), gte(agentLogs.zaman, gunBaslangic.getTime())))
-    .all()
-    .filter((l) => l.mod === "llm");
+  const bugun = db.select().from(agentLogs).where(gte(agentLogs.zaman, gunBaslangic.getTime())).all();
+  const kuresel = bugun.filter((l) => l.mod === "llm").length;
+  if (kuresel >= GUNLUK_LLM_KURESEL_TAVAN) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "The platform-wide daily AI capacity has been reached. This circuit breaker protects against runaway costs; service resumes tomorrow.",
+    });
+  }
+  const kayitlar = bugun.filter((l) => l.workspaceId === workspaceId && l.mod === "llm");
   if (kayitlar.length >= GUNLUK_LLM_SINIRI) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
@@ -442,13 +449,18 @@ export const appRouter = router({
           { id: "A", rol: "kontrol", metin: sonuc.plan.varyantA },
           { id: "B", rol: "varyant", metin: sonuc.plan.varyantB },
         ];
+        // Arka-kapı peeking ölçümü (danışma turu 2): aynı hipotezin kaçıncı testi olduğu kaydedilir
+        const oncekiler = db.select().from(tests).where(eq(tests.hypothesisId, hip.id)).all().length;
         const test = {
           id: newId("tst"),
           hypothesisId: hip.id,
           workspaceId: input.workspaceId,
           varyantlar: JSON.stringify(varyantlar),
           olcut: sonuc.plan.olcut,
-          olcutTipi: sonuc.plan.olcutTipi,
+          olcutTipi: sonuc.plan.olcutPayi === "tiklama" ? "ctr" : "donusum", // eski okuyucular için yedek
+          olcutPayi: sonuc.plan.olcutPayi,
+          olcutPaydasi: sonuc.plan.olcutPaydasi,
+          deneme: oncekiler + 1,
           temelOran: Math.round(sonuc.plan.temelOranYuzde * 100), // % → baz puan (2.0% → 200)
           mde: Math.round(sonuc.plan.mdeYuzdePuan * 100),
           minimumOrneklem: sonuc.minimumOrneklem,
@@ -518,12 +530,15 @@ export const appRouter = router({
       }),
 
     // Sonuç girişi — manuel form (v2 Bölüm 2.4)
+    // tarih verilirse (YYYY-MM-DD) aynı gün ikinci kez girilemez — CSV tekrarıyla
+    // örneklem şişmesi kapatıldı (danışma turu 2, P0)
     sonucGir: protectedProcedure
       .input(
         z.object({
           workspaceId: z.string(),
           testId: z.string(),
           varyantId: z.string().min(1),
+          tarih: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD.").optional(),
           gosterim: z.number().int().min(0).max(100_000_000),
           tiklama: z.number().int().min(0).max(100_000_000),
           donusum: z.number().int().min(0).max(100_000_000),
@@ -541,11 +556,22 @@ export const appRouter = router({
         if (input.tiklama > input.gosterim || input.donusum > input.gosterim) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Clicks/conversions cannot exceed impressions." });
         }
+        const tarih = input.tarih ?? "";
+        if (tarih) {
+          const mevcut = db.select().from(testResults).where(eq(testResults.testId, t.id)).all();
+          if (mevcut.some((r) => r.varyantId === input.varyantId && r.tarih === tarih)) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: `Results for variant ${input.varyantId} on ${tarih} were already entered. A day cannot be entered twice — to correct it, contact support (reversal, not deletion, is the policy).`,
+            });
+          }
+        }
         db.insert(testResults)
           .values({
             id: newId("res"),
             testId: t.id,
             varyantId: input.varyantId,
+            tarih,
             gosterim: input.gosterim,
             tiklama: input.tiklama,
             donusum: input.donusum,
@@ -557,7 +583,7 @@ export const appRouter = router({
         return { ok: true };
       }),
 
-    // CSV şablonu — v2 Bölüm 2.4 (varyant_id,gosterim,tiklama,donusum)
+    // CSV şablonu — danışma turu 2: tarih kolonu zorunlu (günlük artış bildirimi)
     csvSablonu: protectedProcedure
       .input(z.object({ workspaceId: z.string(), testId: z.string() }))
       .query(({ ctx, input }) => {
@@ -567,11 +593,13 @@ export const appRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
         }
         const varyantlar = JSON.parse(t.varyantlar || "[]") as { id: string }[];
-        const satirlar = varyantlar.map((v) => `${v.id},0,0,0`);
-        return { csv: `varyant_id,gosterim,tiklama,donusum\n${satirlar.join("\n")}\n` };
+        const bugun = new Date().toISOString().slice(0, 10);
+        const satirlar = varyantlar.map((v) => `${v.id},${bugun},0,0,0`);
+        return { csv: `varyant_id,tarih,gosterim,tiklama,donusum\n${satirlar.join("\n")}\n` };
       }),
 
-    // CSV toplu sonuç girişi
+    // CSV toplu sonuç girişi — her satır bir günün ARTIŞIDIR (kümülatif anlık görüntü değil).
+    // (test, varyant, tarih) tekil: aynı dosyayı iki kez yüklemek veriyi ikiye katlayamaz.
     csvSonucGir: protectedProcedure
       .input(z.object({ workspaceId: z.string(), testId: z.string(), csv: z.string().max(100_000) }))
       .mutation(({ ctx, input }) => {
@@ -583,17 +611,25 @@ export const appRouter = router({
         if (t.durum !== "calisiyor") {
           throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Results can only be entered while the test is running." });
         }
+        const mevcut = db.select().from(testResults).where(eq(testResults.testId, t.id)).all();
+        const dosyaIcinde = new Set<string>();
+        const TARIH_RE = /^\d{4}-\d{2}-\d{2}$/;
         const satirlar = input.csv.trim().split(/\r?\n/).slice(1); // başlık atlanır
         let eklenen = 0;
         for (const [i, satir] of satirlar.entries()) {
           if (!satir.trim()) continue;
-          const [varyantId, gosterim, tiklama, donusum] = satir.split(",").map((p) => p.trim());
+          const [varyantId, tarih, gosterim, tiklama, donusum] = satir.split(",").map((p) => p.trim());
           const g = Number(gosterim), tk = Number(tiklama), d = Number(donusum);
-          if (!varyantId || !Number.isInteger(g) || !Number.isInteger(tk) || !Number.isInteger(d) || g < 0 || tk < 0 || d < 0 || tk > g || d > g) {
-            throw new TRPCError({ code: "BAD_REQUEST", message: `Invalid CSV row ${i + 2}: "${satir}"` });
+          if (!varyantId || !TARIH_RE.test(tarih || "") || !Number.isInteger(g) || !Number.isInteger(tk) || !Number.isInteger(d) || g < 0 || tk < 0 || d < 0 || tk > g || d > g) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Invalid CSV row ${i + 2}: "${satir}" (format: varyant_id,YYYY-MM-DD,gosterim,tiklama,donusum — daily increments)` });
           }
+          const anahtar = `${varyantId}|${tarih}`;
+          if (dosyaIcinde.has(anahtar) || mevcut.some((r) => r.varyantId === varyantId && r.tarih === tarih)) {
+            throw new TRPCError({ code: "CONFLICT", message: `Row ${i + 2}: variant ${varyantId} for ${tarih} already exists. Re-uploading the same day is not allowed.` });
+          }
+          dosyaIcinde.add(anahtar);
           db.insert(testResults)
-            .values({ id: newId("res"), testId: t.id, varyantId, gosterim: g, tiklama: tk, donusum: d, kaynak: "csv", girenKullanici: ctx.user.email, zaman: Date.now() })
+            .values({ id: newId("res"), testId: t.id, varyantId, tarih, gosterim: g, tiklama: tk, donusum: d, kaynak: "csv", girenKullanici: ctx.user.email, zaman: Date.now() })
             .run();
           eklenen++;
         }
@@ -613,18 +649,47 @@ export const appRouter = router({
         gecisZorla("test", t.durum, "tamamlandi"); // yalnız calisiyor → tamamlandi izinli; yetersizVeri aşağıda
         const varyantlar = JSON.parse(t.varyantlar || "[]") as { id: string; metin: string }[];
         const sonuclar = db.select().from(testResults).where(eq(testResults.testId, t.id)).all();
-        // Ölçüt tipi planlayıcıdan yapısal gelir; eski kayıtlar için metin sezgisi yedek
-        const tiklamaBazli = t.olcutTipi ? t.olcutTipi === "ctr" : /click|ctr|tıklama/i.test(t.olcut || "");
+        // Pay/payda planlayıcıdan yapısal gelir (danışma turu 2); eski kayıtlar için olcutTipi/metin yedeği
+        const pay = t.olcutPayi || (t.olcutTipi === "donusum" ? "donusum" : /click|ctr|tıklama/i.test(t.olcut || "") || t.olcutTipi === "ctr" ? "tiklama" : "donusum");
+        const payda = t.olcutPaydasi || "gosterim";
+        if (!payPaydaGecerliMi(pay, payda)) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: `Invalid metric pair on the test plan: ${pay}/${payda}.` });
+        }
+        const sayac = (r: (typeof sonuclar)[number], alan: string) =>
+          alan === "tiklama" ? r.tiklama : alan === "donusum" ? r.donusum : r.gosterim;
         const topla = (vid: string) => {
           const rows = sonuclar.filter((r) => r.varyantId === vid);
           return {
             varyantId: vid,
-            gosterim: rows.reduce((a, r) => a + r.gosterim, 0),
-            donusum: rows.reduce((a, r) => a + (tiklamaBazli ? r.tiklama : r.donusum), 0),
+            gosterim: rows.reduce((a, r) => a + sayac(r, payda), 0), // z-testi paydası
+            donusum: rows.reduce((a, r) => a + sayac(r, pay), 0), // z-testi payı
           };
         };
         const kontrol = topla("A");
         const varyant = topla("B");
+
+        // Günlük yön tutarlılığı (danışma turu 2): tarihli satırlarda günlük kazanan yönü
+        // karışıksa sonuç "zayıf" etiketi alır — hesap değişmez, dürüstlük katmanıdır.
+        let zayifNotu = "";
+        const tarihler = [...new Set(sonuclar.map((r) => r.tarih).filter(Boolean))].sort();
+        if (tarihler.length >= 3) {
+          const yonler = tarihler
+            .map((gun) => {
+              const gunSatir = sonuclar.filter((r) => r.tarih === gun);
+              const aS = gunSatir.filter((r) => r.varyantId === "A");
+              const bS = gunSatir.filter((r) => r.varyantId === "B");
+              const aP = aS.reduce((x, r) => x + sayac(r, payda), 0);
+              const bP = bS.reduce((x, r) => x + sayac(r, payda), 0);
+              if (aP === 0 || bP === 0) return null;
+              const aOran = aS.reduce((x, r) => x + sayac(r, pay), 0) / aP;
+              const bOran = bS.reduce((x, r) => x + sayac(r, pay), 0) / bP;
+              return aOran === bOran ? null : bOran > aOran ? "B" : "A";
+            })
+            .filter(Boolean);
+          if (yonler.length >= 3 && new Set(yonler).size > 1) {
+            zayifNotu = " WEAK: the daily winner direction flipped across days — treat this result with caution.";
+          }
+        }
 
         // Min örneklem dolmadan değerlendirme testi ÖLDÜRMEZ: durum calisiyor kalır,
         // veri girişi devam eder. (İç red-team bulgusu — Kapı 2 soru 1)
@@ -650,8 +715,14 @@ export const appRouter = router({
         }
 
         const kazananMetin = varyantlar.find((v) => v.id === karar.kazananVaryantId)?.metin ?? "";
+        // Tekrarlanabilirlik (danışma turu 2, P1): kod sürümü + girdi hash'i + hesap anı kaydedilir
+        const girdiHash = createHash("sha256")
+          .update(JSON.stringify({ kontrol, varyant, min: t.minimumOrneklem, pay, payda }))
+          .digest("hex")
+          .slice(0, 16);
+        const tekrar = ` [reproduce: stats v1.2 · α=0.05 two-sided · pair ${pay}/${payda} · input ${girdiHash} · ${new Date().toISOString()}]`;
         db.update(tests)
-          .set({ durum: "tamamlandi", kazananVaryantId: karar.kazananVaryantId, pDegeri: Math.round(karar.pDegeri * 1e6), sonuc: `Winner: variant ${karar.kazananVaryantId} (p = ${karar.pDegeri.toFixed(4)})` })
+          .set({ durum: "tamamlandi", kazananVaryantId: karar.kazananVaryantId, pDegeri: Math.round(karar.pDegeri * 1e6), sonuc: `Winner: variant ${karar.kazananVaryantId} (p = ${karar.pDegeri.toFixed(4)})${zayifNotu}` })
           .where(eq(tests.id, t.id))
           .run();
         const kanit = {
@@ -659,7 +730,7 @@ export const appRouter = router({
           workspaceId: input.workspaceId,
           testId: t.id,
           kazananMesaj: kazananMetin,
-          ogrenim: `A/B test winner: variant ${karar.kazananVaryantId} — p = ${karar.pDegeri.toFixed(4)}, rates A=${(karar.oranlar.A * 100).toFixed(2)}%, B=${(karar.oranlar.B * 100).toFixed(2)}%. Metric: ${t.olcut}.`,
+          ogrenim: `A/B test winner: variant ${karar.kazananVaryantId} — p = ${karar.pDegeri.toFixed(4)}, rates A=${(karar.oranlar.A * 100).toFixed(2)}%, B=${(karar.oranlar.B * 100).toFixed(2)}%. Metric: ${t.olcut} (${pay}/${payda}). Attempt #${t.deneme} for this hypothesis.${zayifNotu}${tekrar}`,
           disaAktarimFormati: "markdown",
           createdAt: Date.now(),
         };
@@ -725,7 +796,7 @@ export const appRouter = router({
         if (bugun.length >= 100) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "The daily free analysis capacity is full (100/day). Please try tomorrow." });
         }
-        const ipHash = createHash("sha256").update(`konum-ip:${ctx.ip}`).digest("hex").slice(0, 24);
+        const ipHash = gunlukIpHash(ctx.ip); // HMAC + günlük tuz + IPv6 /64 (danışma turu 2)
         const ipSayisi = bugun.filter((r) => r.ipHash === ipHash).length;
         if (ipSayisi >= 3) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "You have used today's 3 free analyses. Please try tomorrow." });
@@ -749,7 +820,8 @@ export const appRouter = router({
           });
         }
         const sonuc = await mesajHaritasiUret(scan.title, scan.metin);
-        const id = newId("tsh");
+        // Tahmin edilemez rapor kimliği (danışma turu 2): 64-bit kriptografik rastgele
+        const id = `tsh_${randomBytes(8).toString("hex")}`;
         db.insert(diagnosisRequests)
           .values({
             id,

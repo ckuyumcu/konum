@@ -37,8 +37,10 @@ export interface PdfBolum {
   satirlar: string[];
 }
 
-/** Çok sayfalı basit metin raporu üretir; PDF baytlarını döndürür. */
-export function raporPdf(baslik: string, altBaslik: string, bolumler: PdfBolum[]): Uint8Array {
+/** Çok sayfalı basit metin raporu üretir; PDF baytlarını döndürür.
+ *  filigran verilirse her sayfanın altına basılır (danışma turu 2: simülasyon
+ *  etiketi ekran görüntüsünde bile atlatılamasın). */
+export function raporPdf(baslik: string, altBaslik: string, bolumler: PdfBolum[], filigran?: string): Uint8Array {
   const SAYFA_SATIR = 46;
   const sayfalar: string[][] = [];
   let akim: string[] = [`${baslik}`, altBaslik, ""];
@@ -67,9 +69,10 @@ export function raporPdf(baslik: string, altBaslik: string, bolumler: PdfBolum[]
     sayfaIds.push(pageNo);
     const y0 = 780;
     const satirYukseklik = 16;
-    const govde = satirlar
-      .map((l, j) => `BT /F1 ${j < 2 && i === 0 ? 15 : 10} Tf 50 ${y0 - j * satirYukseklik} Td (${pdfEscape(l)}) Tj ET`)
-      .join("\n");
+    const govde =
+      satirlar
+        .map((l, j) => `BT /F1 ${j < 2 && i === 0 ? 15 : 10} Tf 50 ${y0 - j * satirYukseklik} Td (${pdfEscape(l)}) Tj ET`)
+        .join("\n") + (filigran ? `\nBT /F1 9 Tf 50 30 Td (${pdfEscape(filigran)}) Tj ET` : "");
     objeler[pageNo] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontObjNo} 0 R >> >> /Contents ${contentNo} 0 R >>`;
     objeler[contentNo] = `<< /Length ${govde.length} >>\nstream\n${govde}\nendstream`;
   });

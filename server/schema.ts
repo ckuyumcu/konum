@@ -105,8 +105,12 @@ export const tests = sqliteTable("tests", {
   workspaceId: text("workspace_id").notNull(),
   varyantlar: text("varyantlar").notNull().default("[]"),
   olcut: text("olcut").notNull().default(""),
-  olcutTipi: text("olcut_tipi").notNull().default(""), // "ctr" | "donusum" — z-testinin payını belirler
-  temelOran: integer("temel_oran").notNull().default(0), // base conversion rate (stored raw, e.g. rate*10000 — finalized in Phase 2)
+  olcutTipi: text("olcut_tipi").notNull().default(""), // "ctr" | "donusum" — eski kayıtlar için yedek
+  // Danışma turu 2: kontrollü pay/payda çifti (stats.ts payPaydaGecerliMi)
+  olcutPayi: text("olcut_payi").notNull().default(""), // tiklama | donusum
+  olcutPaydasi: text("olcut_paydasi").notNull().default(""), // gosterim | tiklama
+  deneme: integer("deneme").notNull().default(1), // aynı hipotezin kaçıncı testi (arka-kapı peeking ölçümü)
+  temelOran: integer("temel_oran").notNull().default(0), // baz puan (2.0% → 200)
   mde: integer("mde").notNull().default(0),
   minimumOrneklem: integer("minimum_orneklem").notNull().default(0),
   baslangic: integer("baslangic", { mode: "number" }),
@@ -118,10 +122,13 @@ export const tests = sqliteTable("tests", {
 });
 
 // Test result entry: manual form or CSV (v2 Section 2.4)
+// tarih: YYYY-MM-DD — danışma turu 2: (test, varyant, tarih) tekil; aynı günün
+// ikinci yüklemesi reddedilir (CSV tekrarıyla örneklem şişmesi kapatıldı).
 export const testResults = sqliteTable("test_results", {
   id: text("id").primaryKey(),
   testId: text("test_id").notNull(),
   varyantId: text("varyant_id").notNull(),
+  tarih: text("tarih").notNull().default(""), // boş = tarihsiz manuel giriş
   gosterim: integer("gosterim").notNull().default(0),
   tiklama: integer("tiklama").notNull().default(0),
   donusum: integer("donusum").notNull().default(0),

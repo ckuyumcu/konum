@@ -204,6 +204,41 @@ async function main() {
     assert.equal(r.tur, "yetersizVeri");
   });
 
+  console.log("Consultation round 2 (Gate 2 fixes):");
+  await test("metric pair: tiklama/gosterim valid, gosterim/tiklama invalid", async () => {
+    const { payPaydaGecerliMi } = await import("../stats");
+    assert.equal(payPaydaGecerliMi("tiklama", "gosterim"), true);
+    assert.equal(payPaydaGecerliMi("donusum", "tiklama"), true);
+    assert.equal(payPaydaGecerliMi("gosterim", "tiklama"), false);
+    assert.equal(payPaydaGecerliMi("tiklama", "tiklama"), false);
+  });
+  await test("IP identity: IPv6 /64 prefix collapses to one identity", async () => {
+    const { ipNormallestir } = await import("../guvenlik");
+    assert.equal(ipNormallestir("2001:db8:aaaa:bbbb:1111:2222:3333:4444"), "2001:db8:aaaa:bbbb::/64");
+    assert.equal(ipNormallestir("203.0.113.7"), "203.0.113.7");
+  });
+  await test("daily IP hash: stable within a day, changes the next day", async () => {
+    const { gunlukIpHash } = await import("../guvenlik");
+    const d1 = new Date("2026-10-22T10:00:00Z");
+    const d2 = new Date("2026-10-22T23:00:00Z");
+    const d3 = new Date("2026-10-23T00:30:00Z");
+    assert.equal(gunlukIpHash("203.0.113.7", d1), gunlukIpHash("203.0.113.7", d2));
+    assert.notEqual(gunlukIpHash("203.0.113.7", d1), gunlukIpHash("203.0.113.7", d3));
+    // aynı /64 ağındaki farklı IPv6 adresleri tek kimlik
+    assert.equal(
+      gunlukIpHash("2001:db8:aaaa:bbbb::1", d1),
+      gunlukIpHash("2001:db8:aaaa:bbbb::ffff", d1)
+    );
+  });
+  await test("PDF: watermark appears on every page", async () => {
+    const { raporPdf } = await import("../pdf");
+    // 60 satırlık bölüm 2 sayfaya taşar
+    const satirlar = Array.from({ length: 60 }, (_, i) => `satir ${i}`);
+    const pdf = Buffer.from(raporPdf("T", "A", [{ baslik: "B", satirlar }], "SIMULATION — TEST")).toString("latin1");
+    const adet = pdf.split("SIMULATION - TEST").length - 1; // latin1: — → -
+    assert.ok(adet >= 2, `watermark count ${adet} < 2`);
+  });
+
   console.log(`\n${gecti} tests passed.`);
 }
 

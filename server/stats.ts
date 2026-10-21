@@ -58,6 +58,17 @@ export function minimumOrneklem(temelOran: number, mde: number): number {
   return Math.ceil((pay * pay) / (delta * delta));
 }
 
+// Ölçüt pay/payda çifti — danışma turu 2 (Kapı 2 soru 2): serbest "custom" yerine
+// kontrollü çift. Mevcut test_results kolonlarıyla karşılanabilen kombinasyonlar:
+const PAY_PAYDA_IZINLI: Record<string, string[]> = {
+  tiklama: ["gosterim"], // CTR
+  donusum: ["gosterim", "tiklama"], // CVR ve tıklama başına dönüşüm
+};
+
+export function payPaydaGecerliMi(pay: string, payda: string): boolean {
+  return (PAY_PAYDA_IZINLI[pay] ?? []).includes(payda);
+}
+
 export type KazananKarar =
   | { tur: "kazanan"; kazananVaryantId: string; pDegeri: number; oranlar: Record<string, number> }
   | { tur: "yetersizVeri"; gerekce: string; oranlar: Record<string, number> };

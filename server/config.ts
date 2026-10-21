@@ -7,6 +7,7 @@
 //     never returned to the client, never written to git.
 
 import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, chmodSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,6 +38,7 @@ const GIZLI_DOSYA = path.join(GIZLI_DIZIN, "secrets.json");
 
 interface Secrets {
   anthropicApiKey?: string;
+  hmacKey?: string;
 }
 
 function dosyadanOku(): Secrets {
@@ -74,4 +76,17 @@ export function anthropicAnahtariSil(): void {
 export function platformSahibiMi(email: string): boolean {
   const sahip = (process.env.KONUM_PLATFORM_SAHIBI || "cem@konum.local").toLocaleLowerCase("tr");
   return email.toLocaleLowerCase("tr") === sahip;
+}
+
+// HMAC key for the daily IP hash (consultation round 2): generated once, stored in the
+// same out-of-project secret file, never leaves the server.
+export function hmacAnahtari(): string {
+  const mevcut = dosyadanOku();
+  if (mevcut.hmacKey) return mevcut.hmacKey;
+  const anahtar = randomBytes(32).toString("hex");
+  mkdirSync(GIZLI_DIZIN, { recursive: true, mode: 0o700 });
+  chmodSync(GIZLI_DIZIN, 0o700);
+  writeFileSync(GIZLI_DOSYA, JSON.stringify({ ...mevcut, hmacKey: anahtar }), { mode: 0o600 });
+  chmodSync(GIZLI_DOSYA, 0o600);
+  return anahtar;
 }

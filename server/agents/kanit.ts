@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { generateJson } from "./llm";
 import { denetle } from "./denetci";
-import { minimumOrneklem } from "../stats";
+import { minimumOrneklem, payPaydaGecerliMi } from "../stats";
 
 // --- Hipotez üretimi -------------------------------------------------------
 
@@ -83,23 +83,28 @@ Client: ${bellek.musteriAdi} — Sector: ${bellek.sektor}
 
 // --- Test planı -------------------------------------------------------------
 
-export const TestPlaniSchema = z.object({
-  varyantA: z.string(),
-  varyantB: z.string(),
-  olcut: z.string(),
-  olcutTipi: z.enum(["ctr", "donusum"]),
-  temelOranYuzde: z.number().min(0.01).max(99),
-  mdeYuzdePuan: z.number().min(0.1).max(50),
-  butceNotu: z.string(),
-});
+export const TestPlaniSchema = z
+  .object({
+    varyantA: z.string(),
+    varyantB: z.string(),
+    olcut: z.string(),
+    olcutPayi: z.enum(["tiklama", "donusum"]),
+    olcutPaydasi: z.enum(["gosterim", "tiklama"]),
+    temelOranYuzde: z.number().min(0.01).max(99),
+    mdeYuzdePuan: z.number().min(0.1).max(50),
+    butceNotu: z.string(),
+  })
+  .refine((p) => payPaydaGecerliMi(p.olcutPayi, p.olcutPaydasi), {
+    message: "Invalid numerator/denominator pair",
+  });
 export type TestPlani = z.infer<typeof TestPlaniSchema>;
 
 const TEST_SYSTEM = `You are the Test Designer of the "Konum" platform. Design a small-budget A/B test for the given hypothesis.
 Rules:
-- Return JSON with exactly: {"varyantA": string, "varyantB": string, "olcut": string, "olcutTipi": "ctr"|"donusum", "temelOranYuzde": number, "mdeYuzdePuan": number, "butceNotu": string}
+- Return JSON with exactly: {"varyantA": string, "varyantB": string, "olcut": string, "olcutPayi": "tiklama"|"donusum", "olcutPaydasi": "gosterim"|"tiklama", "temelOranYuzde": number, "mdeYuzdePuan": number, "butceNotu": string}
 - varyantA is the control (current/generic message), varyantB is the challenger built on the hypothesis. Both are ad copy, max 2 sentences each.
 - olcut: the metric that decides the winner (e.g. "click-through rate to the product page").
-- olcutTipi: "ctr" if the winning numerator is a click, "donusum" if it is a conversion (signup, purchase, lead). This decides which counter the statistics engine uses — choose deliberately.
+- olcutPayi/olcutPaydasi: the numerator/denominator pair that defines the metric, chosen deliberately. Allowed pairs: tiklama/gosterim (CTR), donusum/gosterim (conversion rate), donusum/tiklama (post-click conversion).
 - temelOranYuzde: a realistic baseline rate guess in percent (e.g. 2.0). If unknown, use a conservative category-typical value and say so in butceNotu.
 - mdeYuzdePuan: the minimum detectable effect in percentage points (e.g. 1.0 means detecting +1pp).
 - butceNotu: daily budget suggestion and run-length guidance, one sentence. Never promise results.
@@ -110,7 +115,8 @@ function simulasyonTestPlani(iddia: string): TestPlani {
     varyantA: "Quality you can trust. Try it today — easy setup, great value.",
     varyantB: `${iddia} — see the proof before you buy.`,
     olcut: "Click-through rate to the product page",
-    olcutTipi: "ctr",
+    olcutPayi: "tiklama",
+    olcutPaydasi: "gosterim",
     temelOranYuzde: 2.0,
     mdeYuzdePuan: 1.0,
     butceNotu: "Suggested: $10–20/day per arm until the minimum sample is reached; baseline is a category-typical guess — refine after the first data.",

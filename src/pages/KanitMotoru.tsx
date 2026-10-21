@@ -56,7 +56,7 @@ const DURUM_ETIKET: Record<string, { ad: string; renk: string }> = {
   onayBekliyor: { ad: "Awaiting approval", renk: "text-[#b45309] border-[#b45309]/40" },
   calisiyor: { ad: "Running", renk: "text-[#c52a00] border-[#c52a00]/40" },
   tamamlandi: { ad: "Completed", renk: "text-[#0d6e3f] border-[#0d6e3f]/40" },
-  yetersizVeri: { ad: "Insufficient data", renk: "text-muted-foreground border-border" },
+  yetersizVeri: { ad: "No winner shown (p ≥ 0.05)", renk: "text-muted-foreground border-border" },
 };
 
 export default function KanitMotoru() {
@@ -310,7 +310,8 @@ export default function KanitMotoru() {
                   {csvAcik === t.id && t.durum === "calisiyor" && (
                     <div className="mt-4 rounded-lg border border-border bg-background p-4">
                       <p className="text-xs text-muted-foreground mb-2">
-                        Paste rows in the template format (<code>varyant_id,gosterim,tiklama,donusum</code> — header line required):
+                        Paste rows in the template format (<code>varyant_id,tarih,gosterim,tiklama,donusum</code> — header line required). Each row is one
+                        day's increment; a day that was already imported is rejected, so re-uploading a file never double-counts.
                       </p>
                       <textarea
                         rows={4}
