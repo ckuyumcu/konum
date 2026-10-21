@@ -18,7 +18,9 @@ const GECISLER: Record<string, Record<string, string[]>> = {
     denetimde: ["onayKuyrugu"],
     onayKuyrugu: ["onayli", "revize", "reddedildi"],
     revize: ["onayKuyrugu"],
-    onayli: ["paketlendi"],
+    // Danışma turu 1: onaylı içerik düzenlenirse onay geçersizleşir → kuyruğa döner.
+    // Bu geçişi yalnızca icra.duzenle kullanır ve approval_events'e "duzenleme-onayi-bozdu" yazar.
+    onayli: ["paketlendi", "onayKuyrugu"],
     reddedildi: [],
     paketlendi: [],
   },

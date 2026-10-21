@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createHash, randomBytes } from "node:crypto";
-import { desc, eq, gte } from "drizzle-orm";
+import { desc, eq, and, gte } from "drizzle-orm";
 import {
   router,
   publicProcedure,
@@ -13,12 +13,15 @@ import {
 import { db, newId } from "./db";
 import {
   agentLogs,
+  approvalEvents,
+  contentItems,
   crawlSnapshots,
   diagnosisRequests,
   evidenceFiles,
   hypotheses,
   organizations,
   pilotApplications,
+  publishPackages,
   strategyBeliefs,
   testResults,
   tests,
@@ -29,6 +32,8 @@ import { scanUrl, SsrfError } from "./agents/scanner";
 import { bellekTaslagiUret } from "./agents/bellek";
 import { hipotezUret, testPlaniUret } from "./agents/kanit";
 import { mesajHaritasiUret } from "./agents/teshis";
+import { kanalVaryasyonlariUret } from "./agents/icra";
+import { denetle } from "./agents/denetci";
 import { gecisZorla } from "./durum";
 import { kazananKarari, payPaydaGecerliMi } from "./stats";
 import { gunlukIpHash } from "./guvenlik";
@@ -774,6 +779,289 @@ export const appRouter = router({
       }),
   }),
 
+
+  // ===== İcra Stüdyosu + Onay Merkezi (Aşama 3) ===========================
+  // Danışma şartları: onay içerik hash'ine bağlı; düzenleme onayı bozar; ret nedeni
+  // sabit listeden; her olay approval_events'e (rol + hash kopyasıyla) yazılır.
+  icra: router({
+    // Kanıtlanmış mesajdan 3 kanal varyasyonu üret (eposta/sosyal/reklam)
+    varyasyonUret: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), evidenceId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const bellek = bellekOnayZorla(input.workspaceId);
+        gunlukLlmSiniriZorla(input.workspaceId);
+        const kanit = db.select().from(evidenceFiles).where(eq(evidenceFiles.id, input.evidenceId)).get();
+        if (!kanit || kanit.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Evidence file not found." });
+        }
+        const sonuc = await kanalVaryasyonlariUret(kanit.kazananMesaj, bellek);
+        const simdi = Date.now();
+        const gecti = sonuc.denetci.karar === "gecti";
+        const ogeler = sonuc.paket.varyasyonlar.map((v) => {
+          const govdeHash = createHash("sha256").update(`${v.kanal}|${v.baslik}|${v.govde}`).digest("hex");
+          const item = {
+            id: newId("cnt"),
+            workspaceId: input.workspaceId,
+            evidenceId: kanit.id,
+            kanal: v.kanal,
+            baslik: v.baslik,
+            govde: v.govde,
+            // Denetçi geçirdiyse doğrudan onay kuyruğunda; reddettiyse denetimde kalır
+            durum: gecti ? "onayKuyrugu" : "denetimde",
+            denetciNotu: gecti ? "" : sonuc.denetci.gerekce,
+            govdeHash,
+            kuyrugaGiris: gecti ? simdi : null,
+            surum: 1,
+            oncekiSurumId: null,
+            createdAt: simdi,
+          };
+          db.insert(contentItems).values(item).run();
+          return item;
+        });
+        logAjan(
+          input.workspaceId,
+          "icra",
+          `Channel variations from evidence ${kanit.id}`,
+          `${ogeler.length} items (${ogeler.map((o) => o.kanal).join(", ")})`,
+          sonuc.denetci.karar === "gecti" ? "gecti" : `reddedildi: ${sonuc.denetci.gerekce}`,
+          sonuc.mod,
+          sonuc.tokenSayisi,
+        );
+        return { ogeler, mod: sonuc.mod, denetci: sonuc.denetci };
+      }),
+
+    icerikler: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        return db
+          .select()
+          .from(contentItems)
+          .where(eq(contentItems.workspaceId, input.workspaceId))
+          .orderBy(desc(contentItems.createdAt))
+          .all();
+      }),
+
+    // Düzenleme — danışma turu 1: onaylı içerik düzenlenirse onay geçersizleşir,
+    // öğe onay kuyruğuna döner; olay kaydı "duzenleme-onayi-bozdu" ile yazılır.
+    duzenle: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          icerikId: z.string(),
+          baslik: z.string().trim().min(3),
+          govde: z.string().trim().min(10),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        const { rol } = uyeZorla(input.workspaceId, ctx.user.id);
+        const bellek = bellekOnayZorla(input.workspaceId);
+        const item = db.select().from(contentItems).where(eq(contentItems.id, input.icerikId)).get();
+        if (!item || item.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Content item not found." });
+        }
+        if (!["denetimde", "onayKuyrugu", "revize", "onayli"].includes(item.durum)) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: `Content in "${item.durum}" state cannot be edited.` });
+        }
+        const yasakli = JSON.parse(bellek.yasakliIfadeler || "[]") as string[];
+        const d = denetle({ metin: `${input.baslik} ${input.govde}`, yasakliIfadeler: yasakli });
+        const hashTam = createHash("sha256").update(`${item.kanal}|${input.baslik}|${input.govde}`).digest("hex");
+        const degisti = hashTam !== item.govdeHash;
+        const simdi = Date.now();
+        let yeniDurum = item.durum;
+        if (item.durum === "onayli" && degisti) {
+          gecisZorla("icerik", "onayli", "onayKuyrugu");
+          yeniDurum = "onayKuyrugu";
+          db.insert(approvalEvents)
+            .values({
+              id: newId("apr"),
+              contentItemId: item.id,
+              userId: ctx.user.id,
+              eylem: "duzenleme-onayi-bozdu",
+              not: "Approved content was edited; the previous approval is invalid for the new version.",
+              govdeHash: item.govdeHash,
+              rol,
+              redNedeni: "",
+              zaman: simdi,
+            })
+            .run();
+        }
+        if (item.durum === "denetimde" && d.karar === "gecti") {
+          gecisZorla("icerik", "denetimde", "onayKuyrugu");
+          yeniDurum = "onayKuyrugu";
+        }
+        if (item.durum === "revize" && d.karar === "gecti") {
+          gecisZorla("icerik", "revize", "onayKuyrugu");
+          yeniDurum = "onayKuyrugu";
+        }
+        db.update(contentItems)
+          .set({
+            baslik: input.baslik,
+            govde: input.govde,
+            govdeHash: hashTam,
+            surum: item.surum + 1,
+            durum: yeniDurum,
+            denetciNotu: d.karar === "gecti" ? "" : d.gerekce,
+            kuyrugaGiris: yeniDurum === "onayKuyrugu" && item.durum !== "onayKuyrugu" ? simdi : item.kuyrugaGiris,
+          })
+          .where(eq(contentItems.id, item.id))
+          .run();
+        return { ok: true, durum: yeniDurum, surum: item.surum + 1, denetci: d };
+      }),
+  }),
+
+  onay: router({
+    // Tekil onay kuyruğu — toplu/kör onay yok (v2 vaadi)
+    kuyruk: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        return db
+          .select()
+          .from(contentItems)
+          .where(and(eq(contentItems.workspaceId, input.workspaceId), eq(contentItems.durum, "onayKuyrugu")))
+          .orderBy(contentItems.kuyrugaGiris)
+          .all();
+      }),
+
+    onayla: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), icerikId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        const { rol } = onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const item = db.select().from(contentItems).where(eq(contentItems.id, input.icerikId)).get();
+        if (!item || item.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Content item not found." });
+        }
+        gecisZorla("icerik", item.durum, "onayli");
+        db.update(contentItems).set({ durum: "onayli" }).where(eq(contentItems.id, item.id)).run();
+        db.insert(approvalEvents)
+          .values({
+            id: newId("apr"),
+            contentItemId: item.id,
+            userId: ctx.user.id,
+            eylem: "onay",
+            not: "",
+            govdeHash: item.govdeHash, // onay bu sürüme bağlı — sonraki düzenleme onayı bozar
+            rol,
+            redNedeni: "",
+            zaman: Date.now(),
+          })
+          .run();
+        return { ok: true };
+      }),
+
+    reddet: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          icerikId: z.string(),
+          redNedeni: z.enum(["ton", "yanlis-bilgi", "marka-disi", "hukuki-risk", "diger"]),
+          not: z.string().max(500).optional(),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        const { rol } = onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const item = db.select().from(contentItems).where(eq(contentItems.id, input.icerikId)).get();
+        if (!item || item.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Content item not found." });
+        }
+        gecisZorla("icerik", item.durum, "reddedildi");
+        db.update(contentItems).set({ durum: "reddedildi" }).where(eq(contentItems.id, item.id)).run();
+        db.insert(approvalEvents)
+          .values({ id: newId("apr"), contentItemId: item.id, userId: ctx.user.id, eylem: "red", not: input.not ?? "", govdeHash: item.govdeHash, rol, redNedeni: input.redNedeni, zaman: Date.now() })
+          .run();
+        return { ok: true };
+      }),
+
+    revizeIste: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), icerikId: z.string(), not: z.string().trim().min(3, "A revision note is required.").max(500) }))
+      .mutation(({ ctx, input }) => {
+        const { rol } = onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const item = db.select().from(contentItems).where(eq(contentItems.id, input.icerikId)).get();
+        if (!item || item.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Content item not found." });
+        }
+        gecisZorla("icerik", item.durum, "revize");
+        db.update(contentItems).set({ durum: "revize" }).where(eq(contentItems.id, item.id)).run();
+        db.insert(approvalEvents)
+          .values({ id: newId("apr"), contentItemId: item.id, userId: ctx.user.id, eylem: "revize", not: input.not, govdeHash: item.govdeHash, rol, redNedeni: "", zaman: Date.now() })
+          .run();
+        return { ok: true };
+      }),
+
+    // Yayın paketi — yalnızca onay hash'i GÜNCEL içerikle birebir eşleşen öğeler girer
+    paketOlustur: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const onaylilar = db
+          .select()
+          .from(contentItems)
+          .where(and(eq(contentItems.workspaceId, input.workspaceId), eq(contentItems.durum, "onayli")))
+          .all();
+        if (onaylilar.length === 0) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "There are no approved items to package." });
+        }
+        const uyumsuz: string[] = [];
+        for (const item of onaylilar) {
+          const sonOnay = db
+            .select()
+            .from(approvalEvents)
+            .where(eq(approvalEvents.contentItemId, item.id))
+            .orderBy(desc(approvalEvents.zaman))
+            .all()
+            .find((e) => e.eylem === "onay");
+          if (!sonOnay || sonOnay.govdeHash !== item.govdeHash) uyumsuz.push(item.id);
+        }
+        if (uyumsuz.length > 0) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `${uyumsuz.length} item(s) were edited after approval — they need re-approval before packaging.`,
+          });
+        }
+        const simdi = Date.now();
+        const paket = {
+          id: newId("pkg"),
+          workspaceId: input.workspaceId,
+          ogeler: JSON.stringify(onaylilar.map((o) => ({ id: o.id, kanal: o.kanal, baslik: o.baslik, govde: o.govde, govdeHash: o.govdeHash }))),
+          olusturan: ctx.user.email,
+          olusturmaZamani: simdi,
+          disaAktarimAnahtari: randomBytes(8).toString("hex"),
+        };
+        db.insert(publishPackages).values(paket).run();
+        for (const item of onaylilar) {
+          gecisZorla("icerik", "onayli", "paketlendi");
+          db.update(contentItems).set({ durum: "paketlendi" }).where(eq(contentItems.id, item.id)).run();
+          db.insert(approvalEvents)
+            .values({ id: newId("apr"), contentItemId: item.id, userId: ctx.user.id, eylem: "paketlendi", not: `Package ${paket.id}`, govdeHash: item.govdeHash, rol: "", redNedeni: "", zaman: simdi })
+            .run();
+        }
+        return { paket, adet: onaylilar.length };
+      }),
+
+    paketler: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        return db
+          .select()
+          .from(publishPackages)
+          .where(eq(publishPackages.workspaceId, input.workspaceId))
+          .orderBy(desc(publishPackages.olusturmaZamani))
+          .all();
+      }),
+
+    gecmis: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const olaylar = db.select().from(approvalEvents).orderBy(desc(approvalEvents.zaman)).all();
+        const icerikler = db.select().from(contentItems).where(eq(contentItems.workspaceId, input.workspaceId)).all();
+        const wsIds = new Set(icerikler.map((i) => i.id));
+        return olaylar.filter((o) => wsIds.has(o.contentItemId)).slice(0, 100);
+      }),
+  }),
 
   // ===== /teshis — ücretsiz Mesaj Haritası (v2 Bölüm 15) =====
   // Limitler [DV]: IP başına 3/gün, global 100/gün. E-posta isteğe bağlı + rıza.

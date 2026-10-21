@@ -157,6 +157,10 @@ export const contentItems = sqliteTable("content_items", {
   // denetimde | onayKuyrugu | revize | onayli | reddedildi | paketlendi
   durum: text("durum").notNull().default("denetimde"),
   denetciNotu: text("denetci_notu").notNull().default(""),
+  // Danışma turu 1 (P0): onay içerik hash'ine bağlanır; düzenleme hash'i değiştirir → onay geçersiz
+  govdeHash: text("govde_hash").notNull().default(""),
+  // Onay gecikmesi metriği için: öğenin kuyruğa girdiği an
+  kuyrugaGiris: integer("kuyruga_giris", { mode: "number" }),
   surum: integer("surum").notNull().default(1),
   oncekiSurumId: text("onceki_surum_id"),
   createdAt: integer("created_at", { mode: "number" }).notNull(),
@@ -167,8 +171,13 @@ export const approvalEvents = sqliteTable("approval_events", {
   id: text("id").primaryKey(),
   contentItemId: text("content_item_id").notNull(),
   userId: text("user_id").notNull(),
-  eylem: text("eylem").notNull(), // onay | revize | red
+  eylem: text("eylem").notNull(), // onay | revize | red | duzenleme-onayi-bozdu | paketlendi
   not: text("not").notNull().default(""),
+  // Danışma turu 1: onay ANINDAKİ içerik hash'i + rol kopyası (rol sonradan değişse de kayıt bozulmaz)
+  govdeHash: text("govde_hash").notNull().default(""),
+  rol: text("rol").notNull().default(""),
+  // Danışma turu 1: ret nedeni sabit listeden (serbest metin analiz edilemez)
+  redNedeni: text("red_nedeni").notNull().default(""),
   zaman: integer("zaman", { mode: "number" }).notNull(),
 });
 

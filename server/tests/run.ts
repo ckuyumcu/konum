@@ -74,6 +74,17 @@ async function main() {
     gecisZorla("bellek", "taslak", "onaylandi");
     assert.throws(() => gecisZorla("bellek", "onaylandi", "taslak"));
   });
+  await test("onayli → onayKuyrugu passes (edit breaks approval)", () => {
+    gecisZorla("icerik", "onayli", "onayKuyrugu");
+  });
+  await test("denetimde → onayKuyrugu and revize → onayKuyrugu pass (Auditor promotion)", () => {
+    gecisZorla("icerik", "denetimde", "onayKuyrugu");
+    gecisZorla("icerik", "revize", "onayKuyrugu");
+  });
+  await test("paketlendi is terminal — no transition out", () => {
+    assert.throws(() => gecisZorla("icerik", "paketlendi", "onayKuyrugu"));
+    assert.throws(() => gecisZorla("icerik", "paketlendi", "onayli"));
+  });
 
   console.log("Workspace isolation (Section 11.5):");
   await test("user A cannot read user B's workspace", () => {

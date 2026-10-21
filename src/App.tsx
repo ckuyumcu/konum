@@ -8,6 +8,8 @@ import AppShell from "./app/AppShell";
 import Bellek from "./pages/Bellek";
 import KilitliModul from "./pages/KilitliModul";
 import KanitMotoru from "./pages/KanitMotoru";
+import Icra from "./pages/Icra";
+import Onay from "./pages/Onay";
 import Teshis from "./pages/Teshis";
 import Ayarlar from "./pages/Ayarlar";
 import Konsol from "./pages/Konsol";
@@ -26,8 +28,8 @@ export default function App() {
           <Route index element={<Navigate to="bellek" replace />} />
           <Route path="bellek" element={<Bellek />} />
           <Route path="kanit" element={<KanitMotoru />} />
-          <Route path="icra" element={<KilitliModul modul="icra" />} />
-          <Route path="onay" element={<KilitliModul modul="onay" />} />
+          <Route path="icra" element={<Icra />} />
+          <Route path="onay" element={<Onay />} />
           <Route path="radar" element={<KilitliModul modul="radar" />} />
           <Route path="ayarlar" element={<Ayarlar />} />
         </Route>

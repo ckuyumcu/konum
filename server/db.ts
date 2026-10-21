@@ -82,11 +82,13 @@ CREATE TABLE IF NOT EXISTS content_items (
   id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, evidence_id TEXT,
   kanal TEXT NOT NULL, baslik TEXT NOT NULL DEFAULT '', govde TEXT NOT NULL,
   durum TEXT NOT NULL DEFAULT 'denetimde', denetci_notu TEXT NOT NULL DEFAULT '',
+  govde_hash TEXT NOT NULL DEFAULT '', kuyruga_giris INTEGER,
   surum INTEGER NOT NULL DEFAULT 1, onceki_surum_id TEXT, created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS approval_events (
   id TEXT PRIMARY KEY, content_item_id TEXT NOT NULL, user_id TEXT NOT NULL,
-  eylem TEXT NOT NULL, "not" TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+  eylem TEXT NOT NULL, "not" TEXT NOT NULL DEFAULT '', govde_hash TEXT NOT NULL DEFAULT '',
+  rol TEXT NOT NULL DEFAULT '', red_nedeni TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS publish_packages (
   id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, ogeler TEXT NOT NULL DEFAULT '[]',
@@ -128,6 +130,11 @@ for (const stmt of [
   "ALTER TABLE tests ADD COLUMN olcut_paydasi TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE tests ADD COLUMN deneme INTEGER NOT NULL DEFAULT 1",
   "ALTER TABLE test_results ADD COLUMN tarih TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE content_items ADD COLUMN govde_hash TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE content_items ADD COLUMN kuyruga_giris INTEGER",
+  "ALTER TABLE approval_events ADD COLUMN govde_hash TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE approval_events ADD COLUMN rol TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE approval_events ADD COLUMN red_nedeni TEXT NOT NULL DEFAULT ''",
 ]) {
   try {
     sqlite.exec(stmt);

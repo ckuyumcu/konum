@@ -63,7 +63,7 @@ gözlem/dönüşüm penceresi, kısmi e-posta kilidi (PDF indirme e-postaya bağ
 npm install
 npm run dev      # http://localhost:3000 — arayüz + API (/api) tek süreçte
 npm run build    # tsc -b && vite build
-npm test         # otomatik testler (28 adet)
+npm test         # otomatik testler (31 adet)
 ```
 
 **İlk giriş:** `/giris` → e-posta `cem@konum.local`, davet kodu `KONUM-PILOT-1`
@@ -105,6 +105,25 @@ aynı e-posta + kodla tekrar giriş yapabilir (yerel geliştirme eşdeğeri).
   güçlü/eksik kanıtlar, 3 öneri, 0–100 kanıt skoru; limitler: IP başına 3/gün,
   global 100/gün (IP yalnızca hash'lenerek saklanır); isteğe bağlı e-posta
   rızaya bağlı; bağımlılıksız PDF raporu (`/api/teshis/:id.pdf`)
+
+**Aşama 3 — gerçek (çalışıyor):**
+- İcra Stüdyosu (`/app/:id/icra`): kanıt dosyasından tek tıkla 3 kanal
+  varyasyonu (eposta / sosyal / reklam); Denetçi'den geçenler doğrudan onay
+  kuyruğuna düşer, geçemeyenler "denetimde" kalır ve gerekçesi gösterilir
+- İçerik sürümleri + hash'e bağlı onay: her öğenin `govde_hash`'i
+  (sha256: kanal|başlık|gövde) tutulur; onay, onaylandığı metnin hash'ine
+  bağlanır — onaylı içerik düzenlenirse onay otomatik bozulur, öğe kuyruğa
+  döner ve `duzenleme-onayi-bozdu` olayı yazılır
+- Onay Merkezi (`/app/:id/onay`): tekil onay kuyruğu (toplu/kör onay yok),
+  klavye ile gezinme (↑/↓ veya j/k, A onay, R ret, V revize), kuyrukta bekleme
+  süresi rozeti (onay gecikmesi ölçümü)
+- Ret nedeni sözlüğü (ton / yanlış bilgi / marka dışı / hukuki risk / diğer)
+  ve zorunlu revize notu — ikisi de karar geçmişine yazılır
+- Yayın paketi: yalnızca onay hash'i güncel metinle birebir eşleşen öğeler
+  pakete girer; uyumsuzluk varsa paket reddedilir (412). Paketlenen öğe
+  terminal duruma geçer (`paketlendi`)
+- Karar geçmişi: tüm onay/red/revize/paketleme olayları rol ve hash
+  kopyasıyla listelenir
 
 **Simülasyon (açıkça etiketli):**
 - **LLM ajan çıktıları.** Sağlayıcı: Anthropic (`claude-haiku-5-5`, resmî
