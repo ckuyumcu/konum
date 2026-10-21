@@ -1,9 +1,9 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
-// Konum veri modeli — v2 Talimat Bölüm 4 (minimum tablolar + denetim ekleri)
-// Not: Talimat MySQL öngörüyor; bu ortamda MySQL bulunmadığından güvenli
-// varsayılan olarak SQLite kullanıldı (README'de belgelendi). Drizzle şeması
-// taşınabilir tutuldu; MySQL'e geçişte yalnızca sürücü ve diyalekt değişir.
+// Konum data model — v2 Brief Section 4 (minimum tables + audit additions)
+// Note: the brief assumes MySQL; since MySQL is unavailable in this environment,
+// SQLite is used as the safe default (documented in README). The Drizzle schema
+// is kept portable; moving to MySQL only changes the driver and dialect.
 
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
@@ -12,12 +12,12 @@ export const users = sqliteTable("users", {
   createdAt: integer("created_at", { mode: "number" }).notNull(),
 });
 
-// Davetsiz kullanıcı uygulamaya giremez (v2 Bölüm 4)
+// Users without an invite cannot enter the app (v2 Section 4)
 export const invites = sqliteTable("invites", {
   id: text("id").primaryKey(),
   eposta: text("eposta").notNull(),
   rol: text("rol").notNull().default("sahip"), // sahip | editor | onaylayici | izleyici
-  workspaceId: text("workspace_id"), // null → yeni workspace açabilir
+  workspaceId: text("workspace_id"), // null → can open a new workspace
   token: text("token").notNull().unique(),
   sonKullanma: integer("son_kullanma", { mode: "number" }).notNull(),
   kullanildi: integer("kullanildi").notNull().default(0),
@@ -42,7 +42,7 @@ export const workspaces = sqliteTable("workspaces", {
   createdAt: integer("created_at", { mode: "number" }).notNull(),
 });
 
-// Workspace üyeliği — her prosedürde üyelik + rol doğrulanır (v2 Bölüm 6.2)
+// Workspace membership — membership + role verified in every procedure (v2 Section 6.2)
 export const workspaceMembers = sqliteTable("workspace_members", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id").notNull(),
@@ -66,7 +66,7 @@ export const strategyBeliefs = sqliteTable("strategy_beliefs", {
   surum: integer("surum").notNull().default(1),
 });
 
-// Eskime alarmı için karşılaştırma tabanı (v2 Bölüm 4)
+// Baseline for the staleness alarm (v2 Section 4)
 export const crawlSnapshots = sqliteTable("crawl_snapshots", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id").notNull(),
@@ -93,7 +93,7 @@ export const tests = sqliteTable("tests", {
   workspaceId: text("workspace_id").notNull(),
   varyantlar: text("varyantlar").notNull().default("[]"),
   olcut: text("olcut").notNull().default(""),
-  temelOran: integer("temel_oran").notNull().default(0), // baz dönüşüm oranı (‰ değil, oran*10000 gibi ham saklanır — Aşama 2'de netleşir)
+  temelOran: integer("temel_oran").notNull().default(0), // base conversion rate (stored raw, e.g. rate*10000 — finalized in Phase 2)
   mde: integer("mde").notNull().default(0),
   minimumOrneklem: integer("minimum_orneklem").notNull().default(0),
   baslangic: integer("baslangic", { mode: "number" }),
@@ -104,7 +104,7 @@ export const tests = sqliteTable("tests", {
   createdAt: integer("created_at", { mode: "number" }).notNull(),
 });
 
-// Test sonucu girişi: manuel form veya CSV (v2 Bölüm 2.4)
+// Test result entry: manual form or CSV (v2 Section 2.4)
 export const testResults = sqliteTable("test_results", {
   id: text("id").primaryKey(),
   testId: text("test_id").notNull(),
@@ -142,7 +142,7 @@ export const contentItems = sqliteTable("content_items", {
   createdAt: integer("created_at", { mode: "number" }).notNull(),
 });
 
-// Onay Merkezi kanıt kaydı — silinemez, güncellenemez (v2 Bölüm 6.3)
+// Approval Center evidence record — cannot be deleted or updated (v2 Section 6.3)
 export const approvalEvents = sqliteTable("approval_events", {
   id: text("id").primaryKey(),
   contentItemId: text("content_item_id").notNull(),
@@ -161,7 +161,7 @@ export const publishPackages = sqliteTable("publish_packages", {
   disaAktarimAnahtari: text("disa_aktarim_anahtari").notNull().default(""),
 });
 
-// Yalnız ürün içi ajanlar; dış danışman kayıtları buraya YAZILMAZ (v2 Bölüm 12)
+// Product-internal agents only; external advisor records are NEVER written here (v2 Section 12)
 export const agentLogs = sqliteTable("agent_logs", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id").notNull(),
@@ -183,7 +183,7 @@ export const signals = sqliteTable("signals", {
   createdAt: integer("created_at", { mode: "number" }).notNull(),
 });
 
-// Landing pilot formu — gerçek kayıt (v2 Bölüm 8, Aşama 1)
+// Landing pilot form — real record (v2 Section 8, Phase 1)
 export const pilotApplications = sqliteTable("pilot_applications", {
   id: text("id").primaryKey(),
   eposta: text("eposta").notNull(),
@@ -194,7 +194,7 @@ export const pilotApplications = sqliteTable("pilot_applications", {
   zaman: integer("zaman", { mode: "number" }).notNull(),
 });
 
-// Bölüm 15 ücretsiz teşhis aracı (Aşama 2'de kullanılacak)
+// Section 15 free diagnosis tool (used in Phase 2)
 export const diagnosisRequests = sqliteTable("diagnosis_requests", {
   id: text("id").primaryKey(),
   url: text("url").notNull(),

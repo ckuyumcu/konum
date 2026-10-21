@@ -1,8 +1,8 @@
 import type { Plugin } from "vite";
 import { createServerApp } from "./app";
 
-// Hono uygulamasını Vite dev sunucusuna /api altında bağlar.
-// Böylece `npm run dev` tek komutla hem arayüzü hem API'yi servis eder.
+// Attaches the Hono app to the Vite dev server under /api.
+// This way `npm run dev` serves both the UI and the API with a single command.
 export function konumApi(): Plugin {
   return {
     name: "konum-api",
@@ -30,7 +30,7 @@ export function konumApi(): Plugin {
         response.headers.forEach((value, key) => {
           if (key.toLowerCase() !== "set-cookie") res.setHeader(key, value);
         });
-        // Set-Cookie başlıklarını ayrık olarak aktar (birleştirme bozulmasın)
+        // Forward Set-Cookie headers separately (so merging does not break them)
         const setCookies =
           typeof (response.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie === "function"
             ? (response.headers as Headers & { getSetCookie: () => string[] }).getSetCookie()

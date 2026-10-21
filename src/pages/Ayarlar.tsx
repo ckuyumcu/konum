@@ -11,8 +11,8 @@ interface LlmDurum {
   aktifMod: "llm" | "simulasyon";
 }
 
-// LLM anahtarı bölümü — yalnız platform sahibine görünür (sunucuda da zorlanır).
-// Anahtar yazıldıktan sonra bir daha gösterilmez; istemciye asla dönmez.
+// LLM key section — visible only to the platform owner (also enforced on the server).
+// Once entered, the key is never shown again; it never returns to the client.
 function LlmAyar() {
   const [durum, setDurum] = useState<LlmDurum | null>(null);
   const [anahtar, setAnahtar] = useState("");
@@ -30,11 +30,11 @@ function LlmAyar() {
 
   return (
     <section>
-      <h2 className="font-display text-2xl mb-4">LLM bağlantısı</h2>
+      <h2 className="font-display text-2xl mb-4">LLM connection</h2>
       <div className="rounded-xl border border-border bg-card p-5 grid gap-4">
         <div className="flex items-center justify-between gap-4 flex-wrap text-sm">
           <p>
-            Sağlayıcı: <strong>{durum.saglayici}</strong> · Model: <strong>{durum.model}</strong>
+            Provider: <strong>{durum.saglayici}</strong> · Model: <strong>{durum.model}</strong>
           </p>
           <span
             className={`text-xs font-bold uppercase tracking-widest rounded-full px-3 py-1 border ${
@@ -43,16 +43,16 @@ function LlmAyar() {
                 : "text-[#c52a00] border-[#c52a00]/40"
             }`}
           >
-            {durum.aktifMod === "llm" ? "Gerçek çağrı aktif" : "Simülasyon modu"}
+            {durum.aktifMod === "llm" ? "Live calls active" : "Simulation mode"}
           </span>
         </div>
         <p className="text-sm text-muted-foreground">
-          Anahtar durumu:{" "}
+          Key status:{" "}
           {durum.anahtarKaynagi === "env"
-            ? ".env dosyasından tanımlı"
+            ? "Defined in the .env file"
             : durum.anahtarKaynagi === "dosya"
-              ? "Gizli dosyada tanımlı (buradan girildi)"
-              : "Tanımsız — ajanlar simülasyon etiketli taslak üretiyor."}
+              ? "Defined in the secret file (entered here)"
+              : "Not set — agents are producing simulation-labeled drafts."}
         </p>
         <form
           className="flex gap-3 flex-wrap"
@@ -63,10 +63,10 @@ function LlmAyar() {
               .mutate({ anahtar })
               .then(() => {
                 setAnahtar("");
-                toast.success("Anahtar kaydedildi; bundan sonra gösterilmez.");
+                toast.success("Key saved; it will not be shown again.");
                 yenile();
               })
-              .catch((err) => toast.error(err instanceof Error ? err.message : "Kaydedilemedi."))
+              .catch((err) => toast.error(err instanceof Error ? err.message : "Could not save."))
               .finally(() => setMesgul(false));
           }}
         >
@@ -83,7 +83,7 @@ function LlmAyar() {
             disabled={mesgul || anahtar.trim().length < 10}
             className="h-11 px-5 rounded-lg bg-[#181818] text-[#fcfcf9] font-semibold transition-transform duration-200 active:scale-[0.97] disabled:opacity-50"
           >
-            Anahtarı kaydet
+            Save key
           </button>
           {durum.anahtarKaynagi === "dosya" && (
             <button
@@ -93,21 +93,21 @@ function LlmAyar() {
                 trpc.ayarlar.llmAnahtariKaldir
                   .mutate()
                   .then(() => {
-                    toast.success("Anahtar silindi.");
+                    toast.success("Key deleted.");
                     yenile();
                   })
-                  .catch((err) => toast.error(err instanceof Error ? err.message : "Silinemedi."))
+                  .catch((err) => toast.error(err instanceof Error ? err.message : "Could not delete."))
                   .finally(() => setMesgul(false));
               }}
               className="h-11 px-5 rounded-lg border border-[#c52a00] text-[#c52a00] font-semibold transition-transform duration-200 active:scale-[0.97]"
             >
-              Anahtarı kaldır
+              Remove key
             </button>
           )}
         </form>
         <p className="text-xs text-muted-foreground">
-          Anahtar sunucuda proje dışı bir gizli dosyaya yazılır (~/.konum), git'e girmez, istemciye
-          asla dönmez. Alternatif: proje kökündeki .env dosyasına ANTHROPIC_API_KEY eklenebilir.
+          The key is written to a secret file outside the project on the server (~/.konum), never enters git,
+          and never returns to the client. Alternative: add ANTHROPIC_API_KEY to the .env file at the project root.
         </p>
       </div>
     </section>
@@ -146,8 +146,8 @@ export default function Ayarlar() {
     <div className="max-w-3xl grid gap-12">
       {platformSahibi && <LlmAyar />}
       <section>
-        <p className="eyebrow text-muted-foreground mb-1">AYARLAR</p>
-        <h1 className="font-display text-2xl mb-6">Entegrasyonlar</h1>
+        <p className="eyebrow text-muted-foreground mb-1">SETTINGS</p>
+        <h1 className="font-display text-2xl mb-6">Integrations</h1>
         <ul className="grid gap-3">
           {entegrasyonlar.map((e) => (
             <li key={e.ad} className="rounded-xl border border-border bg-card p-4 flex items-start justify-between gap-4">
@@ -162,48 +162,48 @@ export default function Ayarlar() {
                     : "text-muted-foreground border-border"
                 }`}
               >
-                {e.durum === "aktif" ? "Aktif" : "Planlandı"}
+                {e.durum === "aktif" ? "Active" : "Planned"}
               </span>
             </li>
           ))}
         </ul>
         <p className="mt-4 text-sm text-muted-foreground">
-          API'si bağlanmamış hiçbir entegrasyon "bağlandı" gösterilmez.
+          No integration is shown as "connected" unless its API is actually wired up.
         </p>
       </section>
 
       <section>
-        <h2 className="font-display text-2xl mb-4">Veri işleme</h2>
+        <h2 className="font-display text-2xl mb-4">Data processing</h2>
         <div className="rounded-xl border border-border bg-card p-5 text-sm grid gap-3">
           <p>
-            Yüklediğin müşteri metinleri (yorum, SSS, destek kayıtları) LLM'e gönderilmeden önce
-            kişisel veriler maskelenir: ad-soyad, e-posta ve telefon numaraları anonimleştirilir.
+            Customer texts you upload (reviews, FAQs, support logs) are masked before being sent to the LLM:
+            names, emails, and phone numbers are anonymized.
           </p>
           <p>
-            Her ajan çağrısı aşağıdaki günlüğe yazılır; onay ve ret işlemleri de kayıt altındadır.
-            Bu şeffaflık, müşterilerine gösterebileceğin bir sorumluluk sınırıdır.
+            Every agent call is written to the log below; approvals and rejections are recorded too.
+            This transparency is a boundary of responsibility you can show your clients.
           </p>
         </div>
       </section>
 
       <section>
-        <h2 className="font-display text-2xl mb-4">Ajan günlüğü</h2>
+        <h2 className="font-display text-2xl mb-4">Agent log</h2>
         {loglar.length === 0 ? (
           <p className="text-muted-foreground rounded-xl border border-border bg-card p-5">
-            Henüz ajan kaydı yok. Kurulum sihirbazını çalıştırdığında Araştırmacı, Stratejist ve
-            Denetçi kayıtları burada görünecek.
+            No agent records yet. When you run the setup wizard, Researcher, Strategist, and
+            Auditor records will appear here.
           </p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
-                  <th className="px-4 py-3 font-semibold">Zaman</th>
-                  <th className="px-4 py-3 font-semibold">Ajan</th>
-                  <th className="px-4 py-3 font-semibold">Girdi</th>
-                  <th className="px-4 py-3 font-semibold">Çıktı</th>
-                  <th className="px-4 py-3 font-semibold">Denetçi</th>
-                  <th className="px-4 py-3 font-semibold">Mod</th>
+                  <th className="px-4 py-3 font-semibold">Time</th>
+                  <th className="px-4 py-3 font-semibold">Agent</th>
+                  <th className="px-4 py-3 font-semibold">Input</th>
+                  <th className="px-4 py-3 font-semibold">Output</th>
+                  <th className="px-4 py-3 font-semibold">Auditor</th>
+                  <th className="px-4 py-3 font-semibold">Mode</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,12 +219,12 @@ export default function Ayarlar() {
                       ) : l.denetciKarari.startsWith("reddedildi") ? (
                         <span className="text-[#c52a00]">{l.denetciKarari}</span>
                       ) : (
-                        <span className="text-[#0d6e3f]">Geçti</span>
+                        <span className="text-[#0d6e3f]">Passed</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {l.mod === "simulasyon" ? (
-                        <span className="text-[#c52a00] font-semibold">Simülasyon</span>
+                        <span className="text-[#c52a00] font-semibold">Simulation</span>
                       ) : l.mod === "llm" ? (
                         <span className="text-[#0d6e3f] font-semibold">LLM</span>
                       ) : (

@@ -14,7 +14,7 @@ const sqlite = new Database(dbYolu);
 sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 
-// Basit açılış göçü (Aşama 1 kapsamı; ileride drizzle-kit migrate'e taşınabilir)
+// Simple startup migration (Phase 1 scope; can move to drizzle-kit migrate later)
 sqlite.exec(`
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, name TEXT NOT NULL, created_at INTEGER NOT NULL
@@ -113,7 +113,7 @@ CREATE INDEX IF NOT EXISTS idx_members ON workspace_members(workspace_id, user_i
 CREATE INDEX IF NOT EXISTS idx_crawl_ws ON crawl_snapshots(workspace_id, zaman DESC);
 `);
 
-// v1.0'dan kalan veritabanları için sütun ekleri (yok sayılabilir hatalar tolere edilir)
+// Column additions for databases left over from v1.0 (ignorable errors are tolerated)
 for (const stmt of [
   "ALTER TABLE strategy_beliefs ADD COLUMN surum INTEGER NOT NULL DEFAULT 1",
   "ALTER TABLE agent_logs ADD COLUMN token_sayisi INTEGER NOT NULL DEFAULT 0",
@@ -121,11 +121,11 @@ for (const stmt of [
   try {
     sqlite.exec(stmt);
   } catch {
-    /* sütun zaten var */
+    /* column already exists */
   }
 }
 
-// Mevcut workspace sahiplerini üyelik tablosuna taşı (tek seferlik göç)
+// Move existing workspace owners into the membership table (one-time migration)
 try {
   sqlite.exec(`
     INSERT INTO workspace_members (id, workspace_id, user_id, rol, created_at)
@@ -136,7 +136,7 @@ try {
     );
   `);
 } catch {
-  /* tablolar yeni oluştuysa gerek yok */
+  /* not needed if the tables were just created */
 }
 
 export const db = drizzle(sqlite, { schema });

@@ -1,10 +1,10 @@
-// LLM sağlayıcı katmanı — v2 Bölüm 4 + Cem'in ek kararı:
-// Sağlayıcı = Anthropic, model = claude-haiku-5-5, resmî @anthropic-ai/sdk,
-// JSON çıktı zod şemasıyla zorlanır (tool-use üzerinden yapılandırılmış çıktı).
+// LLM provider layer — v2 Section 4 + Cem's additional decision:
+// Provider = Anthropic, model = claude-haiku-5-5, official @anthropic-ai/sdk,
+// JSON output enforced with a zod schema (structured output via tool-use).
 //
-// LLM_PROVIDER=anthropic (varsayılan). Anahtar yoksa deterministik "simülasyon"
-// üretici çalışır ve çıktı her yerde açıkça etiketlenir. Anahtar kaynağı:
-// .env (ANTHROPIC_API_KEY) veya proje dışı gizli dosya (server/config.ts).
+// LLM_PROVIDER=anthropic (default). Without a key, the deterministic "simulation"
+// generator runs and the output is explicitly labeled everywhere. Key source:
+// .env (ANTHROPIC_API_KEY) or the secret file outside the project (server/config.ts).
 
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
@@ -19,7 +19,7 @@ export interface LlmResult<T> {
 const MODEL = "claude-haiku-5-5";
 const ARAC_ADI = "json_cikti";
 
-// Not: .env server başlarken yüklenir; modül sabiti yerine fonksiyon kullanılır.
+// Note: .env is loaded when the server starts; a function is used instead of a module constant.
 export function llmSaglayici(): string {
   return process.env.LLM_PROVIDER || "anthropic";
 }
@@ -28,14 +28,14 @@ export function llmAktifMi(): boolean {
   return llmSaglayici() === "anthropic" && anthropicAnahtari().kaynak !== "yok";
 }
 
-// zod şemasını JSON Schema'ya çevirip Anthropic tool-use ile zorla
+// Convert the zod schema to JSON Schema and enforce it via Anthropic tool-use
 async function callAnthropic<T>(
   system: string,
   user: string,
   schema: z.ZodType<T>,
 ): Promise<{ data: T; token: number }> {
   const { anahtar } = anthropicAnahtari();
-  if (!anahtar) throw new Error("ANTHROPIC_API_KEY tanımlı değil");
+  if (!anahtar) throw new Error("ANTHROPIC_API_KEY is not defined");
   const client = new Anthropic({ apiKey: anahtar });
 
   const jsonSchema = z.toJSONSchema(schema) as Record<string, unknown>;
@@ -46,7 +46,7 @@ async function callAnthropic<T>(
     tools: [
       {
         name: ARAC_ADI,
-        description: "Yapılandırılmış çıktıyı bu şemaya uygun döndür.",
+        description: "Return the structured output matching this schema.",
         input_schema: jsonSchema as Anthropic.Tool.InputSchema,
       },
     ],
@@ -55,15 +55,15 @@ async function callAnthropic<T>(
   });
 
   const blok = res.content.find((b) => b.type === "tool_use" && b.name === ARAC_ADI);
-  if (!blok || blok.type !== "tool_use") throw new Error("LLM yapılandırılmış çıktı döndürmedi");
-  const parsed = schema.parse(blok.input); // zod doğrulaması — geçersizse hata fırlatır
+  if (!blok || blok.type !== "tool_use") throw new Error("LLM did not return structured output");
+  const parsed = schema.parse(blok.input); // zod validation — throws when invalid
   return { data: parsed, token: (res.usage?.input_tokens ?? 0) + (res.usage?.output_tokens ?? 0) };
 }
 
 /**
- * Yapılandırılmış JSON üretimi. Başarısız ayrıştırma/doğrulamada yeniden deneme
- * (maks. 2). Anahtar yoksa veya çağrı başarısızsa simülasyona düşer ve
- * mod "simulasyon" işaretlenir — simülasyon asla "gerçek" diye raporlanmaz.
+ * Structured JSON generation. Retries on failed parsing/validation (max 2).
+ * Falls back to simulation when there is no key or the call fails, and marks
+ * mod as "simulasyon" — simulation is never reported as "real".
  */
 export async function generateJson<T>(
   system: string,
@@ -82,7 +82,7 @@ export async function generateJson<T>(
       }
     }
     console.warn(
-      "[konum] LLM çağrısı başarısız, simülasyon üreticiye düşüldü:",
+      "[konum] LLM call failed, falling back to the simulation generator:",
       lastError instanceof Error ? lastError.message : lastError,
     );
   }

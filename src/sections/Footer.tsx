@@ -12,21 +12,24 @@ export default function Footer() {
               <span className="font-display font-bold text-xl">Konum</span>
             </div>
             <p className="text-sm text-[#fcfcf9]/60 max-w-[42ch]">
-              Ajanlarla çalışan sürekli ürün pazarlama işletim sistemi. Strateji senden, rutin icra ajanlardan.
+              The agent-powered continuous product marketing operating system. Strategy from you, routine execution from agents.
+            </p>
+            <p className="mt-3 text-xs font-bold uppercase tracking-widest text-[#ff8a66]">
+              An AIWork School company
             </p>
           </div>
-          <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Alt gezinme">
-            <a href="#sorun" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Sorun</a>
-            <a href="#nasil" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Nasıl çalışır</a>
-            <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Öğrendiklerimiz</a>
-            <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Canlı demo</a>
+          <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Footer navigation">
+            <a href="#sorun" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The Problem</a>
+            <a href="#nasil" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">How it works</a>
+            <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">What we learned</a>
+            <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Live demo</a>
             <a href="#pilot" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot program</a>
-            <a href="#sss" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">SSS</a>
+            <a href="#sss" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
           </nav>
         </div>
         <div className="mt-12 pt-6 border-t border-[#fcfcf9]/15 flex flex-col md:flex-row justify-between gap-3 text-xs text-[#fcfcf9]/45">
-          <span>© 2026 Konum — ürün önizlemesi. Demo veriler simülasyondur.</span>
-          <span>Bu sayfa pazar büyüklüğü veya gelir iddiası içermez; doğrulanmamış varsayımlar pilot programda test edilir.</span>
+          <span>© 2026 Konum, an AIWork School company — product preview. Demo data is simulated.</span>
+          <span>This page makes no market-size or revenue claims; unverified assumptions are tested in the pilot program.</span>
         </div>
       </div>
     </footer>

@@ -2,43 +2,43 @@ import { motion } from 'framer-motion'
 
 const easeOut = [0.16, 1, 0.3, 1] as const
 
-// v2 Bölüm 8 (Aşama 1, madde 3): rakip marka adları kaldırıldı; format
-// "piyasadaki yaygın yaklaşım → Konum'un farkı". Hiçbir maddede rakip övülmez.
+// v2 Section 8 (Phase 1, item 3): competitor brand names removed; format is
+// "common market approach → Konum's difference". No competitor is praised in any card.
 const lessons = [
   {
-    from: 'Yaygın yaklaşım: beyaz etiket panolar',
-    lesson: 'Çok müşterili konsol, ajansı kahraman yapar.',
-    ours: 'Konum, ajansın kendi markasıyla çalışır; platform görünmez, ajans parlar.',
+    from: 'Common approach: white-label dashboards',
+    lesson: 'A multi-client console makes the agency the hero.',
+    ours: 'Konum runs under the agency\'s own brand; the platform stays invisible, the agency shines.',
     span: 'lg:col-span-4',
   },
   {
-    from: 'Yaygın yaklaşım: tek müşteri veri tabanı',
-    lesson: 'Tek doğruluk kaynağı, her çıktıyı besler.',
-    ours: 'Bizde bu kaynak Strateji Belleği — işlem kaydı değil, karar belleği.',
+    from: 'Common approach: single customer database',
+    lesson: 'One source of truth feeds every output.',
+    ours: 'For us that source is Strategy Memory — not a transaction log, but a memory of decisions.',
     span: 'lg:col-span-4',
   },
   {
-    from: 'Yaygın yaklaşım: marka sesi ayarları',
-    lesson: 'Marka sesi tanımsızsa AI çıktısı jenerikleşir.',
-    ours: 'Yasaklı ifadeler + Denetçi ajan: kuralsız hiçbir metin onaya çıkamaz.',
+    from: 'Common approach: brand voice settings',
+    lesson: 'Without a defined brand voice, AI output goes generic.',
+    ours: 'Banned phrases + the Auditor agent: no rule-breaking text ever reaches approval.',
     span: 'lg:col-span-4',
   },
   {
-    from: 'Yaygın yaklaşım: içerik takvimleri',
-    lesson: 'Takvim ve kuyruk disiplini, sürekliliğin ta kendisidir.',
-    ours: 'İcra Stüdyosu kanıtlanmış mesajı kanallara yayar; ritim ajanın, karar senin.',
+    from: 'Common approach: content calendars',
+    lesson: 'Calendar and queue discipline is continuity itself.',
+    ours: 'Execution Studio spreads proven messages across channels; the rhythm is the agent\'s, the decision is yours.',
     span: 'lg:col-span-6',
   },
   {
-    from: 'Yaygın yaklaşım: otonom reklam icrası',
-    lesson: 'Otonomi cazip görünür; onaysız bütçe ise risklidir.',
-    ours: 'Konum v1\u2019de hiçbir hesapta işlem yapmaz: yayına hazır paket üretir, son dokunuş insandadır.',
+    from: 'Common approach: autonomous ad execution',
+    lesson: 'Autonomy looks attractive; unapproved spend is risky.',
+    ours: 'In Konum v1 nothing touches your accounts: it produces publish-ready packages, and the final touch stays human.',
     span: 'lg:col-span-6',
   },
   {
-    from: 'Yaygın yaklaşım: varyasyon fabrikaları',
-    lesson: 'Varyasyon üretmek kolay; hangisinin neden kazandığını bilmek değerli.',
-    ours: 'Kanıt Motoru "neden"i testle belgeler — çıktı, dışa aktarılabilir kanıt dosyasıdır.',
+    from: 'Common approach: variation factories',
+    lesson: 'Producing variations is easy; knowing which one won and why is valuable.',
+    ours: 'The Evidence Engine documents the "why" with tests — the output is an exportable evidence file.',
     span: 'lg:col-span-12',
   },
 ]
@@ -54,7 +54,7 @@ export default function Teardown() {
           transition={{ duration: 0.5, ease: easeOut }}
           className="eyebrow text-[#c52a00] mb-4"
         >
-          Piyasadan öğrendiklerimiz
+          What we learned from the market
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 22 }}
@@ -63,7 +63,7 @@ export default function Teardown() {
           transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
           className="font-display font-black text-4xl sm:text-5xl leading-[1.05] max-w-[24ch]"
         >
-          Kapalı kodu kimse göremez — ama <span className="hl">oyun kitapları</span> ortada.
+          Nobody can see closed-source code — but the <span className="hl">playbooks</span> are out in the open.
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 18 }}
@@ -72,10 +72,10 @@ export default function Teardown() {
           transition={{ duration: 0.5, ease: easeOut, delay: 0.12 }}
           className="mt-6 max-w-[68ch] text-lg text-foreground/70"
         >
-          Pazarlama yazılımı pazarındaki yaygın yaklaşımların kamuya açık ürün sayfalarını, dokümantasyonlarını ve
-          fiyat mantıklarını analiz ettik. Kanıtlanmış kalıpları aldık, zayıflıklarını tersine çevirdik — hepsini{' '}
-          <strong className="text-foreground">kendi orijinal kodumuzla</strong> yeniden inşa ediyoruz. Kopya yok,
-          intihal yok: rekabet analizi ve mühendislik var.
+          We analyzed the public product pages, documentation, and pricing logic of the common approaches in the
+          marketing software market. We took the proven patterns, inverted their weaknesses — and rebuilt everything{' '}
+          <strong className="text-foreground">with our own original code</strong>. No copying, no plagiarism:
+          competitive analysis and engineering.
         </motion.p>
 
         <div className="mt-14 grid lg:grid-cols-12 gap-5">
@@ -89,11 +89,11 @@ export default function Teardown() {
               className={`${l.span} rounded-xl border border-border bg-[#fcfcf9] p-6 md:p-7 flex flex-col`}
             >
               <p className="font-mono text-xs font-bold uppercase tracking-widest text-foreground/45 mb-3">
-                {l.from} <span className="text-[#c52a00]">→</span> ders
+                {l.from} <span className="text-[#c52a00]">→</span> lesson
               </p>
               <h3 className="font-display font-bold text-xl md:text-[1.35rem] leading-snug mb-3">{l.lesson}</h3>
               <p className="text-sm text-foreground/70 leading-relaxed mt-auto pt-2 border-t border-border/70">
-                <span className="font-bold text-foreground">Konum&apos;da: </span>
+                <span className="font-bold text-foreground">In Konum: </span>
                 {l.ours}
               </p>
             </motion.article>
@@ -107,8 +107,8 @@ export default function Teardown() {
           transition={{ duration: 0.6 }}
           className="mt-10 text-xs text-foreground/50 max-w-[80ch]"
         >
-          Not: Yukarıdaki gözlemler kamuya açık ürün bilgilerine dayanır; piyasadaki özellikler değişebilir. Lansman
-          öncesi her kart için güncel kaynak doğrulaması yapılacaktır.
+          Note: the observations above are based on publicly available product information; market features may change.
+          Each card will be re-verified against current sources before launch.
         </motion.p>
       </div>
     </section>

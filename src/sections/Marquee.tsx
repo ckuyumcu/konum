@@ -1,4 +1,4 @@
-const items = ['Strateji Belleği', 'Kanıt Motoru', 'İcra Stüdyosu', 'Onay Merkezi', 'Sinyal Radarı']
+const items = ['Strategy Memory', 'Evidence Engine', 'Execution Studio', 'Approval Center', 'Signal Radar']
 
 export default function Marquee() {
   const row = [...items, ...items]

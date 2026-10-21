@@ -23,7 +23,7 @@ export default function WorkspaceList() {
       trpc.workspaces.list
       .query()
       .then((r) => setListe(r as WorkspaceSatir[]))
-      .catch((e) => setHata(e instanceof Error ? e.message : "Liste yüklenemedi."));
+      .catch((e) => setHata(e instanceof Error ? e.message : "Could not load the list."));
     });
   }, []);
 
@@ -33,7 +33,7 @@ export default function WorkspaceList() {
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link to="/" className="eyebrow text-foreground">KONUM</Link>
           <Link to="/app/konsol" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Ajans Konsolu
+            Agency Console
           </Link>
         </div>
       </header>
@@ -41,14 +41,14 @@ export default function WorkspaceList() {
       <main className="max-w-5xl mx-auto px-6 py-12">
         <div className="flex items-end justify-between gap-4 mb-8 flex-wrap">
           <div>
-            <p className="eyebrow text-muted-foreground mb-2">ÇALIŞMA ALANLARI</p>
-            <h1 className="font-display text-3xl">Müşteri çalışma alanların</h1>
+            <p className="eyebrow text-muted-foreground mb-2">WORKSPACES</p>
+            <h1 className="font-display text-3xl">Your client workspaces</h1>
           </div>
           <button
             onClick={() => navigate("/app/yeni")}
             className="h-11 px-5 rounded-lg bg-[#181818] text-[#fcfcf9] font-semibold transition-transform duration-200 active:scale-[0.97] hover:bg-black"
           >
-            Yeni müşteri ekle
+            Add new client
           </button>
         </div>
 
@@ -58,20 +58,20 @@ export default function WorkspaceList() {
           </p>
         )}
 
-        {!liste && !hata && <p className="text-muted-foreground">Yükleniyor…</p>}
+        {!liste && !hata && <p className="text-muted-foreground">Loading…</p>}
 
         {liste && liste.length === 0 && (
           <div className="rounded-xl border border-border bg-card p-10 text-center">
-            <h2 className="font-display text-xl mb-2">Henüz çalışma alanı yok</h2>
+            <h2 className="font-display text-xl mb-2">No workspaces yet</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Her müşteri için ayrı bir çalışma alanı açılır: strateji belleği, kanıtlar ve
-              onay kuyruğu müşteri bazında tutulur.
+              A separate workspace is opened for each client: strategy memory, evidence,
+              and the approval queue are kept per client.
             </p>
             <button
               onClick={() => navigate("/app/yeni")}
               className="h-11 px-5 rounded-lg bg-[#ff3500] text-[#181818] font-bold transition-transform duration-200 active:scale-[0.97]"
             >
-              İlk çalışma alanını aç
+              Open your first workspace
             </button>
           </div>
         )}
@@ -102,7 +102,7 @@ export default function WorkspaceList() {
                         : "text-xs font-bold uppercase tracking-widest text-[#c52a00]"
                     }
                   >
-                    {ws.bellekDurumu === "onaylandi" ? "Bellek onaylı" : "Kurulum bekliyor"}
+                    {ws.bellekDurumu === "onaylandi" ? "Memory approved" : "Setup pending"}
                   </span>
                 </div>
               </Link>

@@ -4,14 +4,14 @@
 
 @layer base {
   :root {
-    /* Tasarım belirteçleri — sıcak kâğıt / mürekkep / sinyal turuncusu */
+    /* Design tokens — warm paper / ink / signal orange */
     --paper: 60 33% 98.4%;        /* #fcfcf9 */
     --paper-2: 60 18% 91.6%;      /* #efefe4 */
     --ink: 0 0% 9.4%;             /* #181818 */
     --ink-soft: 0 0% 9.4%;
     --signal: 14 100% 50%;        /* #ff3500 — vurgu/grafik */
     --signal-strong: 14 100% 39%; /* ~#c52a00 — metin boyutunda vurgu (kontrast) */
-    --focus: 213 66% 46%;         /* odak halkası */
+    --focus: 213 66% 46%;         /* focus ring */
 
     --background: var(--paper);
     --foreground: var(--ink);
@@ -68,7 +68,7 @@
     font-variation-settings: "opsz" 144;
     letter-spacing: -0.02em;
   }
-  /* İşaretleyici vurgusu — gradyan metin yerine mürekkep altı boyama */
+  /* Marker highlight — ink underpaint instead of gradient text */
   .hl {
     background-image: linear-gradient(
       to top,
@@ -84,7 +84,7 @@
     @apply text-xs font-bold uppercase;
     letter-spacing: 0.18em;
   }
-  /* Kâğıt dokusu */
+  /* Paper texture */
   .noise-layer {
     position: fixed;
     inset: 0;
@@ -115,7 +115,7 @@
       transform: translateX(-50%);
     }
   }
-  /* Boru hattı akan çizgi */
+  /* Pipeline flowing line */
   .dash-flow {
     stroke-dasharray: 6 8;
     animation: dashflow 1.4s linear infinite;

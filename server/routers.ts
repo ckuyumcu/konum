@@ -53,8 +53,8 @@ function logAjan(
     .run();
 }
 
-// Maliyet koruması — v2 Bölüm 4: workspace başına günlük LLM çağrı sınırı.
-// Eşik [DV — varsayılan]: 50/gün; Ayarlar'da değiştirilebilir yapılacak (Aşama 4).
+// Cost protection — v2 Section 4: daily LLM call limit per workspace.
+// Threshold [DV — default]: 50/day; will be made adjustable in Settings (Phase 4).
 const GUNLUK_LLM_SINIRI = 50;
 
 function gunlukLlmSiniriZorla(workspaceId: string) {
@@ -69,18 +69,18 @@ function gunlukLlmSiniriZorla(workspaceId: string) {
   if (kayitlar.length >= GUNLUK_LLM_SINIRI) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
-      message: `Bu çalışma alanı için günlük LLM çağrı sınırı doldu (${GUNLUK_LLM_SINIRI}). Yarın yeniden deneyin.`,
+      message: `The daily LLM call limit for this workspace has been reached (${GUNLUK_LLM_SINIRI}). Please try again tomorrow.`,
     });
   }
 }
 
 const entegrasyonlar = [
-  { ad: "Web sitesi tarama", durum: "aktif", aciklama: "Ürün URL'sinden metin çıkarımı; robots.txt'ye saygılı, SSRF korumalı." },
-  { ad: "Dosya yükleme (.txt/.csv, en fazla 5 MB)", durum: "planlandi", aciklama: "Müşteri yorumları / SSS / destek metinleri — Aşama 2 kapsamında." },
-  { ad: "Meta Ads / Instagram", durum: "planlandi", aciklama: "Planlandı — pilot aşamasında (v1.1 hedefi)." },
-  { ad: "Google Ads", durum: "planlandi", aciklama: "Planlandı — pilot aşamasında (v1.1 hedefi)." },
-  { ad: "E-posta (Mailchimp / Klaviyo)", durum: "planlandi", aciklama: "Planlandı — pilot aşamasında (v1.1 hedefi)." },
-  { ad: "Analytics bağlantısı", durum: "planlandi", aciklama: "Planlandı — pilot aşamasında (v1.1 hedefi)." },
+  { ad: "Website scanning", durum: "aktif", aciklama: "Text extraction from the product URL; robots.txt-aware, SSRF-protected." },
+  { ad: "File upload (.txt/.csv, up to 5 MB)", durum: "planlandi", aciklama: "Customer reviews / FAQs / support texts — in scope for Phase 2." },
+  { ad: "Meta Ads / Instagram", durum: "planlandi", aciklama: "Planned — during the pilot phase (v1.1 target)." },
+  { ad: "Google Ads", durum: "planlandi", aciklama: "Planned — during the pilot phase (v1.1 target)." },
+  { ad: "Email (Mailchimp / Klaviyo)", durum: "planlandi", aciklama: "Planned — during the pilot phase (v1.1 target)." },
+  { ad: "Analytics connection", durum: "planlandi", aciklama: "Planned — during the pilot phase (v1.1 target)." },
 ];
 
 const EPOSTA_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -95,22 +95,22 @@ export const appRouter = router({
     ),
   }),
 
-  // Landing pilot formu — herkese açık tek prosedür (v2 Bölüm 8, Aşama 1)
+  // Landing pilot form — the only public procedure (v2 Section 8, Phase 1)
   pilot: router({
     basvur: publicProcedure
       .input(
         z.object({
-          eposta: z.string().trim().regex(EPOSTA_RE, "Geçerli bir e-posta adresi girin."),
+          eposta: z.string().trim().regex(EPOSTA_RE, "Enter a valid email address."),
           ajansAdi: z.string().trim().max(200).optional().default(""),
           musteriSayisi: z.string().trim().max(50).optional().default(""),
-          riza: z.literal(true, { error: "Aydınlatma metnini onaylamadan başvuru alınamaz." }),
+          riza: z.literal(true, { error: "Applications cannot be accepted without consent to the privacy notice." }),
         }),
       )
       .mutation(({ input }) => {
         db.insert(pilotApplications)
           .values({
             id: newId("plt"),
-            eposta: input.eposta.toLocaleLowerCase("tr"),
+            eposta: input.eposta.toLocaleLowerCase("en"),
             ajansAdi: input.ajansAdi,
             musteriSayisi: input.musteriSayisi,
             kaynak: "landing",
@@ -148,9 +148,9 @@ export const appRouter = router({
     create: protectedProcedure
       .input(
         z.object({
-          musteriAdi: z.string().trim().min(2, "Müşteri adı en az 2 karakter olmalı."),
-          sektor: z.string().trim().min(2, "Sektör gerekli."),
-          urunUrl: z.string().trim().min(4, "Ürün URL'si gerekli."),
+          musteriAdi: z.string().trim().min(2, "Client name must be at least 2 characters."),
+          sektor: z.string().trim().min(2, "Sector is required."),
+          urunUrl: z.string().trim().min(4, "Product URL is required."),
         }),
       )
       .mutation(({ ctx, input }) => {
@@ -181,12 +181,12 @@ export const appRouter = router({
         );
       }),
 
-    // Kurulum sihirbazı adım 1: URL tara (Araştırmacı) — SSRF korumalı
+    // Setup wizard step 1: scan the URL (Researcher) — SSRF-protected
     tara: protectedProcedure
       .input(z.object({ workspaceId: z.string() }))
       .mutation(async ({ ctx, input }) => {
         const { ws } = uyeZorla(input.workspaceId, ctx.user.id);
-        if (!ws.urunUrl) throw new TRPCError({ code: "BAD_REQUEST", message: "Ürün URL'si tanımlı değil." });
+        if (!ws.urunUrl) throw new TRPCError({ code: "BAD_REQUEST", message: "Product URL is not defined." });
         const scan = await scanUrl(ws.urunUrl);
         if (scan.metin) {
           db.insert(crawlSnapshots)
@@ -204,17 +204,17 @@ export const appRouter = router({
         logAjan(
           ws.id,
           "arastirmaci",
-          `URL taraması: ${ws.urunUrl}`,
+          `URL scan: ${ws.urunUrl}`,
           scan.metin
-            ? `${scan.metin.length} karakter metin çıkarıldı. Başlık: ${scan.title}`
-            : scan.not || "Metin çıkarılamadı.",
+            ? `${scan.metin.length} characters of text extracted. Title: ${scan.title}`
+            : scan.not || "No text could be extracted.",
           "uygulanamaz",
           "tarama",
         );
         return scan;
       }),
 
-    // Kurulum sihirbazı adım 2: taramadan bellek taslağı üret (Stratejist Yrd. → Denetçi)
+    // Setup wizard step 2: generate a memory draft from the scan (Strategist Asst. → Auditor)
     taslakUret: protectedProcedure
       .input(
         z.object({
@@ -246,9 +246,9 @@ export const appRouter = router({
           konumlandirma: sonuc.taslak.konumlandirma,
           hedefKitle: sonuc.taslak.hedefKitle,
           yasakliIfadeler: JSON.stringify(sonuc.taslak.yasakliIfadeler),
-          taramaOzeti: `Kaynak: ${input.taramaBaslik || ws.urunUrl} — ${input.taramaMetni.length} karakter`,
+          taramaOzeti: `Source: ${input.taramaBaslik || ws.urunUrl} — ${input.taramaMetni.length} characters`,
           onayDurumu: "taslak",
-          guncelleyen: `Stratejist Yardımcısı (${sonuc.mod})`,
+          guncelleyen: `Strategist Assistant (${sonuc.mod})`,
           guncellemeZamani: simdi,
           surum: (mevcut?.surum ?? 0) + 1,
         };
@@ -261,7 +261,7 @@ export const appRouter = router({
         logAjan(
           ws.id,
           "stratejist",
-          `Bellek taslağı — kaynak: ${input.taramaBaslik || ws.urunUrl}`,
+          `Memory draft — source: ${input.taramaBaslik || ws.urunUrl}`,
           `hikaye=${sonuc.taslak.hikaye.length}c, konumlandirma=${sonuc.taslak.konumlandirma.length}c, yasakli=${sonuc.taslak.yasakliIfadeler.length} adet`,
           sonuc.denetci.karar === "gecti" ? "gecti" : `reddedildi: ${sonuc.denetci.gerekce}`,
           sonuc.mod,
@@ -287,7 +287,7 @@ export const appRouter = router({
           .from(strategyBeliefs)
           .where(eq(strategyBeliefs.workspaceId, input.workspaceId))
           .get();
-        if (!bellek) throw new TRPCError({ code: "NOT_FOUND", message: "Önce kurulum sihirbazıyla taslak üretin." });
+        if (!bellek) throw new TRPCError({ code: "NOT_FOUND", message: "Generate a draft with the setup wizard first." });
         db.update(strategyBeliefs)
           .set({
             hikaye: input.hikaye,
@@ -303,7 +303,7 @@ export const appRouter = router({
         return { ok: true };
       }),
 
-    // İnsan onayı — durum geçişi sunucudaki tek durum makinesinden geçer (v2 B3 k9)
+    // Human approval — the state transition goes through the single state machine on the server (v2 B3 r9)
     onayla: protectedProcedure
       .input(z.object({ workspaceId: z.string() }))
       .mutation(({ ctx, input }) => {
@@ -313,12 +313,12 @@ export const appRouter = router({
           .from(strategyBeliefs)
           .where(eq(strategyBeliefs.workspaceId, input.workspaceId))
           .get();
-        if (!bellek) throw new TRPCError({ code: "NOT_FOUND", message: "Onaylanacak bellek taslağı yok." });
+        if (!bellek) throw new TRPCError({ code: "NOT_FOUND", message: "There is no memory draft to approve." });
         gecisZorla("bellek", bellek.onayDurumu, "onaylandi");
         if (bellek.hikaye.trim().length < 20 || bellek.konumlandirma.trim().length < 20) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Hikâye ve konumlandırma alanları anlamlı uzunlukta olmadan bellek onaylanamaz.",
+            message: "The memory cannot be approved before the story and positioning fields have meaningful length.",
           });
         }
         db.update(strategyBeliefs)
@@ -328,8 +328,8 @@ export const appRouter = router({
         logAjan(
           input.workspaceId,
           "denetci",
-          "Bellek insan onayı",
-          `${ctx.user.name} Strateji Belleği'ni onayladı; modül kilitleri açıldı.`,
+          "Memory human approval",
+          `${ctx.user.name} approved the Strategy Memory; module locks are open.`,
           "gecti",
           "insan",
         );
@@ -338,7 +338,7 @@ export const appRouter = router({
   }),
 
   ajanlar: router({
-    // Ajan günlüğü yalnızca workspace üyelerine açıktır (v2 Bölüm 6.4)
+    // The agent log is only visible to workspace members (v2 Section 6.4)
     logs: protectedProcedure
       .input(z.object({ workspaceId: z.string() }))
       .query(({ ctx, input }) => {
@@ -356,10 +356,10 @@ export const appRouter = router({
   ayarlar: router({
     entegrasyonlar: protectedProcedure.query(() => entegrasyonlar),
 
-    // LLM anahtar durumu — anahtarın kendisi asla dönmez, yalnız varlık bilgisi
+    // LLM key status — the key itself is never returned, only its presence
     llmDurumu: protectedProcedure.query(({ ctx }) => {
       if (!platformSahibiMi(ctx.user.email)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Bu ayar yalnızca platform sahibine açıktır." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "This setting is only available to the platform owner." });
       }
       const { kaynak } = anthropicAnahtari();
       return {
@@ -370,12 +370,12 @@ export const appRouter = router({
       };
     }),
 
-    // Anahtar sunucuda proje dışı gizli dosyaya yazılır; bir daha gösterilmez (Cem'in kararı)
+    // The key is written to a secret file outside the project on the server; never shown again (Cem's decision)
     llmAnahtariKaydet: protectedProcedure
-      .input(z.object({ anahtar: z.string().trim().min(10, "Anahtar çok kısa görünüyor.") }))
+      .input(z.object({ anahtar: z.string().trim().min(10, "The key looks too short.") }))
       .mutation(({ ctx, input }) => {
         if (!platformSahibiMi(ctx.user.email)) {
-          throw new TRPCError({ code: "FORBIDDEN", message: "Bu ayar yalnızca platform sahibine açıktır." });
+          throw new TRPCError({ code: "FORBIDDEN", message: "This setting is only available to the platform owner." });
         }
         anthropicAnahtariYaz(input.anahtar);
         return { ok: true };
@@ -383,7 +383,7 @@ export const appRouter = router({
 
     llmAnahtariKaldir: protectedProcedure.mutation(({ ctx }) => {
       if (!platformSahibiMi(ctx.user.email)) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Bu ayar yalnızca platform sahibine açıktır." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "This setting is only available to the platform owner." });
       }
       anthropicAnahtariSil();
       return { ok: true };

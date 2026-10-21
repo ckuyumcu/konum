@@ -10,7 +10,7 @@ import Pilot from "../sections/Pilot";
 import Faq from "../sections/Faq";
 import Footer from "../sections/Footer";
 
-// Landing page — talimat gereği korunur; uygulama /app altında yaşar.
+// Landing page — kept per the brief; the app lives under /app.
 export default function Landing() {
   return (
     <div className="min-h-dvh bg-background text-foreground overflow-x-clip">

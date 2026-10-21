@@ -42,7 +42,7 @@ export default function Bellek() {
           }
         }
       })
-      .catch((e) => toast.error(e instanceof Error ? e.message : "Bellek yüklenemedi."))
+      .catch((e) => toast.error(e instanceof Error ? e.message : "Could not load memory."))
       .finally(() => setYukleniyor(false));
   }, [workspaceId]);
 
@@ -56,10 +56,10 @@ export default function Bellek() {
         hedefKitle,
         yasakliIfadeler: yasakli.split("\n").map((s) => s.trim()).filter(Boolean),
       });
-      toast.success("Bellek kaydedildi.");
+      toast.success("Memory saved.");
       yenile();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Kayıt başarısız.");
+      toast.error(e instanceof Error ? e.message : "Save failed.");
     } finally {
       setMesgul(false);
     }
@@ -70,11 +70,11 @@ export default function Bellek() {
     try {
       await kaydetSessiz();
       await trpc.bellek.onayla.mutate({ workspaceId });
-      toast.success("Strateji Belleği onaylandı. Modül kilitleri açıldı.");
+      toast.success("Strategy Memory approved. Module locks are open.");
       yenile();
       setKayit((k) => (k ? { ...k, onayDurumu: "onaylandi" } : k));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Onay başarısız.");
+      toast.error(e instanceof Error ? e.message : "Approval failed.");
     } finally {
       setMesgul(false);
     }
@@ -90,22 +90,22 @@ export default function Bellek() {
     });
   }
 
-  if (yukleniyor) return <p className="text-muted-foreground">Yükleniyor…</p>;
+  if (yukleniyor) return <p className="text-muted-foreground">Loading…</p>;
 
   if (!kayit) {
     return (
       <div className="max-w-xl rounded-xl border border-border bg-card p-10 text-center mx-auto mt-12">
-        <p className="eyebrow text-muted-foreground mb-3">STRATEJİ BELLEĞİ</p>
-        <h1 className="font-display text-2xl mb-3">Henüz bellek taslağı yok</h1>
+        <p className="eyebrow text-muted-foreground mb-3">STRATEGY MEMORY</p>
+        <h1 className="font-display text-2xl mb-3">No memory draft yet</h1>
         <p className="text-muted-foreground mb-6">
-          Bellek; ajanların ürettiği her şeyin dayanacağı tek strateji kaynağıdır. Kurulum
-          sihirbazı siteyi tarayıp bir taslak çıkarır; sen düzenler ve onaylarsın.
+          Memory is the single strategy source behind everything the agents produce. The setup
+          wizard scans the site and produces a draft; you edit and approve it.
         </p>
         <Link
           to="/app/yeni"
           className="inline-flex h-11 px-5 items-center rounded-lg bg-[#ff3500] text-[#181818] font-bold transition-transform duration-200 active:scale-[0.97]"
         >
-          Kurulum sihirbazını başlat
+          Start the setup wizard
         </Link>
       </div>
     );
@@ -118,11 +118,11 @@ export default function Bellek() {
     <div className="max-w-3xl">
       <div className="flex items-end justify-between gap-4 mb-2 flex-wrap">
         <div>
-          <p className="eyebrow text-muted-foreground mb-1">STRATEJİ BELLEĞİ</p>
-          <h1 className="font-display text-2xl">Tek strateji kaynağı</h1>
+          <p className="eyebrow text-muted-foreground mb-1">STRATEGY MEMORY</p>
+          <h1 className="font-display text-2xl">The single strategy source</h1>
         </div>
         <p className="text-xs text-muted-foreground">
-          Son güncelleme: {kayit.guncelleyen || "—"} · {tarihYaz(kayit.guncellemeZamani)}
+          Last update: {kayit.guncelleyen || "—"} · {tarihYaz(kayit.guncellemeZamani)}
         </p>
       </div>
       {kayit.taramaOzeti && (
@@ -131,19 +131,19 @@ export default function Bellek() {
 
       <div className="grid gap-5">
         <label className="grid gap-1.5">
-          <span className="text-sm font-semibold">Ürün hikâyesi</span>
+          <span className="text-sm font-semibold">Product story</span>
           <textarea rows={4} value={hikaye} onChange={(e) => setHikaye(e.target.value)} className={alan} />
         </label>
         <label className="grid gap-1.5">
-          <span className="text-sm font-semibold">Konumlandırma</span>
+          <span className="text-sm font-semibold">Positioning</span>
           <textarea rows={3} value={konumlandirma} onChange={(e) => setKonumlandirma(e.target.value)} className={alan} />
         </label>
         <label className="grid gap-1.5">
-          <span className="text-sm font-semibold">Hedef kitle</span>
+          <span className="text-sm font-semibold">Target audience</span>
           <textarea rows={2} value={hedefKitle} onChange={(e) => setHedefKitle(e.target.value)} className={alan} />
         </label>
         <label className="grid gap-1.5">
-          <span className="text-sm font-semibold">Yasaklı ifadeler <span className="font-normal text-muted-foreground">(her satıra bir ifade — Denetçi bunları engeller)</span></span>
+          <span className="text-sm font-semibold">Banned phrases <span className="font-normal text-muted-foreground">(one phrase per line — the Auditor blocks these)</span></span>
           <textarea rows={4} value={yasakli} onChange={(e) => setYasakli(e.target.value)} className={alan} />
         </label>
       </div>
@@ -154,7 +154,7 @@ export default function Bellek() {
           disabled={mesgul}
           className="h-11 px-5 rounded-lg border border-[#181818] font-semibold transition-transform duration-200 active:scale-[0.97] disabled:opacity-50"
         >
-          Kaydet
+          Save
         </button>
         {!bellekOnayli && (
           <button
@@ -162,15 +162,15 @@ export default function Bellek() {
             disabled={mesgul}
             className="h-11 px-5 rounded-lg bg-[#ff3500] text-[#181818] font-bold transition-transform duration-200 active:scale-[0.97] disabled:opacity-50"
           >
-            Belleği onayla ve modülleri aç
+            Approve memory and unlock modules
           </button>
         )}
       </div>
 
       {bellekOnayli && (
         <p className="mt-6 rounded-lg border border-[#0d6e3f]/30 bg-[#0d6e3f]/5 text-[#0d6e3f] px-4 py-3 text-sm">
-          Bellek onaylı. Kanıt Motoru, İcra Stüdyosu ve Onay Merkezi bu belleğe karşı çalışır;
-          yaptığın her değişiklik Denetçi'nin süzgeç kurallarını da günceller.
+          Memory approved. The Evidence Engine, Execution Studio, and Approval Center work against this memory;
+          every change you make also updates the Auditor's filter rules.
         </p>
       )}
     </div>

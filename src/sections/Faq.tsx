@@ -4,28 +4,28 @@ const easeOut = [0.16, 1, 0.3, 1] as const
 
 const faqs = [
   {
-    q: 'Yapay zekâ her şeyi kendi başına mı yapıyor?',
-    a: 'Hayır — tasarım gereği yapamaz. Ajanlar rutin işi üstlenir (tarama, varyasyon, yayın, ölçüm, rapor); strateji, hipotez seçimi, bütçe ve yayın onayı insanda kalır. Onay Merkezi olmadan sistemin yayın kapısı yoktur.',
+    q: 'Does the AI do everything on its own?',
+    a: 'No — by design, it can\'t. Agents take over routine work (scanning, variations, publishing prep, measurement, reporting); strategy, hypothesis selection, budget, and publishing approval stay with the human. Without the Approval Center, the system has no door to production.',
   },
   {
-    q: 'Reklam hesaplarım ve verilerim ne oluyor?',
-    a: 'Hesaplar sizde kalır. Bu sürümde (v1) platform hiçbir hesabınızda işlem yapmaz ve bütçenize dokunmaz; yayına hazır paket üretir, yayını siz yaparsınız. Reklam hesabı bağlantıları pilot aşamasında açılacak. Müşteri verilerinizde varsayılan anonimleştirme uygulanır; kapsam ve sözleşme seti pilot programda birlikte netleştirilecek.',
+    q: 'What happens to my ad accounts and data?',
+    a: 'Your accounts stay with you. In this release (v1) the platform performs no actions in any of your accounts and never touches your budget; it produces publish-ready packages and you do the publishing. Ad account connections will open during the pilot phase. Client data is anonymized by default; scope and the contract set will be finalized together in the pilot program.',
   },
   {
-    q: 'Bu sayfadaki rakamlar gerçek mi?',
-    a: 'Hayır. Demo bölümündeki test sonuçları, Kanıt Motoru mantığını göstermek için üretilmiş simülasyon verisidir ve sayfada açıkça etiketlenmiştir. Gerçek sonuçlar ancak gerçek testlerden gelir — "yetersiz veri" demek de platformun meşru bir çıktısıdır.',
+    q: 'Are the numbers on this page real?',
+    a: 'No. The test results in the demo section are simulation data generated to show the Evidence Engine\'s logic, and they are clearly labeled as such on the page. Real results only come from real tests — saying "insufficient data" is also a legitimate output of the platform.',
   },
   {
-    q: 'Rakip platformlardan farkınız ne?',
-    a: 'İcra araçları metalaştı: varyasyon üretmek artık herkesin yapabildiği iş. Bizim çekirdeğimiz Kanıt Motoru — "insanlar neden sizi seçsin?" sorusunun cevabını testle belgeleyip tüm icraya kaynak yapmasıdır. Üstelik beyaz etiket: ajans bunu kendi metodolojisi gibi satar.',
+    q: 'How are you different from competing platforms?',
+    a: 'Execution tools have commoditized: producing variations is something everyone can do now. Our core is the Evidence Engine — it documents the answer to "why should people choose you?" with tests and turns it into the source for all execution. And it\'s white-label: the agency sells it as its own methodology.',
   },
   {
-    q: 'Kilitlenme var mı? Verilerimi alabilir miyim?',
-    a: 'Kanıt dosyaları ve strateji belgeleri dışa aktarılabilir varlıklardır. Uzman kullanıcının kilitlenmeye alerjisi olduğunu biliyoruz — güven, satışın parçasıdır.',
+    q: 'Is there lock-in? Can I take my data?',
+    a: 'Evidence files and strategy documents are exportable assets. We know expert users are allergic to lock-in — trust is part of the sale.',
   },
   {
-    q: 'Fiyat ne kadar?',
-    a: 'Henüz fiyat listesi yayınlamıyoruz: pilot programdaki ilk 10 ajansla birlikte, gerçek kullanım değerine bakarak belirlenecek. Bilinçli bir tercih — doğrulanmamış rakam yazmıyoruz.',
+    q: 'How much does it cost?',
+    a: 'We don\'t publish a price list yet: it will be set together with the first 10 agencies in the pilot program, based on real usage value. A deliberate choice — we don\'t write unverified numbers.',
   },
 ]
 
@@ -40,7 +40,7 @@ export default function Faq() {
           transition={{ duration: 0.5, ease: easeOut }}
           className="eyebrow text-[#c52a00] mb-4"
         >
-          Sık sorulanlar
+          Frequently asked
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 22 }}
@@ -49,7 +49,7 @@ export default function Faq() {
           transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
           className="font-display font-black text-4xl sm:text-5xl leading-[1.05] mb-12"
         >
-          Aklında kalanlar
+          Still on your mind
         </motion.h2>
         <div className="divide-y divide-border border-y border-border">
           {faqs.map((f, i) => (

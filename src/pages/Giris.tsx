@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 
-// Yerel giriş: e-posta + davet kodu (Kimi OAuth bu ortamda yok — README'de belgelendi).
-// Davetsiz kullanıcı uygulamaya giremez (v2 Bölüm 4).
+// Local sign-in: email + invite code (Kimi OAuth is unavailable in this environment — documented in README).
+// Users without an invite cannot enter the app (v2 Section 4).
 export default function Giris() {
   const navigate = useNavigate();
   const [eposta, setEposta] = useState("");
@@ -23,12 +23,12 @@ export default function Giris() {
       });
       const json = (await res.json()) as { ok?: boolean; hata?: string };
       if (!res.ok) {
-        setHata(json.hata || "Giriş başarısız.");
+        setHata(json.hata || "Sign-in failed.");
         return;
       }
       navigate("/app");
     } catch {
-      setHata("Sunucuya ulaşılamadı. Geliştirme sunucusu çalışıyor mu?");
+      setHata("Could not reach the server. Is the dev server running?");
     } finally {
       setMesgul(false);
     }
@@ -44,31 +44,31 @@ export default function Giris() {
       >
         <p className="eyebrow text-[#ff3500] mb-4">KONUM</p>
         <h1 className="font-display text-4xl leading-tight mb-3">
-          Pazarlama işletim sistemine giriş
+          Sign in to the marketing operating system
         </h1>
         <p className="text-[#fcfcf9]/70 mb-8">
-          Hesaplar davetle açılır. Davet kodun yoksa platform sahibine yaz.
+          Accounts are opened by invitation. If you don&apos;t have an invite code, contact the platform owner.
         </p>
 
         <form onSubmit={(e) => void gonder(e)} className="grid gap-4">
           <label className="grid gap-1.5">
-            <span className="text-sm font-semibold">E-posta</span>
+            <span className="text-sm font-semibold">Email</span>
             <input
               type="email"
               required
               value={eposta}
               onChange={(e) => setEposta(e.target.value)}
-              placeholder="sen@ajansin.com"
+              placeholder="you@youragency.com"
               className="h-12 rounded-lg border border-white/20 bg-white/5 px-3 text-base text-[#fcfcf9] placeholder:text-[#fcfcf9]/35"
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-sm font-semibold">Davet kodu</span>
+            <span className="text-sm font-semibold">Invite code</span>
             <input
               required
               value={davetKodu}
               onChange={(e) => setDavetKodu(e.target.value)}
-              placeholder="Örn. KONUM-XXXX-1"
+              placeholder="E.g. KONUM-XXXX-1"
               className="h-12 rounded-lg border border-white/20 bg-white/5 px-3 text-base text-[#fcfcf9] placeholder:text-[#fcfcf9]/35"
             />
           </label>
@@ -84,12 +84,12 @@ export default function Giris() {
             disabled={mesgul}
             className="h-12 rounded-lg bg-[#ff3500] text-[#181818] font-bold text-lg transition-transform duration-200 active:scale-[0.97] hover:bg-[#ff4d1f] disabled:opacity-50"
           >
-            {mesgul ? "Kontrol ediliyor…" : "Giriş yap"}
+            {mesgul ? "Checking…" : "Sign in"}
           </button>
         </form>
 
         <p className="mt-6 text-sm text-[#fcfcf9]/50">
-          Yerel geliştirme sürümü: Kimi OAuth yerine e-posta + davet kodu ile yerel oturum açılır.
+          Local development build: a local session is opened with email + invite code instead of Kimi OAuth.
         </p>
       </motion.div>
     </div>

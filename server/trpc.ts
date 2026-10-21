@@ -4,8 +4,8 @@ import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { db } from "./db";
 import { sessions, users, workspaces, workspaceMembers, strategyBeliefs } from "./schema";
 
-// Kimi OAuth bu ortamda yok → e-posta + davet kodu ile yerel oturum (v2 güncelleme
-// maddesi 4; README'de belgelendi). Davetsiz kullanıcı uygulamaya giremez.
+// Kimi OAuth is unavailable in this environment → local session via email + invite code
+// (v2 update item 4; documented in README). Users without an invite cannot enter the app.
 
 export interface OturumKullanici {
   id: string;
@@ -44,41 +44,41 @@ const t = initTRPC.context<Context>().create();
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-// Giriş zorunlu prosedürler
+// Procedures requiring sign-in
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Oturum gerekli. Lütfen giriş yapın." });
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Session required. Please sign in." });
   }
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 
 export type Rol = "sahip" | "editor" | "onaylayici" | "izleyici";
 
-// Üyelik doğrulaması — v2 Bölüm 6.2: her workspace yalnızca üyelerine görünür.
+// Membership check — v2 Section 6.2: every workspace is visible only to its members.
 export function uyeZorla(workspaceId: string, userId: string) {
   const ws = db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).get();
-  if (!ws) throw new TRPCError({ code: "NOT_FOUND", message: "Çalışma alanı bulunamadı." });
+  if (!ws) throw new TRPCError({ code: "NOT_FOUND", message: "Workspace not found." });
   const uyelik = db
     .select()
     .from(workspaceMembers)
     .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))
     .get();
   if (!uyelik) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Bu çalışma alanına erişim yetkiniz yok." });
+    throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this workspace." });
   }
   return { ws, rol: uyelik.rol as Rol };
 }
 
-// Onay/red yetkisi yalnız sahip ve onaylayıcı rolündedir (v2 Bölüm 6.2)
+// Approve/reject authority belongs only to the owner and approver roles (v2 Section 6.2)
 export function onayYetkisiZorla(workspaceId: string, userId: string) {
   const { ws, rol } = uyeZorla(workspaceId, userId);
   if (rol !== "sahip" && rol !== "onaylayici") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Onay/red yetkisi sahip ve onaylayıcı rollerindedir." });
+    throw new TRPCError({ code: "FORBIDDEN", message: "Approve/reject authority belongs to the owner and approver roles." });
   }
   return { ws, rol };
 }
 
-// Bellek kilidi — v2 Bölüm 2: bellek onaylanmadan diğer modüller sunucuda da kilitli.
+// Memory lock — v2 Section 2: until the memory is approved, other modules stay locked on the server too.
 export function bellekOnayZorla(workspaceId: string) {
   const bellek = db
     .select()
@@ -88,7 +88,7 @@ export function bellekOnayZorla(workspaceId: string) {
   if (!bellek || bellek.onayDurumu !== "onaylandi") {
     throw new TRPCError({
       code: "PRECONDITION_FAILED",
-      message: "Strateji Belleği onaylanmadan bu modül kullanılamaz. Önce belleği onaylayın.",
+      message: "This module cannot be used before the Strategy Memory is approved. Please approve the memory first.",
     });
   }
   return bellek;

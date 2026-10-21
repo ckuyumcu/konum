@@ -3,19 +3,19 @@ import { motion } from 'framer-motion'
 const easeOut = [0.16, 1, 0.3, 1] as const
 
 const aiList = [
-  'Rakip mesajlarını ve kategori dilini 7/24 tarar',
-  'Mesaj hipotezleri ve kanal varyasyonları üretir',
-  'Küçük bütçeli A/B testlerini kurar ve işletir',
-  'Takvime yayar, performansı ölçer, raporlar',
-  'Konumlandırma eskidiğinde alarm verir',
+  'Scans competitor messaging and category language 24/7',
+  'Generates message hypotheses and channel variations',
+  'Sets up and runs small-budget A/B tests',
+  'Schedules, measures performance, and reports',
+  'Raises an alarm when positioning goes stale',
 ]
 
 const humanList = [
-  'Hikâyeyi ve konumlandırmayı kurar',
-  'Hipotezi seçer, test bütçesini onaylar',
-  'Yayına çıkan her şeyin son onayını verir',
-  'Müşteri ilişkisini ve itibarı taşır',
-  'Nihai kararın sorumluluğunu üstlenir',
+  'Builds the story and the positioning',
+  'Selects hypotheses and approves test budgets',
+  'Gives the final sign-off on everything that ships',
+  'Owns the client relationship and reputation',
+  'Takes responsibility for the final call',
 ]
 
 export default function Roles() {
@@ -29,7 +29,7 @@ export default function Roles() {
           transition={{ duration: 0.55, ease: easeOut }}
           className="font-display font-black text-4xl sm:text-5xl lg:text-6xl leading-[1.02] max-w-[20ch]"
         >
-          Sınır net: ajan işletir, insan karar verir.
+          The line is clear: agents operate, humans decide.
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -38,13 +38,13 @@ export default function Roles() {
           transition={{ duration: 0.5, ease: easeOut, delay: 0.08 }}
           className="mt-5 max-w-[56ch] text-xl font-bold leading-snug"
         >
-          Platform senin yerine pazarlamacılık yapmaz; senin kararlarını bütün müşterilerine aynı kalitede uygular.
+          The platform doesn&apos;t do the marketing for you; it applies your decisions to every client at the same quality.
         </motion.p>
 
         <div className="mt-14 grid md:grid-cols-2 gap-6">
           {[
-            { title: 'Ajan yapar', items: aiList, dark: true },
-            { title: 'İnsan karar verir', items: humanList, dark: false },
+            { title: 'The agent does', items: aiList, dark: true },
+            { title: 'The human decides', items: humanList, dark: false },
           ].map((col, ci) => (
             <motion.div
               key={col.title}
@@ -78,7 +78,7 @@ export default function Roles() {
           transition={{ duration: 0.6, delay: 0.15 }}
           className="mt-12 font-display font-bold text-2xl md:text-3xl text-center"
         >
-          Hiçbir yayın, onayın olmadan çıkmaz.
+          Nothing ships without your approval.
         </motion.p>
       </div>
     </section>

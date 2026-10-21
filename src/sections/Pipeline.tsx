@@ -5,35 +5,35 @@ const easeOut = [0.16, 1, 0.3, 1] as const
 const stages = [
   {
     id: 'bellek',
-    title: 'Strateji Belleği',
-    who: 'İnsan kurar',
+    title: 'Strategy Memory',
+    who: 'Built by humans',
     whoAccent: false,
-    body: 'Hikâye, konumlandırma, hedef kitle, yasaklı ifadeler, kanıtlanmış mesajlar. Tüm ajanların okuduğu tek doğruluk kaynağı.',
+    body: 'Story, positioning, target audience, banned phrases, proven messages. The single source of truth every agent reads.',
     agents: [],
   },
   {
     id: 'kanit',
-    title: 'Kanıt Motoru',
-    who: 'Ajan çalışır · insan seçer',
+    title: 'Evidence Engine',
+    who: 'Agents work · humans choose',
     whoAccent: true,
-    body: 'Rakip mesajlarını tarar, müşteri dilinde madencilik yapar, hipotez üretir, küçük bütçeli testler tasarlar. "Yetersiz veri" demek de bir çıktıdır.',
-    agents: ['Araştırmacı', 'Stratejist Yrd.', 'Test Tasarımcısı'],
+    body: 'Scans competitor messaging, mines the customer\'s language, generates hypotheses, designs small-budget tests. Saying "insufficient data" is also a valid output.',
+    agents: ['Researcher', 'Strategist Asst.', 'Test Designer'],
   },
   {
     id: 'icra',
-    title: 'İcra Stüdyosu',
-    who: 'Ajan üretir · insan onaylar',
+    title: 'Execution Studio',
+    who: 'Agents produce · humans approve',
     whoAccent: true,
-    body: 'Kanıtlanmış mesajdan Instagram, Meta Ads, Google Ads ve e-posta varyasyonları üretir; takvime yayar. Denetçi ajan, kurallara uymayanı onaya bile çıkarmaz.',
-    agents: ['İçerik Üretici', 'Yayıncı', 'Denetçi'],
+    body: 'Turns proven messages into Instagram, Meta Ads, Google Ads and email variations, then schedules them. The Auditor agent won\'t even send rule-breaking work to approval.',
+    agents: ['Content Producer', 'Publisher', 'Auditor'],
   },
   {
     id: 'sinyal',
-    title: 'Sinyal Radarı',
-    who: 'Ajan izler · insan karar verir',
+    title: 'Signal Radar',
+    who: 'Agents watch · humans decide',
     whoAccent: true,
-    body: 'Performansı okur, haftalık "ne öğrendik" özetini çıkarır, konumlandırma eskidiğinde alarm verir. Karar her zaman sende.',
-    agents: ['Analist'],
+    body: 'Reads performance, writes the weekly "what we learned" digest, and raises an alarm when positioning goes stale. The decision is always yours.',
+    agents: ['Analyst'],
   },
 ]
 
@@ -48,7 +48,7 @@ export default function Pipeline() {
           transition={{ duration: 0.5, ease: easeOut }}
           className="eyebrow text-[#ff3500] mb-4"
         >
-          Nasıl çalışır
+          How it works
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 22 }}
@@ -57,13 +57,13 @@ export default function Pipeline() {
           transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
           className="font-display font-black text-4xl sm:text-5xl lg:text-6xl leading-[1.02] max-w-[20ch]"
         >
-          Tek hat, dört istasyon.
+          One line, four stations.
           <br />
-          <span className="text-[#fcfcf9]/60">Yayına çıkan tek kapı: senin onayın.</span>
+          <span className="text-[#fcfcf9]/60">The only door to production: your approval.</span>
         </motion.h2>
 
         <div className="relative mt-16">
-          {/* Akan bağlantı çizgisi (masaüstü) */}
+          {/* Flowing connector line (desktop) */}
           <svg
             className="hidden lg:block absolute top-10 left-0 w-full h-6 pointer-events-none"
             viewBox="0 0 1200 24"
@@ -116,8 +116,8 @@ export default function Pipeline() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mt-12 text-sm text-[#fcfcf9]/50 max-w-[70ch]"
         >
-          Mimari ilke: ajanlar asla doğrudan yayına çıkamaz. Tek çıkış kapısı Onay Merkezi&apos;dir — bu hem kalite
-          kontrolü hem de sorumluluk sınırıdır.
+          Architectural principle: agents can never publish directly. The only exit is the Approval Center — it is both
+          quality control and the boundary of responsibility.
         </motion.p>
       </div>
     </section>

@@ -5,18 +5,18 @@ const easeOut = [0.16, 1, 0.3, 1] as const
 const rows = [
   {
     n: '01',
-    title: 'Ürün yapmak ucuzladı, dikkat pahalılaştı.',
-    body: 'Aynı işi yapan onlarca benzer ürün var. Kullanıcı seçmekte zorlanıyor; mesele artık "yapabilir miyiz?" değil, "insanlar neden bizimkini seçsin?".',
+    title: 'Building products got cheap. Attention got expensive.',
+    body: 'Dozens of near-identical products do the same job. Buyers can\'t tell them apart; the question is no longer "can we build it?" but "why would anyone pick ours?".',
   },
   {
     n: '02',
-    title: 'AI herkese aynı ortalama kampanyayı öneriyor.',
-    body: 'Araçlar metni yazıyor ama farkı yazmıyor. Farkı yaratan hâlâ hikâye kuran, kitlesini tanıyan, ürünü doğru konumlandıran insan.',
+    title: 'AI recommends the same average campaign to everyone.',
+    body: 'The tools write copy, but they don\'t write difference. Difference still comes from the human who builds the story, knows the audience, and positions the product.',
   },
   {
     n: '03',
-    title: 'Satışın olmaması ürünün değil, sistemin suçu.',
-    body: 'Mesaj, kitle ve kanıt — üçü de tek seferlik işler değil. Pazarlama bir lansman değil, sürekli işletilen bir hattır. Çoğu ekipte o hat yok.',
+    title: 'No sales is the system\'s fault, not the product\'s.',
+    body: 'Message, audience, and evidence — none of them are one-off tasks. Marketing is not a launch; it\'s a continuously operated line. Most teams don\'t have that line.',
   },
 ]
 
@@ -33,7 +33,7 @@ export default function Problem() {
               transition={{ duration: 0.5, ease: easeOut }}
               className="eyebrow text-[#c52a00] mb-4"
             >
-              Sorun
+              The Problem
             </motion.p>
             <motion.h2
               initial={{ opacity: 0, y: 22 }}
@@ -42,9 +42,9 @@ export default function Problem() {
               transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
               className="font-display font-black text-4xl sm:text-5xl lg:text-6xl leading-[1.02]"
             >
-              Beş site yaptın.
+              You built five sites.
               <br />
-              Satış <span className="hl">yok.</span>
+              Sales? <span className="hl">Zero.</span>
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 18 }}
@@ -53,8 +53,8 @@ export default function Problem() {
               transition={{ duration: 0.5, ease: easeOut, delay: 0.14 }}
               className="mt-6 text-lg text-foreground/70 max-w-[48ch]"
             >
-              Tanıdık geldi mi? Ürün çalışıyor, tasarım iyi — ama kimseye ulaşamıyorsun. Bu bir yazılım sorunu değil,
-              bir <strong className="text-foreground">pazarlama operasyonu</strong> sorunu.
+              Sound familiar? The product works, the design is fine — but you reach no one. This isn&apos;t a software
+              problem; it&apos;s a <strong className="text-foreground">marketing operations</strong> problem.
             </motion.p>
             <motion.svg
               initial={{ opacity: 0 }}
@@ -101,8 +101,8 @@ export default function Problem() {
             transition={{ duration: 0.5, ease: easeOut }}
             className="border-t border-border pt-9 text-lg font-semibold"
           >
-            Kod üretmek kolaylaştıkça dikkat çekmek zorlaşıyor.{' '}
-            <span className="text-[#c52a00]">Pazarlamacıların devri başlıyor</span> — onlara layık bir altyapıyla.
+            The easier it gets to ship code, the harder it gets to earn attention.{' '}
+            <span className="text-[#c52a00]">The era of marketers is beginning</span> — with infrastructure worthy of them.
           </motion.p>
         </div>
       </div>

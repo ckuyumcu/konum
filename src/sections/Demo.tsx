@@ -9,54 +9,54 @@ type Product = { id: string; name: string; a: Variant; b: Variant; why: string }
 const products: Product[] = [
   {
     id: 'kahve',
-    name: 'Butik kahve aboneliği',
+    name: 'Boutique coffee subscription',
     a: {
-      label: 'A · Jenerik AI tonu',
-      text: 'Kaliteli kahve kapına gelsin! Taze, lezzetli, uygun fiyatlı. Hemen dene!',
+      label: 'A · Generic AI tone',
+      text: 'Quality coffee delivered to your door! Fresh, tasty, affordable. Try it now!',
       ctr: 1.8,
-      note: 'Herkesin yazabileceği cümleler. İddia yok, kanıt yok, hikâye yok.',
+      note: 'Sentences anyone could write. No claim, no evidence, no story.',
     },
     b: {
-      label: 'B · Kanıt-odaklı',
-      text: 'Paketinin üstünde kavrum tarihi var: 12 gün önce kavruldu, dün kargoya verildi.',
+      label: 'B · Evidence-driven',
+      text: 'The roast date is printed on your bag: roasted 12 days ago, shipped yesterday.',
       ctr: 4.6,
-      note: 'Somut, doğrulanabilir, hikâyesi olan iddia.',
+      note: 'A concrete, verifiable claim with a story behind it.',
     },
-    why: 'Varyant B spesifik bir kanıt sunuyor: kavrum tarihi. "Kaliteli" bir iddiadır; "12 gün önce kavruldu" bir kanıttır. Kanıt Motoru tam olarak bu farkı arar.',
+    why: 'Variant B offers a specific piece of evidence: the roast date. "Quality" is a claim; "roasted 12 days ago" is evidence. The Evidence Engine searches for exactly this difference.',
   },
   {
     id: 'saas',
-    name: 'SaaS randevu aracı',
+    name: 'SaaS appointment tool',
     a: {
-      label: 'A · Jenerik AI tonu',
-      text: 'Randevularını kolayca yönet! Modern arayüz, hızlı kurulum. Ücretsiz dene!',
+      label: 'A · Generic AI tone',
+      text: 'Manage your appointments easily! Modern interface, quick setup. Try it free!',
       ctr: 2.1,
-      note: 'Özellik listesi, fayda cümlesi yok.',
+      note: 'A feature list without a single benefit statement.',
     },
     b: {
-      label: 'B · Kanıt-odaklı',
-      text: 'Gelmeyen müşteri, boşa giden saat. Hatırlatmalar, müşterinin cevap verdiği kanaldan gider.',
+      label: 'B · Evidence-driven',
+      text: 'A no-show client is an hour gone forever. Reminders go out on the channel your clients actually answer.',
       ctr: 4.1,
-      note: 'Acıyı adıyla söylüyor, çözümü davranışa bağlıyor.',
+      note: 'Names the pain plainly and ties the fix to behavior.',
     },
-    why: 'Varyant B problemi müşterinin diliyle anlatıyor ("boşa giden saat"). Bu dil, müşteri görüşmelerinden madencilikle çıkar — Kanıt Motoru bunu otomatik tarar.',
+    why: 'Variant B describes the problem in the customer\'s own words ("an hour gone forever"). That language is mined from customer conversations — the Evidence Engine scans for it automatically.',
   },
   {
     id: 'seramik',
-    name: 'El yapımı seramik',
+    name: 'Handmade ceramics',
     a: {
-      label: 'A · Jenerik AI tonu',
-      text: 'El yapımı seramiklerle evine zarafet kat! Özenle üretildi, şimdi satışta.',
+      label: 'A · Generic AI tone',
+      text: 'Add elegance to your home with handmade ceramics! Crafted with care, on sale now.',
       ctr: 1.4,
-      note: '"Zarafet" ölçülemez; her seramikçi aynısını söylüyor.',
+      note: '"Elegance" can\'t be measured; every ceramicist says the same thing.',
     },
     b: {
-      label: 'B · Kanıt-odaklı',
-      text: 'Bu desen tek fırından çıktı: 40 adet üretildi, 11 tanesi kaldı. Sıradaki fırın 3 hafta sonra.',
+      label: 'B · Evidence-driven',
+      text: 'This pattern came out of a single kiln firing: 40 pieces made, 11 left. The next firing is in 3 weeks.',
       ctr: 5.2,
-      note: 'Kıtlık + takvim + somut sayı: koleksiyon hissi.',
+      note: 'Scarcity + calendar + concrete numbers: a collector\'s feel.',
     },
-    why: 'Varyant B satın alma kararını bir anlatıya oturtuyor. Aynı ürün, aynı fiyat — fark, mesajın taşıdığı kanıt.',
+    why: 'Variant B grounds the purchase decision in a narrative. Same product, same price — the difference is the evidence the message carries.',
   },
 ]
 
@@ -94,7 +94,7 @@ export default function Demo() {
           transition={{ duration: 0.5, ease: easeOut }}
           className="eyebrow text-[#c52a00] mb-4"
         >
-          Canlı demo · Kanıt Motoru
+          Live demo · Evidence Engine
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 22 }}
@@ -103,7 +103,7 @@ export default function Demo() {
           transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
           className="font-display font-black text-4xl sm:text-5xl leading-[1.05] max-w-[22ch]"
         >
-          Hangi mesaj kazanır? Tahmin etme — <span className="hl">test et.</span>
+          Which message wins? Don&apos;t guess — <span className="hl">test it.</span>
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 18 }}
@@ -112,12 +112,12 @@ export default function Demo() {
           transition={{ duration: 0.5, ease: easeOut, delay: 0.12 }}
           className="mt-5 max-w-[66ch] text-lg text-foreground/70"
         >
-          Aşağıdaki simülasyon, Kanıt Motoru&apos;nun mantığını gösterir: iki mesaj varyantı küçük bütçeli bir teste
-          girer, kazanan kanıt dosyasına işlenir.{' '}
-          <span className="text-sm text-foreground/50">(Gördüğünüz sayılar örnek/simülasyon verisidir, gerçek kampanya sonucu değildir.)</span>
+          The simulation below shows the Evidence Engine&apos;s logic: two message variants enter a small-budget test,
+          and the winner is recorded in the evidence file.{' '}
+          <span className="text-sm text-foreground/50">(The numbers you see are sample/simulation data, not real campaign results.)</span>
         </motion.p>
 
-        <div className="mt-10 flex flex-wrap gap-3" role="tablist" aria-label="Ürün seçimi">
+        <div className="mt-10 flex flex-wrap gap-3" role="tablist" aria-label="Product selection">
           {products.map((p) => (
             <button
               key={p.id}
@@ -149,8 +149,8 @@ export default function Demo() {
               <p className="mt-3 text-sm text-foreground/60">{v.note}</p>
               <div className="mt-5">
                 <div className="flex justify-between text-xs font-bold mb-1.5">
-                  <span className="uppercase tracking-widest text-foreground/50">Tıklama oranı</span>
-                  <span className="font-mono">{(done || running) && `%${v.ctr.toFixed(1).replace('.', ',')}`}</span>
+                  <span className="uppercase tracking-widest text-foreground/50">Click-through rate</span>
+                  <span className="font-mono">{(done || running) && `${v.ctr.toFixed(1)}%`}</span>
                 </div>
                 <div className="h-3 rounded-full bg-[#efefe4] overflow-hidden">
                   <motion.div
@@ -171,7 +171,7 @@ export default function Demo() {
             disabled={running}
             className="inline-flex items-center rounded-md bg-foreground text-background px-6 py-3 text-base font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            {running ? 'Test çalışıyor…' : done ? 'Testi tekrar çalıştır' : 'Testi çalıştır'}
+            {running ? 'Test running…' : done ? 'Run the test again' : 'Run the test'}
           </button>
           <AnimatePresence>
             {done && (
@@ -183,7 +183,7 @@ export default function Demo() {
                 className="flex-1 min-w-[260px] rounded-lg border-l-4 border-[#ff3500] bg-[#fcfcf9] border border-border p-4"
               >
                 <p className="font-bold text-sm">
-                  Varyant {winner} kazandı → kanıt dosyasına işlendi → İcra Stüdyosu 3 kanal varyasyonu hazırlıyor
+                  Variant {winner} won → recorded in the evidence file → Execution Studio is preparing 3 channel variations
                   <span className="cursor-blink text-[#c52a00]" aria-hidden="true"> ▌</span>
                 </p>
                 <p className="mt-1.5 text-sm text-foreground/70">{selected.why}</p>

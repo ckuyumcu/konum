@@ -1,16 +1,16 @@
-// Konum Aşama 1 otomatik testleri — v2 Bölüm 11 maddeleri 2, 3, 5, 6'nın
-// bu aşamada uygulanabilen kısımları + anonimleştirme testi.
-// Çalıştır: npm test
+// Konum Phase 1 automated tests — the parts of v2 Section 11 items 2, 3, 5, 6
+// applicable at this phase + the anonymization test.
+// Run: npm test
 
 import { strict as assert } from "node:assert";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-// db import edilmeden ÖNCE test veritabanı yolu ayarlanır
+// Test database path is set BEFORE db is imported
 process.env.KONUM_DATA_DIR = mkdtempSync(path.join(tmpdir(), "konum-test-"));
 process.env.KONUM_SECRET_DIR = mkdtempSync(path.join(tmpdir(), "konum-secret-"));
-delete process.env.ANTHROPIC_API_KEY; // dosya yolu test edilsin
+delete process.env.ANTHROPIC_API_KEY; // so the file path is exercised
 
 let gecti = 0;
 function test(ad: string, fn: () => void | Promise<void>): Promise<void> | void {
@@ -34,55 +34,55 @@ async function main() {
   const { uyeZorla, bellekOnayZorla } = await import("../trpc");
   const { workspaces, workspaceMembers, users, strategyBeliefs } = await import("../schema");
 
-  console.log("Denetçi (Bölüm 11.3):");
-  await test("yasaklı ifade içeren çıktı reddedilir", () => {
+  console.log("Auditor (Section 11.3):");
+  await test("output containing a banned phrase is rejected", () => {
     const r = denetle({ metin: "Bu ürün devrim niteliğinde bir çözüm.", yasakliIfadeler: ["devrim niteliğinde"] });
     assert.equal(r.karar, "reddedildi");
   });
-  await test("temiz çıktı geçer", () => {
+  await test("clean output passes", () => {
     const r = denetle({ metin: "Kargo 24 saatte çıkar; iade 30 gün koşulsuzdur.", yasakliIfadeler: ["sihirli"] });
     assert.equal(r.karar, "gecti");
   });
-  await test("kaynaksız sayısal iddia reddedilir", () => {
+  await test("unsourced numeric claim is rejected", () => {
     const r = denetle({ metin: "Satışlarınız %300 artar.", yasakliIfadeler: [] });
     assert.equal(r.karar, "reddedildi");
   });
 
-  console.log("SSRF koruması (Bölüm 11.6):");
+  console.log("SSRF protection (Section 11.6):");
   for (const hedef of ["http://127.0.0.1", "http://169.254.169.254", "http://10.0.0.1", "http://localhost"]) {
-    await test(`${hedef} reddedilir`, async () => {
+    await test(`${hedef} is rejected`, async () => {
       const r = await hedefGuvenliMi(hedef);
       assert.equal(r.guvenli, false);
     });
   }
-  await test("scanUrl 127.0.0.1'i ağ isteği yapmadan reddeder", async () => {
+  await test("scanUrl rejects 127.0.0.1 without a network request", async () => {
     await assert.rejects(() => scanUrl("http://127.0.0.1:9/"), (e) => e instanceof SsrfError);
   });
-  await test("ftp: şeması reddedilir", async () => {
+  await test("ftp: scheme is rejected", async () => {
     const r = await hedefGuvenliMi("ftp://example.com/x");
     assert.equal(r.guvenli, false);
   });
 
-  console.log("Durum makinesi (Bölüm 3 kural 9):");
-  await test("onayKuyrugu → paketlendi doğrudan geçemez", () => {
+  console.log("State machine (Section 3 rule 9):");
+  await test("onayKuyrugu → paketlendi cannot be taken directly", () => {
     assert.throws(() => gecisZorla("icerik", "onayKuyrugu", "paketlendi"));
   });
-  await test("onayli → paketlendi geçer", () => {
+  await test("onayli → paketlendi passes", () => {
     gecisZorla("icerik", "onayli", "paketlendi");
   });
-  await test("bellek taslak → onaylandi geçer, onaylandi → taslak dönemez", () => {
+  await test("bellek taslak → onaylandi passes, onaylandi → taslak cannot return", () => {
     gecisZorla("bellek", "taslak", "onaylandi");
     assert.throws(() => gecisZorla("bellek", "onaylandi", "taslak"));
   });
 
-  console.log("Workspace izolasyonu (Bölüm 11.5):");
-  await test("A kullanıcısı B'nin çalışma alanını okuyamaz", () => {
+  console.log("Workspace isolation (Section 11.5):");
+  await test("user A cannot read user B's workspace", () => {
     const simdi = Date.now();
     const uA = { id: newId("usr"), email: "a@test.local", name: "A", createdAt: simdi };
     const uB = { id: newId("usr"), email: "b@test.local", name: "B", createdAt: simdi };
     db.insert(users).values([uA, uB]).run();
-    const wsA = { id: newId("ws"), ownerId: uA.id, musteriAdi: "A Müşteri", sektor: "S", urunUrl: "https://a.example", beyazEtiket: "{}", createdAt: simdi };
-    const wsB = { id: newId("ws"), ownerId: uB.id, musteriAdi: "B Müşteri", sektor: "S", urunUrl: "https://b.example", beyazEtiket: "{}", createdAt: simdi };
+    const wsA = { id: newId("ws"), ownerId: uA.id, musteriAdi: "Client A", sektor: "S", urunUrl: "https://a.example", beyazEtiket: "{}", createdAt: simdi };
+    const wsB = { id: newId("ws"), ownerId: uB.id, musteriAdi: "Client B", sektor: "S", urunUrl: "https://b.example", beyazEtiket: "{}", createdAt: simdi };
     db.insert(workspaces).values([wsA, wsB]).run();
     db.insert(workspaceMembers)
       .values([
@@ -90,44 +90,44 @@ async function main() {
         { id: newId("mem"), workspaceId: wsB.id, userId: uB.id, rol: "sahip", createdAt: simdi },
       ])
       .run();
-    // A kendi alanına girer
+    // A enters their own workspace
     assert.equal(uyeZorla(wsA.id, uA.id).ws.id, wsA.id);
-    // A, B'nin alanına giremez
-    assert.throws(() => uyeZorla(wsB.id, uA.id), /erişim yetkiniz yok/);
+    // A cannot enter B's workspace
+    assert.throws(() => uyeZorla(wsB.id, uA.id), /do not have access/);
   });
 
-  await test("bellek kilidi sunucuda zorlanır", () => {
+  await test("the memory lock is enforced on the server", () => {
     const simdi = Date.now();
-    const ws = { id: newId("ws"), ownerId: "usr_x", musteriAdi: "Kilit", sektor: "S", urunUrl: "https://k.example", beyazEtiket: "{}", createdAt: simdi };
+    const ws = { id: newId("ws"), ownerId: "usr_x", musteriAdi: "Lock", sektor: "S", urunUrl: "https://k.example", beyazEtiket: "{}", createdAt: simdi };
     db.insert(workspaces).values(ws).run();
-    // Bellek yokken kilitli
+    // Locked while there is no memory
     assert.throws(() => bellekOnayZorla(ws.id));
     db.insert(strategyBeliefs)
       .values({ id: newId("blg"), workspaceId: ws.id, onayDurumu: "taslak", hikaye: "x".repeat(30), konumlandirma: "y".repeat(30) })
       .run();
-    // Taslak hâlinde kilitli
+    // Locked while in draft state
     assert.throws(() => bellekOnayZorla(ws.id));
     db.update(strategyBeliefs)
       .set({ onayDurumu: "onaylandi" })
       .run();
-    // Onaylıyken açık
+    // Open once approved
     assert.equal(bellekOnayZorla(ws.id).onayDurumu, "onaylandi");
   });
 
-  console.log("KVKK anonimleştirme (Bölüm 6.1):");
-  await test("e-posta, telefon, TC, IBAN maskelenir", () => {
+  console.log("Privacy anonymization (Section 6.1):");
+  await test("email, phone, national ID, IBAN are masked", () => {
     const m = anonimlestir(
       "Ahmet Yılmaz ahmet@ornek.com adresinden yazdı, tel: +90 532 123 45 67, TC: 12345678901, IBAN: TR33 0006 1005 1978 6457 8413 26"
     );
-    assert.ok(!m.includes("ahmet@ornek.com"), "e-posta kaldı");
-    assert.ok(!m.includes("532 123 45 67"), "telefon kaldı");
-    assert.ok(!m.includes("12345678901"), "TC kaldı");
-    assert.ok(!m.includes("TR33 0006"), "IBAN kaldı");
-    assert.ok(!m.includes("Ahmet Yılmaz"), "ad-soyad kaldı");
+    assert.ok(!m.includes("ahmet@ornek.com"), "email remains");
+    assert.ok(!m.includes("532 123 45 67"), "phone remains");
+    assert.ok(!m.includes("12345678901"), "national ID remains");
+    assert.ok(!m.includes("TR33 0006"), "IBAN remains");
+    assert.ok(!m.includes("Ahmet Yılmaz"), "full name remains");
   });
 
-  console.log("LLM anahtar deposu (Cem'in ek kararı):");
-  await test("anahtar proje dışı gizli dosyaya 600 izniyle yazılır ve geri okunur", async () => {
+  console.log("LLM key store (Cem's additional decision):");
+  await test("the key is written to a secret file outside the project with 600 permissions and read back", async () => {
     const { anthropicAnahtariYaz, anthropicAnahtari, anthropicAnahtariSil } = await import("../config");
     const { statSync } = await import("node:fs");
     assert.equal(anthropicAnahtari().kaynak, "yok");
@@ -137,24 +137,24 @@ async function main() {
     assert.equal(okunan.anahtar, "sk-ant-test-1234567890");
     const izin = statSync(path.join(process.env.KONUM_SECRET_DIR!, "secrets.json")).mode & 0o777;
     assert.equal(izin, 0o600);
-    // env önceliği: env varsa dosya değil env kullanılır
+    // env priority: when env exists, env is used instead of the file
     process.env.ANTHROPIC_API_KEY = "sk-ant-env-oncelikli";
     assert.equal(anthropicAnahtari().kaynak, "env");
     delete process.env.ANTHROPIC_API_KEY;
     anthropicAnahtariSil();
     assert.equal(anthropicAnahtari().kaynak, "yok");
   });
-  await test("zod şeması JSON Schema'ya çevrilebiliyor (tool-use zorlaması)", async () => {
+  await test("zod schema converts to JSON Schema (tool-use enforcement)", async () => {
     const { z } = await import("zod");
     const { BellekTaslagiSchema } = await import("../agents/bellek");
     const js = z.toJSONSchema(BellekTaslagiSchema) as { properties?: Record<string, unknown> };
     assert.ok(js.properties && "hikaye" in js.properties && "yasakliIfadeler" in js.properties);
   });
 
-  console.log(`\n${gecti} test geçti.`);
+  console.log(`\n${gecti} tests passed.`);
 }
 
 main().catch((e) => {
-  console.error("\nTEST BAŞARISIZ:", e);
+  console.error("\nTEST FAILED:", e);
   process.exit(1);
 });

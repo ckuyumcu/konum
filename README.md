@@ -2,6 +2,17 @@
 
 İnsan onayı olmadan hiçbir içeriğin dışarı çıkamadığı, ajan destekli ürün pazarlama
 platformu. Bu depo, tanıtım sitesi (landing) + uygulama panosunu (Aşama 1) içerir.
+**Site dili İngilizce'dir** (Cem'in 2026-10-21 talimatı) ve site **"An AIWork
+School company"** ibaresini taşır (footer + uygulama kabuğu).
+
+## Sahiplik kararları (2026-10-21)
+
+- **Dil:** Tüm kullanıcı arayüzü ve site metinleri yalnızca İngilizce.
+- **İştirak:** Konum, AIWork School iştiraki olarak gösterilir.
+- **E-posta:** `hello@…` adresi alınacak; Gmail üzerinden gönderme/alma yapılacak.
+  Uygulamaya e-posta gönder/al entegrasyonu sonraki aşamada eklenecek (şu an
+  yalnızca kayıt altına alınmış bir yönergedir; entegrasyon listesinde
+  "E-posta (Mailchimp / Klaviyo)" planlandı rozeti bu karardan bağımsızdır).
 
 ## Çalıştırma
 
@@ -9,7 +20,7 @@ platformu. Bu depo, tanıtım sitesi (landing) + uygulama panosunu (Aşama 1) i�
 npm install
 npm run dev      # http://localhost:3000 — arayüz + API (/api) tek süreçte
 npm run build    # tsc -b && vite build
-npm test         # otomatik testler (15 adet)
+npm test         # otomatik testler (17 adet)
 ```
 
 **İlk giriş:** `/giris` → e-posta `cem@konum.local`, davet kodu `KONUM-PILOT-1`

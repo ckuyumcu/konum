@@ -1,10 +1,10 @@
-// Ortam yapılandırması + gizli anahtar deposu.
+// Environment configuration + secret key store.
 //
-// Anahtar iki yoldan gelir (öncelik sırasıyla):
-//  1) Proje kökündeki .env içinde ANTHROPIC_API_KEY (git'e girmez — .gitignore'da)
-//  2) Ayarlar ekranından girilen anahtar → proje DIŞI yerel gizli dosya
-//     (~/.konum/secrets.json, izinler 700/600). Anahtar bir daha gösterilmez,
-//     istemciye asla dönmez, git'e asla yazılmaz.
+// The key arrives one of two ways (in priority order):
+//  1) ANTHROPIC_API_KEY in the .env at the project root (never enters git — in .gitignore)
+//  2) A key entered on the Settings screen → a local secret file OUTSIDE the project
+//     (~/.konum/secrets.json, permissions 700/600). The key is never shown again,
+//     never returned to the client, never written to git.
 
 import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync, chmodSync } from "node:fs";
 import { homedir } from "node:os";
@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJE_KOKU = path.resolve(__dirname, "..");
 
-// Basit .env okuyucu (process.env'e yalnızca eksik anahtarları ekler)
+// Simple .env reader (adds only missing keys to process.env)
 export function envYukle(): void {
   const p = path.join(PROJE_KOKU, ".env");
   if (!existsSync(p)) return;
@@ -69,8 +69,8 @@ export function anthropicAnahtariSil(): void {
   }
 }
 
-// Platform sahibi: yerel geliştirmede tohum davetin e-postası; üretimde Kimi
-// OAuth kimliğine bağlanacak. KONUM_PLATFORM_SAHIBI ile ezilebilir.
+// Platform owner: the seed invite's email in local development; will be tied to the Kimi
+// OAuth identity in production. Can be overridden with KONUM_PLATFORM_SAHIBI.
 export function platformSahibiMi(email: string): boolean {
   const sahip = (process.env.KONUM_PLATFORM_SAHIBI || "cem@konum.local").toLocaleLowerCase("tr");
   return email.toLocaleLowerCase("tr") === sahip;

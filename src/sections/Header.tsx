@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 
 const links = [
-  { href: '#sorun', label: 'Sorun' },
-  { href: '#nasil', label: 'Nasıl çalışır' },
-  { href: '#teardown', label: 'Öğrendiklerimiz' },
-  { href: '#demo', label: 'Canlı demo' },
+  { href: '#sorun', label: 'The Problem' },
+  { href: '#nasil', label: 'How it works' },
+  { href: '#teardown', label: 'What we learned' },
+  { href: '#demo', label: 'Live demo' },
   { href: '#pilot', label: 'Pilot' },
-  { href: '#sss', label: 'SSS' },
+  { href: '#sss', label: 'FAQ' },
 ]
 
 function Logo() {
   return (
-    <a href="#top" className="flex items-center gap-2.5 group" aria-label="Konum ana sayfa">
+    <a href="#top" className="flex items-center gap-2.5 group" aria-label="Konum home">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" className="transition-transform duration-500 group-hover:rotate-180">
         <circle cx="12" cy="15" r="9" fill="hsl(14 100% 50%)" />
         <circle cx="21" cy="15" r="5.5" fill="none" stroke="hsl(0 0% 9.4%)" strokeWidth="2.5" />
@@ -40,7 +40,7 @@ export default function Header() {
     >
       <div className="mx-auto max-w-7xl px-5 md:px-8 h-16 grid grid-cols-2 md:grid-cols-3 items-center">
         <Logo />
-        <nav className="hidden md:flex items-center justify-center gap-6" aria-label="Ana gezinme">
+        <nav className="hidden md:flex items-center justify-center gap-6" aria-label="Main navigation">
           {links.map((l) => (
             <a
               key={l.href}
@@ -56,13 +56,13 @@ export default function Header() {
             href="#pilot"
             className="hidden md:inline-flex items-center rounded-md bg-foreground text-background px-4 py-2 text-sm font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97]"
           >
-            Erken erişim
+            Early access
           </a>
           <button
             type="button"
             className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-background cursor-pointer"
             aria-expanded={open}
-            aria-label={open ? 'Menüyü kapat' : 'Menüyü aç'}
+            aria-label={open ? 'Close menu' : 'Open menu'}
             onClick={() => setOpen((v) => !v)}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
@@ -76,7 +76,7 @@ export default function Header() {
         </div>
       </div>
       {open && (
-        <nav className="md:hidden border-t border-border bg-[#fcfcf9] px-5 py-4 flex flex-col gap-1" aria-label="Mobil gezinme">
+        <nav className="md:hidden border-t border-border bg-[#fcfcf9] px-5 py-4 flex flex-col gap-1" aria-label="Mobile navigation">
           {links.map((l) => (
             <a
               key={l.href}
@@ -92,7 +92,7 @@ export default function Header() {
             onClick={() => setOpen(false)}
             className="mt-2 inline-flex items-center justify-center rounded-md bg-foreground text-background px-4 py-3 text-sm font-bold active:scale-[0.97]"
           >
-            Erken erişim
+            Early access
           </a>
         </nav>
       )}

@@ -3,24 +3,24 @@ import { useShell } from "../app/AppShell";
 
 const ACIKLAMALAR: Record<string, { ad: string; asama: number; ne: string }> = {
   kanit: {
-    ad: "Kanıt Motoru",
+    ad: "Evidence Engine",
     asama: 2,
-    ne: "Stratejist Yardımcısı 2–3 mesaj hipotezi önerir; sen birini seçersin, Test Tasarımcısı küçük bütçeli bir A/B test planı kurar. Kazanan varyant kanıt dosyasına işlenir.",
+    ne: "The Strategist Assistant proposes 2–3 message hypotheses; you pick one, and the Test Designer sets up a small-budget A/B test plan. The winning variant is recorded in the evidence file.",
   },
   icra: {
-    ad: "İcra Stüdyosu",
+    ad: "Execution Studio",
     asama: 3,
-    ne: "Kanıtlanmış mesajdan kanal varyasyonları üretilir: Instagram metni, Meta Ads birincil metin, Google Ads başlıkları, e-posta konusu ve gövdesi.",
+    ne: "Channel variations are produced from the proven message: Instagram copy, Meta Ads primary text, Google Ads headlines, email subject and body.",
   },
   onay: {
-    ad: "Onay Merkezi",
+    ad: "Approval Center",
     asama: 3,
-    ne: "Tek yayın kapısı. Her öğe için Onayla / Revize iste / Reddet. Toplu onay yoktur — her öğe tekil karar ister.",
+    ne: "The single publishing gate. Approve / Request revision / Reject for every item. No bulk approval — each item requires an individual decision.",
   },
   radar: {
-    ad: "Sinyal Radarı",
+    ad: "Signal Radar",
     asama: 4,
-    ne: "Analist ajan haftalık 'ne öğrendik' özeti çıkarır; kanıt dosyası eskirse veya rakip mesaj haritası değişirse alarm üretir.",
+    ne: "The Analyst agent writes the weekly 'what we learned' digest and raises an alarm if the evidence file goes stale or the competitor message map shifts.",
   },
 };
 
@@ -28,7 +28,7 @@ export default function KilitliModul({ modul }: { modul: string }) {
   const { bellekOnayli } = useShell();
   const bilgi = ACIKLAMALAR[modul];
 
-  if (!bilgi) return <p className="text-muted-foreground">Modül bulunamadı.</p>;
+  if (!bilgi) return <p className="text-muted-foreground">Module not found.</p>;
 
   if (!bellekOnayli) {
     return (
@@ -37,17 +37,17 @@ export default function KilitliModul({ modul }: { modul: string }) {
           <rect x="4" y="11" width="16" height="10" rx="2" />
           <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         </svg>
-        <p className="eyebrow text-muted-foreground mb-2">{bilgi.ad.toLocaleUpperCase("tr")}</p>
-        <h1 className="font-display text-2xl mb-3">Bu modül kilitli</h1>
+        <p className="eyebrow text-muted-foreground mb-2">{bilgi.ad.toLocaleUpperCase("en")}</p>
+        <h1 className="font-display text-2xl mb-3">This module is locked</h1>
         <p className="text-muted-foreground mb-6">
-          {bilgi.ad}, Strateji Belleği onaylanmadan çalışmaz — ajanların dayanacağı tek strateji
-          kaynağı bellektir. Önce belleği gözden geçirip onayla.
+          {bilgi.ad} won&apos;t run before the Strategy Memory is approved — memory is the single
+          strategy source the agents rely on. Review and approve the memory first.
         </p>
         <Link
           to="../bellek"
           className="inline-flex h-11 px-5 items-center rounded-lg bg-[#ff3500] text-[#181818] font-bold transition-transform duration-200 active:scale-[0.97]"
         >
-          Strateji Belleği'ne git
+          Go to Strategy Memory
         </Link>
       </div>
     );
@@ -55,12 +55,12 @@ export default function KilitliModul({ modul }: { modul: string }) {
 
   return (
     <div className="max-w-2xl">
-      <p className="eyebrow text-muted-foreground mb-2">{bilgi.ad.toLocaleUpperCase("tr")}</p>
+      <p className="eyebrow text-muted-foreground mb-2">{bilgi.ad.toLocaleUpperCase("en")}</p>
       <h1 className="font-display text-2xl mb-4">{bilgi.ad}</h1>
       <p className="text-muted-foreground mb-6">{bilgi.ne}</p>
       <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm">
-        <strong>Aşama {bilgi.asama} kapsamında.</strong> Bellek onayın tamam; bu modülün inşası
-        sıradaki aşamada tamamlanacak. Bu ekranda sahte buton veya demo veri yok.
+        <strong>In scope for Phase {bilgi.asama}.</strong> Your memory approval is done; this module
+        will be built in the next phase. There are no fake buttons or demo data on this screen.
       </p>
     </div>
   );

@@ -5,10 +5,10 @@ import { trpc } from '../lib/trpc'
 const easeOut = [0.16, 1, 0.3, 1] as const
 
 const perks = [
-  'Kurucu ekiple birebir kurulum: Strateji Belleğin birlikte kurulur',
-  'İlk kanıt testi birlikte tasarlanır ve yorumlanır',
-  'Pilot fiyatı, program sonunda birlikte belirlenir — kilitlenme yok',
-  'Kanıt dosyaların her zaman dışa aktarılabilir',
+  'One-on-one setup with the founding team: your Strategy Memory is built together',
+  'Your first evidence test is designed and interpreted together',
+  'Pilot pricing is set together at the end of the program — no lock-in',
+  'Your evidence files are always exportable',
 ]
 
 export default function Pilot() {
@@ -23,12 +23,12 @@ export default function Pilot() {
     e.preventDefault()
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())
     if (!ok) {
-      setHata('Geçerli bir e-posta adresi yaz — örn. sen@ajansin.com')
+      setHata('Enter a valid email address — e.g. you@youragency.com')
       setState('error')
       return
     }
     if (!riza) {
-      setHata('Devam etmek için aydınlatma metnini okuyup onaylaman gerekir.')
+      setHata('To continue, you need to read and accept the privacy notice.')
       setState('error')
       return
     }
@@ -38,7 +38,7 @@ export default function Pilot() {
       await trpc.pilot.basvur.mutate({ eposta: email.trim(), ajansAdi: ajansAdi.trim(), riza: true })
       setState('ok')
     } catch (err) {
-      setHata(err instanceof Error ? err.message : 'Kayıt alınamadı. Biraz sonra yeniden dene.')
+      setHata(err instanceof Error ? err.message : 'Could not save your signup. Please try again shortly.')
       setState('error')
     } finally {
       setMesgul(false)
@@ -65,7 +65,7 @@ export default function Pilot() {
             transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
             className="font-display font-black text-4xl sm:text-5xl leading-[1.05]"
           >
-            İlk 10 ajansla <span className="hl">birlikte</span> inşa ediyoruz.
+            Building <span className="hl">together</span> with the first 10 agencies.
           </motion.h2>
           <motion.ul
             initial={{ opacity: 0, y: 18 }}
@@ -92,10 +92,10 @@ export default function Pilot() {
         >
           {state === 'ok' ? (
             <div role="status">
-              <p className="font-display font-bold text-2xl mb-3">Başvurun alındı.</p>
+              <p className="font-display font-bold text-2xl mb-3">Application received.</p>
               <p className="text-foreground/70">
-                Adresin sunucuya kaydedildi. Pilot kontenjanı açıldığında bu adresten sana ulaşacağız; başka hiçbir
-                amaçla kullanılmaz veya paylaşılmaz.
+                Your address has been saved on the server. When a pilot seat opens we will reach out to this address;
+                it will never be used or shared for any other purpose.
               </p>
               <button
                 onClick={() => {
@@ -106,16 +106,16 @@ export default function Pilot() {
                 }}
                 className="mt-6 inline-flex items-center rounded-md border-2 border-foreground/20 px-5 py-2.5 text-sm font-bold transition-all duration-150 hover:border-foreground active:scale-[0.97] cursor-pointer"
               >
-                Başka bir adres ekle
+                Add another address
               </button>
             </div>
           ) : (
             <form onSubmit={(e) => void submit(e)} noValidate>
               <label htmlFor="pilot-email" className="font-display font-bold text-2xl block mb-2">
-                Erken erişim listesi
+                Early access list
               </label>
               <p className="text-sm text-foreground/60 mb-6">
-                İş e-postanı bırak; pilot kontenjanı açıldığında önce listedekilerle konuşacağız.
+                Leave your work email; when a pilot seat opens we&apos;ll talk to the list first.
               </p>
               <div className="grid gap-3">
                 <input
@@ -127,7 +127,7 @@ export default function Pilot() {
                     setEmail(e.target.value)
                     if (state === 'error') setState('idle')
                   }}
-                  placeholder="sen@ajansin.com"
+                  placeholder="you@youragency.com"
                   aria-invalid={state === 'error'}
                   aria-describedby="pilot-note"
                   className="rounded-md border-2 border-foreground/25 bg-[#fcfcf9] px-4 py-3 text-base font-medium placeholder:text-foreground/35 focus:border-foreground focus:outline-none"
@@ -137,7 +137,7 @@ export default function Pilot() {
                   type="text"
                   value={ajansAdi}
                   onChange={(e) => setAjansAdi(e.target.value)}
-                  placeholder="Ajans adı (isteğe bağlı)"
+                  placeholder="Agency name (optional)"
                   className="rounded-md border-2 border-foreground/25 bg-[#fcfcf9] px-4 py-3 text-base font-medium placeholder:text-foreground/35 focus:border-foreground focus:outline-none"
                 />
                 <label className="flex items-start gap-3 text-sm text-foreground/70 cursor-pointer">
@@ -148,8 +148,8 @@ export default function Pilot() {
                     className="mt-1 h-4 w-4 shrink-0 accent-[#181818]"
                   />
                   <span id="pilot-note">
-                    E-posta adresimin pilot başvurusu amacıyla saklanmasını ve kontenjan açıldığında bana ulaşılmasını
-                    kabul ediyorum. <span className="text-foreground/50">(Aydınlatma metni: taslak — hukuk onayı bekliyor.)</span>
+                    I agree to my email address being stored for the pilot application and being contacted when a seat
+                    opens. <span className="text-foreground/50">(Privacy notice: draft — pending legal review.)</span>
                   </span>
                 </label>
                 <button
@@ -157,7 +157,7 @@ export default function Pilot() {
                   disabled={mesgul}
                   className="rounded-md bg-foreground text-background px-6 py-3 text-base font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97] cursor-pointer disabled:opacity-50"
                 >
-                  {mesgul ? 'Kaydediliyor…' : 'Katıl'}
+                  {mesgul ? 'Saving…' : 'Join'}
                 </button>
               </div>
               {state === 'error' && (

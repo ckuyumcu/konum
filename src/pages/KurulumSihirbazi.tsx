@@ -43,18 +43,18 @@ export default function KurulumSihirbazi() {
     try {
       await fn();
     } catch (e) {
-      setHata(e instanceof Error ? e.message : "Beklenmeyen bir hata oluştu.");
+      setHata(e instanceof Error ? e.message : "An unexpected error occurred.");
     } finally {
       setMesgul(false);
     }
   }
 
   const adimGostergeci = (
-    <ol className="flex gap-2 mb-10" aria-label="Kurulum adımları">
+    <ol className="flex gap-2 mb-10" aria-label="Setup steps">
       {[
-        ["bilgi", "1 · Müşteri bilgisi"],
-        ["tarama", "2 · Site taraması"],
-        ["taslak", "3 · Bellek taslağı"],
+        ["bilgi", "1 · Client info"],
+        ["tarama", "2 · Site scan"],
+        ["taslak", "3 · Memory draft"],
       ].map(([key, label]) => (
         <li
           key={key}
@@ -89,10 +89,10 @@ export default function KurulumSihirbazi() {
 
         {adim === "bilgi" && (
           <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-            <h1 className="font-display text-3xl mb-2">Yeni müşteri çalışma alanı</h1>
+            <h1 className="font-display text-3xl mb-2">New client workspace</h1>
             <p className="text-muted-foreground mb-8">
-              Ürün URL'si verilir; Araştırmacı siteyi tarar, Stratejist Yardımcısı bir bellek
-              taslağı çıkarır. Son söz her zaman sende: taslak onaylanmadan hiçbir modül açılmaz.
+              Provide the product URL; the Researcher scans the site and the Strategist Assistant
+              produces a memory draft. You always have the final say: no module unlocks before the draft is approved.
             </p>
 
             <form
@@ -109,29 +109,29 @@ export default function KurulumSihirbazi() {
               }}
             >
               <label className="grid gap-1.5">
-                <span className="text-sm font-semibold">Müşteri adı</span>
+                <span className="text-sm font-semibold">Client name</span>
                 <input
                   required
                   minLength={2}
                   value={musteriAdi}
                   onChange={(e) => setMusteriAdi(e.target.value)}
                   className="h-11 rounded-lg border border-input bg-card px-3 text-base"
-                  placeholder="Örn. Nova Kozmetik"
+                  placeholder="E.g. Nova Cosmetics"
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-sm font-semibold">Sektör</span>
+                <span className="text-sm font-semibold">Sector</span>
                 <input
                   required
                   minLength={2}
                   value={sektor}
                   onChange={(e) => setSektor(e.target.value)}
                   className="h-11 rounded-lg border border-input bg-card px-3 text-base"
-                  placeholder="Örn. E-ticaret — kişisel bakım"
+                  placeholder="E.g. E-commerce — personal care"
                 />
               </label>
               <label className="grid gap-1.5">
-                <span className="text-sm font-semibold">Ürün URL'si</span>
+                <span className="text-sm font-semibold">Product URL</span>
                 <input
                   required
                   type="text"
@@ -147,7 +147,7 @@ export default function KurulumSihirbazi() {
                 disabled={mesgul}
                 className="h-12 rounded-lg bg-[#ff3500] text-[#181818] font-bold text-lg transition-transform duration-200 active:scale-[0.97] disabled:opacity-50"
               >
-                {mesgul ? "Site taranıyor…" : "Kaydet ve siteyi tara"}
+                {mesgul ? "Scanning site…" : "Save and scan the site"}
               </button>
             </form>
           </motion.section>
@@ -155,15 +155,15 @@ export default function KurulumSihirbazi() {
 
         {adim === "tarama" && tarama && (
           <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 5e-1, ease: [0.16, 1, 0.3, 1] }}>
-            <h1 className="font-display text-3xl mb-2">Tarama sonucu</h1>
+            <h1 className="font-display text-3xl mb-2">Scan result</h1>
             <p className="text-muted-foreground mb-6">
-              Araştırmacı, <strong>{tarama.title || urunUrl}</strong> adresinden{" "}
-              {tarama.metin.length.toLocaleString("tr-TR")} karakter metin çıkardı.
-              {!tarama.robotsIzni && " robots.txt taramaya izin vermiyor; sayfa taranmadı."}
+              The Researcher extracted{" "}
+              {tarama.metin.length.toLocaleString("en-US")} characters of text from <strong>{tarama.title || urunUrl}</strong>.
+              {!tarama.robotsIzni && " robots.txt does not allow scanning; the page was not scanned."}
             </p>
             {tarama.not && (
               <p className="mb-6 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-                Not: {tarama.not}
+                Note: {tarama.not}
               </p>
             )}
             <div className="rounded-xl border border-border bg-card p-5 mb-8 max-h-64 overflow-auto">
@@ -185,11 +185,11 @@ export default function KurulumSihirbazi() {
               }
               className="h-12 px-6 rounded-lg bg-[#ff3500] text-[#181818] font-bold text-lg transition-transform duration-200 active:scale-[0.97] disabled:opacity-50"
             >
-              {mesgul ? "Taslak üretiliyor…" : "Bellek taslağını üret"}
+              {mesgul ? "Generating draft…" : "Generate memory draft"}
             </button>
             {tarama.metin.length < 100 && (
               <p className="mt-3 text-sm text-[#c52a00]">
-                Yetersiz metin çıkarıldı; taslak üretilemez. URL'yi kontrol edip yeniden dene.
+                Not enough text was extracted; a draft cannot be generated. Check the URL and try again.
               </p>
             )}
           </motion.section>
@@ -197,38 +197,38 @@ export default function KurulumSihirbazi() {
 
         {adim === "taslak" && taslak && (
           <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-            <h1 className="font-display text-3xl mb-2">Strateji Belleği taslağı hazır</h1>
+            <h1 className="font-display text-3xl mb-2">Strategy Memory draft is ready</h1>
             <p className="text-muted-foreground mb-2">
-              Taslak, Stratejist Yardımcısı tarafından üretildi ve Denetçi süzgecinden geçti.
+              The draft was produced by the Strategist Assistant and passed the Auditor's filter.
             </p>
             {mod === "simulasyon" && (
               <p className="mb-6 inline-block text-xs font-bold uppercase tracking-widest text-[#c52a00] border border-[#c52a00]/40 rounded-full px-3 py-1">
-                Simülasyon çıktısı — LLM bağlantısı kurulunca gerçek üretim yapılır
+                Simulation output — real generation starts once the LLM connection is set up
               </p>
             )}
             <div className="rounded-xl border border-border bg-card p-6 grid gap-5 mb-8">
               <div>
-                <p className="eyebrow text-muted-foreground mb-1">HİKÂYE</p>
+                <p className="eyebrow text-muted-foreground mb-1">STORY</p>
                 <p className="whitespace-pre-wrap">{taslak.hikaye}</p>
               </div>
               <div>
-                <p className="eyebrow text-muted-foreground mb-1">KONUMLANDIRMA</p>
+                <p className="eyebrow text-muted-foreground mb-1">POSITIONING</p>
                 <p className="whitespace-pre-wrap">{taslak.konumlandirma}</p>
               </div>
               <div>
-                <p className="eyebrow text-muted-foreground mb-1">HEDEF KİTLE</p>
+                <p className="eyebrow text-muted-foreground mb-1">TARGET AUDIENCE</p>
                 <p className="whitespace-pre-wrap">{taslak.hedefKitle}</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-6">
-              Bu bir taslak. Strateji Belleği ekranında düzenleyip onayladığında Kanıt Motoru
-              ve diğer modüller açılır.
+              This is a draft. Once you edit and approve it on the Strategy Memory screen, the Evidence Engine
+              and the other modules unlock.
             </p>
             <button
               onClick={() => navigate(`/app/${workspaceId}/bellek`)}
               className="h-12 px-6 rounded-lg bg-[#181818] text-[#fcfcf9] font-bold transition-transform duration-200 active:scale-[0.97]"
             >
-              Taslağı düzenlemeye git
+              Go edit the draft
             </button>
           </motion.section>
         )}
