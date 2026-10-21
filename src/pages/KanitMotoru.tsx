@@ -293,8 +293,8 @@ export default function KanitMotoru() {
                           onClick={() =>
                             void islem(`deger-${t.id}`, async () => {
                               const r = await trpc.kanit.degerlendir.mutate({ workspaceId, testId: t.id });
-                              if (r.durum === "yetersizVeri" && "gerekce" in r) {
-                                toast.warning(`Insufficient data: ${r.gerekce}`);
+                              if ("gerekce" in r && r.gerekce) {
+                                toast.warning(r.gerekce);
                                 throw new Error("__sessiz");
                               }
                             }, "Test completed — winner recorded in the evidence file.")

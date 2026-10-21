@@ -93,6 +93,7 @@ export const tests = sqliteTable("tests", {
   workspaceId: text("workspace_id").notNull(),
   varyantlar: text("varyantlar").notNull().default("[]"),
   olcut: text("olcut").notNull().default(""),
+  olcutTipi: text("olcut_tipi").notNull().default(""), // "ctr" | "donusum" — z-testinin payını belirler
   temelOran: integer("temel_oran").notNull().default(0), // base conversion rate (stored raw, e.g. rate*10000 — finalized in Phase 2)
   mde: integer("mde").notNull().default(0),
   minimumOrneklem: integer("minimum_orneklem").notNull().default(0),

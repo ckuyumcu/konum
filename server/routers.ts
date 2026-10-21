@@ -440,6 +440,7 @@ export const appRouter = router({
           workspaceId: input.workspaceId,
           varyantlar: JSON.stringify(varyantlar),
           olcut: sonuc.plan.olcut,
+          olcutTipi: sonuc.plan.olcutTipi,
           temelOran: Math.round(sonuc.plan.temelOranYuzde * 100), // % → baz puan (2.0% → 200)
           mde: Math.round(sonuc.plan.mdeYuzdePuan * 100),
           minimumOrneklem: sonuc.minimumOrneklem,
@@ -604,8 +605,8 @@ export const appRouter = router({
         gecisZorla("test", t.durum, "tamamlandi"); // yalnız calisiyor → tamamlandi izinli; yetersizVeri aşağıda
         const varyantlar = JSON.parse(t.varyantlar || "[]") as { id: string; metin: string }[];
         const sonuclar = db.select().from(testResults).where(eq(testResults.testId, t.id)).all();
-        // Ölçüt tıklama bazlıysa (CTR vb.) pay tıklama, değilse dönüşüm sayılır
-        const tiklamaBazli = /click|ctr|tıklama/i.test(t.olcut || "");
+        // Ölçüt tipi planlayıcıdan yapısal gelir; eski kayıtlar için metin sezgisi yedek
+        const tiklamaBazli = t.olcutTipi ? t.olcutTipi === "ctr" : /click|ctr|tıklama/i.test(t.olcut || "");
         const topla = (vid: string) => {
           const rows = sonuclar.filter((r) => r.varyantId === vid);
           return {
@@ -616,6 +617,21 @@ export const appRouter = router({
         };
         const kontrol = topla("A");
         const varyant = topla("B");
+
+        // Min örneklem dolmadan değerlendirme testi ÖLDÜRMEZ: durum calisiyor kalır,
+        // veri girişi devam eder. (İç red-team bulgusu — Kapı 2 soru 1)
+        if (kontrol.gosterim < t.minimumOrneklem || varyant.gosterim < t.minimumOrneklem) {
+          const gerekce = `Minimum sample not reached (${t.minimumOrneklem} per arm). Current: ${kontrol.gosterim} vs ${varyant.gosterim}. Keep collecting data — the test stays running.`;
+          return {
+            durum: "calisiyor" as const,
+            gerekce,
+            oranlar: {
+              A: kontrol.gosterim > 0 ? kontrol.donusum / kontrol.gosterim : 0,
+              B: varyant.gosterim > 0 ? varyant.donusum / varyant.gosterim : 0,
+            },
+          };
+        }
+
         const karar = kazananKarari(kontrol, varyant, t.minimumOrneklem);
 
         if (karar.tur === "yetersizVeri") {

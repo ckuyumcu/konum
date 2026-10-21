@@ -117,6 +117,7 @@ CREATE INDEX IF NOT EXISTS idx_crawl_ws ON crawl_snapshots(workspace_id, zaman D
 for (const stmt of [
   "ALTER TABLE strategy_beliefs ADD COLUMN surum INTEGER NOT NULL DEFAULT 1",
   "ALTER TABLE agent_logs ADD COLUMN token_sayisi INTEGER NOT NULL DEFAULT 0",
+  "ALTER TABLE tests ADD COLUMN olcut_tipi TEXT NOT NULL DEFAULT ''",
 ]) {
   try {
     sqlite.exec(stmt);

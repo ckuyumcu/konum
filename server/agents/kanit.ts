@@ -87,6 +87,7 @@ export const TestPlaniSchema = z.object({
   varyantA: z.string(),
   varyantB: z.string(),
   olcut: z.string(),
+  olcutTipi: z.enum(["ctr", "donusum"]),
   temelOranYuzde: z.number().min(0.01).max(99),
   mdeYuzdePuan: z.number().min(0.1).max(50),
   butceNotu: z.string(),
@@ -95,10 +96,11 @@ export type TestPlani = z.infer<typeof TestPlaniSchema>;
 
 const TEST_SYSTEM = `You are the Test Designer of the "Konum" platform. Design a small-budget A/B test for the given hypothesis.
 Rules:
-- Return JSON with exactly: {"varyantA": string, "varyantB": string, "olcut": string, "temelOranYuzde": number, "mdeYuzdePuan": number, "butceNotu": string}
+- Return JSON with exactly: {"varyantA": string, "varyantB": string, "olcut": string, "olcutTipi": "ctr"|"donusum", "temelOranYuzde": number, "mdeYuzdePuan": number, "butceNotu": string}
 - varyantA is the control (current/generic message), varyantB is the challenger built on the hypothesis. Both are ad copy, max 2 sentences each.
 - olcut: the metric that decides the winner (e.g. "click-through rate to the product page").
-- temelOranYuzde: a realistic baseline CTR guess in percent (e.g. 2.0). If unknown, use a conservative category-typical value and say so in butceNotu.
+- olcutTipi: "ctr" if the winning numerator is a click, "donusum" if it is a conversion (signup, purchase, lead). This decides which counter the statistics engine uses — choose deliberately.
+- temelOranYuzde: a realistic baseline rate guess in percent (e.g. 2.0). If unknown, use a conservative category-typical value and say so in butceNotu.
 - mdeYuzdePuan: the minimum detectable effect in percentage points (e.g. 1.0 means detecting +1pp).
 - butceNotu: daily budget suggestion and run-length guidance, one sentence. Never promise results.
 - Write in English; no invented statistics presented as fact.`;
@@ -108,6 +110,7 @@ function simulasyonTestPlani(iddia: string): TestPlani {
     varyantA: "Quality you can trust. Try it today — easy setup, great value.",
     varyantB: `${iddia} — see the proof before you buy.`,
     olcut: "Click-through rate to the product page",
+    olcutTipi: "ctr",
     temelOranYuzde: 2.0,
     mdeYuzdePuan: 1.0,
     butceNotu: "Suggested: $10–20/day per arm until the minimum sample is reached; baseline is a category-typical guess — refine after the first data.",
