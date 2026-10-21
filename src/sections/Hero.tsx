@@ -10,7 +10,10 @@ const agentLines = [
 
 export default function Hero() {
   return (
-    <section id="top" className="relative grid-bg pt-28 md:pt-36 pb-16 md:pb-24">
+    <section id="top" className="relative grid-bg pt-28 md:pt-36 pb-16 md:pb-24 overflow-hidden">
+      <div className="blob bg-[#ff3500]/20 w-[440px] h-[440px] -top-32 -right-24" aria-hidden="true" />
+      <div className="blob bg-[#8b5cf6]/15 w-[380px] h-[380px] top-1/2 -left-32" style={{ animationDelay: '-5s' }} aria-hidden="true" />
+      <div className="blob bg-[#f5a409]/15 w-[300px] h-[300px] bottom-0 right-1/3" style={{ animationDelay: '-9s' }} aria-hidden="true" />
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-6 items-start">
           <div className="lg:col-span-7">
@@ -30,7 +33,7 @@ export default function Hero() {
             >
               Everyone ships copy now.
               <br />
-              The winner <span className="hl">proves</span> <em className="not-italic text-[#c52a00]">&ldquo;why me?&rdquo;</em>
+              The winner <span className="gradient-text">proves</span> <em className="not-italic text-[#c52a00]">&ldquo;why&nbsp;me?&rdquo;</em>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 22 }}
@@ -38,9 +41,10 @@ export default function Hero() {
               transition={{ duration: 0.6, ease: easeOut, delay: 0.2 }}
               className="mt-6 max-w-[62ch] text-lg text-foreground/70"
             >
-              Konum takes strategy and story from <strong className="text-foreground">you</strong>, and routine execution from{' '}
-              <strong className="text-foreground">AI agents</strong>. It proves your message with small tests, spreads the
-              evidence across every channel — and nothing goes live without your approval.
+              Here&apos;s the deal: you keep the strategy and the story — the parts only a person can own.{' '}
+              <strong className="text-foreground">Our agents take the grind</strong>: scanning, drafting, testing, scheduling.
+              Every claim gets proven in a small live test before a cent of real budget touches it. And nothing — nothing —
+              ships without your signature on it.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 18 }}
@@ -70,7 +74,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="mt-5 text-sm text-foreground/50"
             >
-              For agencies and experienced marketers. Preview release — pilot program now open.
+              Built by people who&apos;ve run agency desks. Preview release — the pilot is open.
             </motion.p>
           </div>
 
@@ -99,6 +103,7 @@ export default function Hero() {
                     stroke="#ff3500"
                     strokeWidth="2.5"
                     strokeLinecap="round"
+                    className="draw-line"
                   />
                   <circle cx="260" cy="8" r="4" fill="#ff3500" className="pulse-dot" />
                 </svg>

@@ -13,6 +13,24 @@ School company"** ibaresini taşır (footer + uygulama kabuğu).
   Uygulamaya e-posta gönder/al entegrasyonu sonraki aşamada eklenecek (şu an
   yalnızca kayıt altına alınmış bir yönergedir; entegrasyon listesinde
   "E-posta (Mailchimp / Klaviyo)" planlandı rozeti bu karardan bağımsızdır).
+- **Üslup:** Site dili "insan elinden çıkmış" gibi — kurumsal/AI kokan kalıplar
+  yasak; doğrudan, birinci çoğul, kısaltmalı (we'd, here's) kurucu sesi.
+- **Görsel standart:** Pazarlama şirketinin sitesi sıradan olamaz: canlı renk
+  (sunset rampı: signal orange → coral → violet → amber), animasyonlu grafikler,
+  sayaçlar ve akan çizgiler standarttır. `prefers-reduced-motion` her zaman
+  desteklenir.
+- **Birim ekonomi şeffaflığı:** Landing'de "The math" bölümü: müşteri başına
+  maliyet ≈ $3/ay (Haiku 5.5 tarifesi + altyapı payı, varsayımlar açık), pilot
+  hedef fiyat $149/workspace/ay → brüt marj ~%98. Nihai fiyat pilot ajanslarla
+  ölçülen değere göre belirlenir.
+- **Tam otonomi hedefi (Cem'in kendi işletmesi için):** Platform; işletme,
+  bakım, sağlık kontrolü, pazarlama, e-posta gönder/al/yanıt dahil her şeyi
+  kendi kendine yönetebilmeli — **tek istisna: para harcamak** (bütçe ve ödeme
+  kararları her zaman insan onayında kalır). Bu, ürünün "ajan işletir, insan
+  onaylar" ilkesiyle çelişmez; harcama dışı onaylar kendi instance'ımızda
+  otomatikleştirilebilir. Aşama 2+ mimarisi bu yönde tasarlanır.
+- **İsim:** Ürün adı şimdilik **Konum** olarak kalır; uluslararası alan adı ve
+  marka tescili araştırması pilot öncesi yapılacak (bkz. sohbet 2026-10-21).
 
 ## Çalıştırma
 

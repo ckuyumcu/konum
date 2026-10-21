@@ -7,7 +7,7 @@ const easeOut = [0.16, 1, 0.3, 1] as const
 const perks = [
   'One-on-one setup with the founding team: your Strategy Memory is built together',
   'Your first evidence test is designed and interpreted together',
-  'Pilot pricing is set together at the end of the program — no lock-in',
+  'Pilot target: $149/workspace/month, finalized together at the end of the program — no lock-in',
   'Your evidence files are always exportable',
 ]
 

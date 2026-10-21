@@ -5,6 +5,8 @@ import Problem from "../sections/Problem";
 import Pipeline from "../sections/Pipeline";
 import Teardown from "../sections/Teardown";
 import Demo from "../sections/Demo";
+import Metrics from "../sections/Metrics";
+import Economics from "../sections/Economics";
 import Roles from "../sections/Roles";
 import Pilot from "../sections/Pilot";
 import Faq from "../sections/Faq";
@@ -23,7 +25,9 @@ export default function Landing() {
         <Pipeline />
         <Teardown />
         <Demo />
+        <Metrics />
         <Roles />
+        <Economics />
         <Pilot />
         <Faq />
       </main>

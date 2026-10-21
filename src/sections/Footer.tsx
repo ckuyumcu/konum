@@ -23,6 +23,7 @@ export default function Footer() {
             <a href="#nasil" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">How it works</a>
             <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">What we learned</a>
             <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Live demo</a>
+            <a href="#ekonomi" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The math</a>
             <a href="#pilot" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot program</a>
             <a href="#sss" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
           </nav>

@@ -12,6 +12,11 @@
     --signal: 14 100% 50%;        /* #ff3500 — vurgu/grafik */
     --signal-strong: 14 100% 39%; /* ~#c52a00 — metin boyutunda vurgu (kontrast) */
     --focus: 213 66% 46%;         /* focus ring */
+    /* Vibrant accents — warm sunset ramp (owner directive 2026-10-21: bold color) */
+    --coral: 350 89% 60%;         /* #f43f5e */
+    --violet: 262 83% 58%;        /* #8b5cf6 */
+    --amber: 38 96% 54%;          /* #f5a409 */
+    --teal: 174 72% 40%;          /* #0d9488 */
 
     --background: var(--paper);
     --foreground: var(--ink);
@@ -147,6 +152,121 @@
       opacity: 0;
     }
   }
+
+  /* Gradient ink — multi-hue headline words */
+  .gradient-text {
+    background-image: linear-gradient(
+      100deg,
+      hsl(var(--signal)) 0%,
+      hsl(var(--coral)) 35%,
+      hsl(var(--violet)) 70%,
+      hsl(var(--teal)) 100%
+    );
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradientmove 9s ease-in-out infinite;
+  }
+  @keyframes gradientmove {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  /* Floating ambient blobs (hero background) */
+  .blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    pointer-events: none;
+    animation: floaty 14s ease-in-out infinite;
+  }
+  @keyframes floaty {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    33% {
+      transform: translate3d(24px, -30px, 0) scale(1.08);
+    }
+    66% {
+      transform: translate3d(-18px, 22px, 0) scale(0.94);
+    }
+  }
+
+  /* Chart line drawing itself in */
+  .draw-line {
+    stroke-dasharray: 1200;
+    stroke-dashoffset: 1200;
+    animation: drawline 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes drawline {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Bars filling up when scrolled into view */
+  .fill-bar {
+    transform-origin: bottom;
+    animation: fillbar 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes fillbar {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Horizontal bars filling left → right */
+  .fill-bar-x {
+    transform-origin: left;
+    animation: fillbarx 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes fillbarx {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* Soft shimmer sweep on cards */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      hsl(var(--paper) / 0.5) 50%,
+      transparent 65%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 4.5s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%,
+    55% {
+      transform: translateX(-100%);
+    }
+    90%,
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -156,7 +276,16 @@
   .marquee-track,
   .dash-flow,
   .pulse-dot,
-  .cursor-blink {
+  .cursor-blink,
+  .gradient-text,
+  .blob,
+  .draw-line,
+  .fill-bar,
+  .fill-bar-x,
+  .shimmer::after {
     animation: none !important;
+  }
+  .draw-line {
+    stroke-dashoffset: 0;
   }
 }

@@ -5,6 +5,7 @@ const links = [
   { href: '#nasil', label: 'How it works' },
   { href: '#teardown', label: 'What we learned' },
   { href: '#demo', label: 'Live demo' },
+  { href: '#ekonomi', label: 'The math' },
   { href: '#pilot', label: 'Pilot' },
   { href: '#sss', label: 'FAQ' },
 ]

@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: 'How much does it cost?',
-    a: 'We don\'t publish a price list yet: it will be set together with the first 10 agencies in the pilot program, based on real usage value. A deliberate choice — we don\'t write unverified numbers.',
+    a: 'Our pilot target is $149 per workspace per month, and our own math is on this page: a workspace costs us about $3 a month to run at full throttle. The final number is set together with the first 10 pilot agencies, against the value we actually prove — we don\'t pretend the price list is finished before the value is.',
   },
 ]
 
