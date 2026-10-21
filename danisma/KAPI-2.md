@@ -57,3 +57,26 @@ LLM: Anthropic claude-haiku-5-5, resmî SDK, zod→JSON Schema zorlaması; anaht
 - **Grok → red-team** (teşhis aracının suistimali: limit aşma, tarama kötüye
   kullanımı, simülasyon etiketini atlatma)
 - **Gemini → veri modeli** (soru 2, ölçüt şeması ve test_results yapısı)
+
+## (e) Ek — bu paket yazıldıktan sonra yapılan düzeltmeler (iç red-team)
+
+Paket hazırlandıktan sonra dört perspektifli bir iç red-team turu çalıştırıldı;
+iki bulgu kodda düzeltildi ve canlı ortamda doğrulandı:
+
+1. **"Ölü test" hatası (soru 1 ile ilgili):** Min örneklem dolmadan
+   "değerlendir" çağrısı testi `yetersizVeri` durumuna sokuyordu ve o durumdan
+   çıkış yoktu — erken değerlendirme testi kalıcı olarak öldürüyordu. Düzeltme:
+   eşik dolmadan değerlendirme artık durumu DEĞİŞTİRMİYOR; test `calisiyor`
+   kalıyor, veri girişi sürüyor. `yetersizVeri` yalnızca eşik dolduktan sonra
+   anlamsızlık çıkarsa verilen terminal karar. → **Danışmana soru:** Bu kural
+   seti (tek değerlendirme anı + eşik öncesi dokunulmazlık) v1 için yeterli
+   istatistiksel disiplin mi, yoksa eşik sonrası "teste devam" seçeneği
+   sunulmalı mı?
+2. **Ölçüt payı yapısallaştı (soru 2 ile ilgili):** Serbest metin sezgisinin
+   yerine Test Tasarımcısı şemasına zorunlu `olcutTipi: "ctr" | "donusum"`
+   alanı eklendi; z-testi payı bu alandan okunuyor (eski kayıtlar için metin
+   sezgisi yedek). → **Danışmana soru:** İki değerli enum yeterli mi; "custom
+   + pay seçici" genişlemesi hangi senaryoda şart olur?
+
+Bunlar ışığında (c) bölümündeki soruları "mevcut çözüm yeterli mi, neyi
+kaçırıyoruz" çerçevesinde yanıtla.
