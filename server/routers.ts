@@ -17,6 +17,7 @@ import {
   diagnosisRequests,
   evidenceFiles,
   hypotheses,
+  organizations,
   pilotApplications,
   strategyBeliefs,
   testResults,
@@ -163,8 +164,15 @@ export const appRouter = router({
         }),
       )
       .mutation(({ ctx, input }) => {
+        // Kiracı katmanı (danışman P0): kullanıcının kuruluşu yoksa oluştur; workspace ona bağlanır
+        let org = db.select().from(organizations).where(eq(organizations.sahipId, ctx.user.id)).get();
+        if (!org) {
+          org = { id: newId("org"), ad: `${ctx.user.name || "Agency"} — Organization`, sahipId: ctx.user.id, createdAt: Date.now() };
+          db.insert(organizations).values(org).run();
+        }
         const ws = {
           id: newId("ws"),
+          orgId: org.id,
           ownerId: ctx.user.id,
           musteriAdi: input.musteriAdi,
           sektor: input.sektor,
@@ -656,11 +664,13 @@ export const appRouter = router({
           createdAt: Date.now(),
         };
         db.insert(evidenceFiles).values(kanit).run();
-        // Kanıtlanmış mesaj Strateji Belleği'ne işlenir (tek doğruluk kaynağı güncellenir)
+        // Kanıtlanmış mesaj Strateji Belleği'ne işlenir — danışman kararı (Kapı 1 soru 2):
+        // metin KOPYALANMAZ; bellek kanıta referans taşır. Tek doğruluk kaynağı evidence_files'tır;
+        // kanıt ileride geçersizleşirse bu bağlantı üzerinden bellek kaydı "itirazlı"ya düşürülebilir.
         const bellek = db.select().from(strategyBeliefs).where(eq(strategyBeliefs.workspaceId, input.workspaceId)).get();
         if (bellek) {
-          const liste = JSON.parse(bellek.kanitlanmisMesajlar || "[]") as string[];
-          liste.push(kazananMetin);
+          const liste = JSON.parse(bellek.kanitlanmisMesajlar || "[]") as (string | { metin: string; kanitId: string; zaman: number })[];
+          liste.push({ metin: kazananMetin, kanitId: kanit.id, zaman: Date.now() });
           db.update(strategyBeliefs)
             .set({ kanitlanmisMesajlar: JSON.stringify(liste), guncelleyen: "Evidence Engine (kod)", guncellemeZamani: Date.now(), surum: bellek.surum + 1 })
             .where(eq(strategyBeliefs.id, bellek.id))

@@ -32,8 +32,20 @@ export const sessions = sqliteTable("sessions", {
   expiresAt: integer("expires_at", { mode: "number" }).notNull(),
 });
 
+// Organization (tenant) layer — consultant finding (Kapı 1, P0): the agency is the
+// tenant; a workspace is one of its clients. Kept minimal for the pilot: one org per
+// owner for now, but the column exists on every workspace so tenant isolation can
+// tighten without a data migration later.
+export const organizations = sqliteTable("organizations", {
+  id: text("id").primaryKey(),
+  ad: text("ad").notNull(),
+  sahipId: text("sahip_id").notNull(),
+  createdAt: integer("created_at", { mode: "number" }).notNull(),
+});
+
 export const workspaces = sqliteTable("workspaces", {
   id: text("id").primaryKey(),
+  orgId: text("org_id").notNull().default(""),
   ownerId: text("owner_id").notNull(),
   musteriAdi: text("musteri_adi").notNull(),
   sektor: text("sektor").notNull().default(""),

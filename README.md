@@ -32,6 +32,19 @@ School company"** ibaresini taşır (footer + uygulama kabuğu).
 - **İsim:** Ürün adı şimdilik **Konum** olarak kalır; uluslararası alan adı ve
   marka tescili araştırması pilot öncesi yapılacak (bkz. sohbet 2026-10-21).
 
+## Danışma turu 1 (2026-10-22) — alınan kararlar
+
+Tam kıyaslama: `danisma/KIYAS-1.md`. Özet:
+- **Kiracı katmanı eklendi:** `organizations` tablosu + `workspaces.org_id`
+  (danışman P0; minimal — sahip başına otomatik org, mevcut veri dolduruldu).
+- **Kanıt → bellek artık referans:** `kanitlanmisMesajlar` kayıtları
+  `{metin, kanitId, zaman}` taşır; tek doğruluk kaynağı `evidence_files`.
+- **Aşama 3 spec'ine giren danışman şartları:** içerik sürümleri + hash'e bağlı
+  onay (düzenleme onayı bozar), test sonucu provenance enum'u (sentetikle terfi
+  yok), olay sözlüğü (onay gecikmesi/düzenleme mesafesi/ret nedeni).
+- **Pilot kilidi:** Kanıt Motoru'nun ticari değeri, gerçek performans verisinin
+  hangi kanaldan (Meta/Google/CSV) içeri gireceği belirlenene kadar HOLD.
+
 ## Çalıştırma
 
 ```bash

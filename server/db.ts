@@ -27,8 +27,11 @@ CREATE TABLE IF NOT EXISTS invites (
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY, user_id TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS organizations (
+  id TEXT PRIMARY KEY, ad TEXT NOT NULL, sahip_id TEXT NOT NULL, created_at INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS workspaces (
-  id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, musteri_adi TEXT NOT NULL,
+  id TEXT PRIMARY KEY, org_id TEXT NOT NULL DEFAULT '', owner_id TEXT NOT NULL, musteri_adi TEXT NOT NULL,
   sektor TEXT NOT NULL DEFAULT '', urun_url TEXT NOT NULL DEFAULT '',
   beyaz_etiket TEXT NOT NULL DEFAULT '{}', created_at INTEGER NOT NULL
 );
@@ -118,6 +121,7 @@ for (const stmt of [
   "ALTER TABLE strategy_beliefs ADD COLUMN surum INTEGER NOT NULL DEFAULT 1",
   "ALTER TABLE agent_logs ADD COLUMN token_sayisi INTEGER NOT NULL DEFAULT 0",
   "ALTER TABLE tests ADD COLUMN olcut_tipi TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE workspaces ADD COLUMN org_id TEXT NOT NULL DEFAULT ''",
 ]) {
   try {
     sqlite.exec(stmt);
@@ -126,6 +130,21 @@ for (const stmt of [
   }
 }
 
+// Backfill: one organization per existing workspace owner (one-time, idempotent)
+try {
+  sqlite.exec(`
+    INSERT INTO organizations (id, ad, sahip_id, created_at)
+    SELECT 'org_' || lower(hex(randomblob(8))), 'Org ' || substr(w.owner_id, 1, 12), w.owner_id, w.created_at
+    FROM workspaces w
+    WHERE w.org_id = ''
+    GROUP BY w.owner_id;
+    UPDATE workspaces
+    SET org_id = (SELECT o.id FROM organizations o WHERE o.sahip_id = workspaces.owner_id LIMIT 1)
+    WHERE org_id = '' AND EXISTS (SELECT 1 FROM organizations o WHERE o.sahip_id = workspaces.owner_id);
+  `);
+} catch {
+  /* not needed on a fresh database */
+}
 // Move existing workspace owners into the membership table (one-time migration)
 try {
   sqlite.exec(`
