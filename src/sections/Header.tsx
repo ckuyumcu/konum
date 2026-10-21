@@ -8,6 +8,7 @@ const links = [
   { href: '#ekonomi', label: 'The math' },
   { href: '#pilot', label: 'Pilot' },
   { href: '#sss', label: 'FAQ' },
+  { href: '/teshis', label: 'Free scan' },
 ]
 
 function Logo() {

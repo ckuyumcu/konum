@@ -7,6 +7,8 @@ import KurulumSihirbazi from "./pages/KurulumSihirbazi";
 import AppShell from "./app/AppShell";
 import Bellek from "./pages/Bellek";
 import KilitliModul from "./pages/KilitliModul";
+import KanitMotoru from "./pages/KanitMotoru";
+import Teshis from "./pages/Teshis";
 import Ayarlar from "./pages/Ayarlar";
 import Konsol from "./pages/Konsol";
 
@@ -16,13 +18,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/giris" element={<Giris />} />
+        <Route path="/teshis" element={<Teshis />} />
         <Route path="/app" element={<WorkspaceList />} />
         <Route path="/app/yeni" element={<KurulumSihirbazi />} />
         <Route path="/app/konsol" element={<Konsol />} />
         <Route path="/app/:workspaceId" element={<AppShell />}>
           <Route index element={<Navigate to="bellek" replace />} />
           <Route path="bellek" element={<Bellek />} />
-          <Route path="kanit" element={<KilitliModul modul="kanit" />} />
+          <Route path="kanit" element={<KanitMotoru />} />
           <Route path="icra" element={<KilitliModul modul="icra" />} />
           <Route path="onay" element={<KilitliModul modul="onay" />} />
           <Route path="radar" element={<KilitliModul modul="radar" />} />

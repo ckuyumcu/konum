@@ -38,7 +38,7 @@ School company"** ibaresini taşır (footer + uygulama kabuğu).
 npm install
 npm run dev      # http://localhost:3000 — arayüz + API (/api) tek süreçte
 npm run build    # tsc -b && vite build
-npm test         # otomatik testler (17 adet)
+npm test         # otomatik testler (24 adet)
 ```
 
 **İlk giriş:** `/giris` → e-posta `cem@konum.local`, davet kodu `KONUM-PILOT-1`
@@ -61,6 +61,25 @@ aynı e-posta + kodla tekrar giriş yapabilir (yerel geliştirme eşdeğeri).
   TC, IBAN, ad-soyad), günlük LLM çağrı sınırı (varsayılan 50/workspace — [DV],
   Ayarlar'dan değiştirilebilir olacak)
 - Landing pilot formu → `pilot_applications` tablosuna gerçek kayıt + rıza kutusu
+
+**Aşama 2 — gerçek (çalışıyor):**
+- Kanıt Motoru (`/app/:id/kanit`): Strateji Asistanı hipotez kartları üretir
+  (2–3 kanıtlanabilir iddia; bellek onayı + günlük LLM sınırı sunucuda zorlanır)
+- Test Tasarımcısı: seçilen hipotezden A/B planı (varyantlar, ölçüt, temel oran,
+  MDE, bütçe notu) + güç analiziyle minimum örneklem (α=0,05, güç=0,80)
+- Test akışı tek durum makinesiyle: taslak → onayBekliyor → calisiyor →
+  tamamlandi / yetersizVeri; onay yetkisi sunucuda zorlanır
+- Sonuç girişi: varyant başına manuel form **ve** CSV (şablon indirilebilir,
+  satır doğrulamalı toplu giriş)
+- Kazanan kararını LLM değil kod verir (`server/stats.ts`): iki oranlı z-testi
+  (p < 0,05); eşik sağlanmazsa sonuç "yetersiz veri". Ölçüt tıklama bazlıysa
+  (CTR vb.) pay tıklama, değilse dönüşüm sayılır.
+- Kazanan mesaj kanıt dosyasına yazılır **ve** Strateji Belleği'nin
+  `kanitlanmisMesajlar` alanına işlenir; Markdown dışa aktarım
+- `/teshis` — herkese açık ücretsiz Mesaj Haritası: URL tara → ana iddia,
+  güçlü/eksik kanıtlar, 3 öneri, 0–100 kanıt skoru; limitler: IP başına 3/gün,
+  global 100/gün (IP yalnızca hash'lenerek saklanır); isteğe bağlı e-posta
+  rızaya bağlı; bağımlılıksız PDF raporu (`/api/teshis/:id.pdf`)
 
 **Simülasyon (açıkça etiketli):**
 - **LLM ajan çıktıları.** Sağlayıcı: Anthropic (`claude-haiku-5-5`, resmî
@@ -97,7 +116,7 @@ erişim saniyeler sürüyor (yerinden çıkarılma). Bu yüzden çalışan kopya
 `/var/tmp/konum-app` altında, kaynak kodun güncel hâli ise workspace'teki
 `konum/` klasöründe tutulur. Veritabanı: `server/data/konum.db`.
 
-## İstatistik varsayılanları (Aşama 2'de kullanılacak — [DV])
+## İstatistik varsayılanları (Aşama 2'de kullanılıyor — [DV])
 
 α = 0,05 (iki oranlı z-testi, p < 0,05), güç = 0,80; minimum örneklem kullanıcının
 girdiği temel dönüşüm oranı ve MDE ile güç analizi formülünden hesaplanır.
@@ -110,11 +129,14 @@ server/           Hono + tRPC API (Vite dev sunucusuna /api altında bağlı)
   schema.ts       Drizzle tabloları (18 tablo)
   durum.ts        Tek durum makinesi
   trpc.ts         Oturum, üyelik/rol, bellek kilidi
-  agents/         llm.ts, scanner.ts (SSRF), denetci.ts, bellek.ts
+  agents/         llm.ts, scanner.ts (SSRF), denetci.ts, bellek.ts, kanit.ts, teshis.ts
+  stats.ts        z-testi + güç analizi + kazanan kararı
+  pdf.ts          bağımlılıksız minimal PDF üreteci
   tests/run.ts    npm test
 src/pages/        Landing + uygulama ekranları
 src/app/          Uygulama kabuğu (sol nav, mobil sheet)
 ```
 
-Rotalar: `/` landing · `/giris` · `/app` · `/app/yeni` (kurulum sihirbazı) ·
-`/app/:id/bellek|kanit|icra|onay|radar|ayarlar` · `/app/konsol`
+Rotalar: `/` landing · `/teshis` (ücretsiz Mesaj Haritası) · `/giris` · `/app` ·
+`/app/yeni` (kurulum sihirbazı) · `/app/:id/bellek|kanit|icra|onay|radar|ayarlar` ·
+`/app/konsol` · API: `/api/trpc/*`, `/api/teshis/:id.pdf`

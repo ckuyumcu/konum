@@ -151,6 +151,59 @@ async function main() {
     assert.ok(js.properties && "hikaye" in js.properties && "yasakliIfadeler" in js.properties);
   });
 
+  console.log("Statistics engine (Phase 2 — Section 2.4):");
+  await test("z-test: a clear difference is significant (20/1000 vs 40/1000)", async () => {
+    const { ikiOranZTesti } = await import("../stats");
+    const r = ikiOranZTesti(20, 1000, 40, 1000);
+    assert.ok(r, "result must exist");
+    assert.equal(r!.anlamli, true);
+    assert.ok(r!.pDegeri < 0.05 && r!.pDegeri > 0.001, `p=${r!.pDegeri} out of expected range`);
+    assert.ok(Math.abs(r!.z - 2.62) < 0.05, `z=${r!.z} unexpected`);
+  });
+  await test("z-test: close ratios are not significant (20/1000 vs 22/1000)", async () => {
+    const { ikiOranZTesti } = await import("../stats");
+    const r = ikiOranZTesti(20, 1000, 22, 1000);
+    assert.ok(r && r.anlamli === false && r.pDegeri > 0.05);
+  });
+  await test("z-test: zero conversions in both arms cannot be computed", async () => {
+    const { ikiOranZTesti } = await import("../stats");
+    assert.equal(ikiOranZTesti(0, 1000, 0, 1000), null);
+  });
+  await test("power analysis: %2 baseline + 1pp MDE requires a reasonable sample (~3826 per arm)", async () => {
+    const { minimumOrneklem } = await import("../stats");
+    const n = minimumOrneklem(0.02, 0.01);
+    assert.ok(n > 3500 && n < 4200, `n=${n} out of expected range`);
+  });
+  await test("winner decision: no verdict below the minimum sample", async () => {
+    const { kazananKarari } = await import("../stats");
+    const r = kazananKarari(
+      { varyantId: "A", gosterim: 500, donusum: 10 },
+      { varyantId: "B", gosterim: 500, donusum: 20 },
+      2000
+    );
+    assert.equal(r.tur, "yetersizVeri");
+    assert.ok(r.tur === "yetersizVeri" && r.gerekce.includes("Minimum sample"));
+  });
+  await test("winner decision: significant difference picks the higher arm", async () => {
+    const { kazananKarari } = await import("../stats");
+    const r = kazananKarari(
+      { varyantId: "A", gosterim: 3000, donusum: 60 },
+      { varyantId: "B", gosterim: 3000, donusum: 120 },
+      2000
+    );
+    assert.equal(r.tur, "kazanan");
+    assert.ok(r.tur === "kazanan" && r.kazananVaryantId === "B" && r.pDegeri < 0.05);
+  });
+  await test("winner decision: insignificant difference stays in yetersizVeri", async () => {
+    const { kazananKarari } = await import("../stats");
+    const r = kazananKarari(
+      { varyantId: "A", gosterim: 3000, donusum: 60 },
+      { varyantId: "B", gosterim: 3000, donusum: 66 },
+      2000
+    );
+    assert.equal(r.tur, "yetersizVeri");
+  });
+
   console.log(`\n${gecti} tests passed.`);
 }
 

@@ -8,19 +8,28 @@ import {
   protectedProcedure,
   uyeZorla,
   onayYetkisiZorla,
+  bellekOnayZorla,
 } from "./trpc";
 import { db, newId } from "./db";
 import {
   agentLogs,
   crawlSnapshots,
+  diagnosisRequests,
+  evidenceFiles,
+  hypotheses,
   pilotApplications,
   strategyBeliefs,
+  testResults,
+  tests,
   workspaces,
   workspaceMembers,
 } from "./schema";
-import { scanUrl } from "./agents/scanner";
+import { scanUrl, SsrfError } from "./agents/scanner";
 import { bellekTaslagiUret } from "./agents/bellek";
+import { hipotezUret, testPlaniUret } from "./agents/kanit";
+import { mesajHaritasiUret } from "./agents/teshis";
 import { gecisZorla } from "./durum";
+import { kazananKarari } from "./stats";
 import {
   anthropicAnahtari,
   anthropicAnahtariSil,
@@ -351,6 +360,389 @@ export const appRouter = router({
           .limit(100)
           .all();
       }),
+  }),
+
+
+  // ===== Kanıt Motoru (Aşama 2) — bellek onayı sunucuda zorlanır =====
+  kanit: router({
+    // Stratejist Yardımcısı 2-3 hipotez kartı üretir (LLM veya simülasyon)
+    hipotezUret: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const bellek = bellekOnayZorla(input.workspaceId);
+        gunlukLlmSiniriZorla(input.workspaceId);
+        const { ws } = uyeZorla(input.workspaceId, ctx.user.id);
+        const sonuc = await hipotezUret({
+          hikaye: bellek.hikaye,
+          konumlandirma: bellek.konumlandirma,
+          hedefKitle: bellek.hedefKitle,
+          yasakliIfadeler: JSON.parse(bellek.yasakliIfadeler || "[]") as string[],
+          musteriAdi: ws.musteriAdi,
+          sektor: ws.sektor,
+        });
+        const simdi = Date.now();
+        const kayitlar = sonuc.hipotezler.map((h) => ({
+          id: newId("hip"),
+          workspaceId: input.workspaceId,
+          iddia: h.iddia,
+          kitle: h.kitle,
+          kanitOnerisi: h.kanitOnerisi,
+          durum: "oneri",
+          createdAt: simdi,
+        }));
+        db.insert(hypotheses).values(kayitlar).run();
+        logAjan(
+          input.workspaceId,
+          "stratejist",
+          `Hypothesis generation — memory v${bellek.surum}`,
+          `${kayitlar.length} hypothesis cards produced`,
+          sonuc.denetci.karar === "gecti" ? "gecti" : `reddedildi: ${sonuc.denetci.gerekce}`,
+          sonuc.mod,
+          sonuc.tokenSayisi,
+        );
+        return { hipotezler: kayitlar, mod: sonuc.mod, denetci: sonuc.denetci };
+      }),
+
+    hipotezler: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        return db
+          .select()
+          .from(hypotheses)
+          .where(eq(hypotheses.workspaceId, input.workspaceId))
+          .orderBy(desc(hypotheses.createdAt))
+          .all();
+      }),
+
+    // İnsan hipotezi seçer → Test Tasarımcısı planı kurar (taslak)
+    hipotezSec: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), hypothesisId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const bellek = bellekOnayZorla(input.workspaceId);
+        gunlukLlmSiniriZorla(input.workspaceId);
+        const hip = db.select().from(hypotheses).where(eq(hypotheses.id, input.hypothesisId)).get();
+        if (!hip || hip.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Hypothesis not found." });
+        }
+        const yasakli = JSON.parse(bellek.yasakliIfadeler || "[]") as string[];
+        const sonuc = await testPlaniUret(hip.iddia, yasakli);
+        db.update(hypotheses).set({ durum: "secildi" }).where(eq(hypotheses.id, hip.id)).run();
+        const varyantlar = [
+          { id: "A", rol: "kontrol", metin: sonuc.plan.varyantA },
+          { id: "B", rol: "varyant", metin: sonuc.plan.varyantB },
+        ];
+        const test = {
+          id: newId("tst"),
+          hypothesisId: hip.id,
+          workspaceId: input.workspaceId,
+          varyantlar: JSON.stringify(varyantlar),
+          olcut: sonuc.plan.olcut,
+          temelOran: Math.round(sonuc.plan.temelOranYuzde * 100), // % → baz puan (2.0% → 200)
+          mde: Math.round(sonuc.plan.mdeYuzdePuan * 100),
+          minimumOrneklem: sonuc.minimumOrneklem,
+          durum: "taslak",
+          sonuc: sonuc.plan.butceNotu,
+          createdAt: Date.now(),
+        };
+        db.insert(tests).values(test).run();
+        logAjan(
+          input.workspaceId,
+          "testTasarimcisi",
+          `Test plan — hypothesis: ${hip.iddia.slice(0, 120)}`,
+          `A/B plan; min sample ${sonuc.minimumOrneklem} per arm; metric: ${sonuc.plan.olcut}`,
+          sonuc.denetci.karar === "gecti" ? "gecti" : `reddedildi: ${sonuc.denetci.gerekce}`,
+          sonuc.mod,
+          sonuc.tokenSayisi,
+        );
+        return { test, varyantlar, mod: sonuc.mod, denetci: sonuc.denetci };
+      }),
+
+    testler: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const satirlar = db
+          .select()
+          .from(tests)
+          .where(eq(tests.workspaceId, input.workspaceId))
+          .orderBy(desc(tests.createdAt))
+          .all();
+        return satirlar.map((t) => ({
+          ...t,
+          varyantlar: JSON.parse(t.varyantlar || "[]"),
+          sonuclar: db.select().from(testResults).where(eq(testResults.testId, t.id)).all(),
+        }));
+      }),
+
+    // Test onaya gönderilir — durum makinesi zorlar
+    testOnayaGonder: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), testId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        bellekOnayZorla(input.workspaceId);
+        const t = db.select().from(tests).where(eq(tests.id, input.testId)).get();
+        if (!t || t.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
+        }
+        gecisZorla("test", t.durum, "onayBekliyor");
+        db.update(tests).set({ durum: "onayBekliyor" }).where(eq(tests.id, t.id)).run();
+        return { ok: true };
+      }),
+
+    // İnsan onayı: test çalışmaya başlar (yalnız sahip/onaylayıcı)
+    testOnayla: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), testId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        bellekOnayZorla(input.workspaceId);
+        const t = db.select().from(tests).where(eq(tests.id, input.testId)).get();
+        if (!t || t.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
+        }
+        gecisZorla("test", t.durum, "calisiyor");
+        db.update(tests).set({ durum: "calisiyor", baslangic: Date.now() }).where(eq(tests.id, t.id)).run();
+        logAjan(input.workspaceId, "denetci", "Test human approval", `${ctx.user.name} started test ${t.id}.`, "gecti", "insan");
+        return { ok: true };
+      }),
+
+    // Sonuç girişi — manuel form (v2 Bölüm 2.4)
+    sonucGir: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          testId: z.string(),
+          varyantId: z.string().min(1),
+          gosterim: z.number().int().min(0).max(100_000_000),
+          tiklama: z.number().int().min(0).max(100_000_000),
+          donusum: z.number().int().min(0).max(100_000_000),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const t = db.select().from(tests).where(eq(tests.id, input.testId)).get();
+        if (!t || t.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
+        }
+        if (t.durum !== "calisiyor") {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Results can only be entered while the test is running." });
+        }
+        if (input.tiklama > input.gosterim || input.donusum > input.gosterim) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Clicks/conversions cannot exceed impressions." });
+        }
+        db.insert(testResults)
+          .values({
+            id: newId("res"),
+            testId: t.id,
+            varyantId: input.varyantId,
+            gosterim: input.gosterim,
+            tiklama: input.tiklama,
+            donusum: input.donusum,
+            kaynak: "manuel",
+            girenKullanici: ctx.user.email,
+            zaman: Date.now(),
+          })
+          .run();
+        return { ok: true };
+      }),
+
+    // CSV şablonu — v2 Bölüm 2.4 (varyant_id,gosterim,tiklama,donusum)
+    csvSablonu: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), testId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const t = db.select().from(tests).where(eq(tests.id, input.testId)).get();
+        if (!t || t.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
+        }
+        const varyantlar = JSON.parse(t.varyantlar || "[]") as { id: string }[];
+        const satirlar = varyantlar.map((v) => `${v.id},0,0,0`);
+        return { csv: `varyant_id,gosterim,tiklama,donusum\n${satirlar.join("\n")}\n` };
+      }),
+
+    // CSV toplu sonuç girişi
+    csvSonucGir: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), testId: z.string(), csv: z.string().max(100_000) }))
+      .mutation(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const t = db.select().from(tests).where(eq(tests.id, input.testId)).get();
+        if (!t || t.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
+        }
+        if (t.durum !== "calisiyor") {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Results can only be entered while the test is running." });
+        }
+        const satirlar = input.csv.trim().split(/\r?\n/).slice(1); // başlık atlanır
+        let eklenen = 0;
+        for (const [i, satir] of satirlar.entries()) {
+          if (!satir.trim()) continue;
+          const [varyantId, gosterim, tiklama, donusum] = satir.split(",").map((p) => p.trim());
+          const g = Number(gosterim), tk = Number(tiklama), d = Number(donusum);
+          if (!varyantId || !Number.isInteger(g) || !Number.isInteger(tk) || !Number.isInteger(d) || g < 0 || tk < 0 || d < 0 || tk > g || d > g) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Invalid CSV row ${i + 2}: "${satir}"` });
+          }
+          db.insert(testResults)
+            .values({ id: newId("res"), testId: t.id, varyantId, gosterim: g, tiklama: tk, donusum: d, kaynak: "csv", girenKullanici: ctx.user.email, zaman: Date.now() })
+            .run();
+          eklenen++;
+        }
+        if (eklenen === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "No valid data rows found in the CSV." });
+        return { ok: true, eklenen };
+      }),
+
+    // Kazanan kararı — kod verir, LLM değil (v2 Bölüm 2.4)
+    degerlendir: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), testId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const t = db.select().from(tests).where(eq(tests.id, input.testId)).get();
+        if (!t || t.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Test not found." });
+        }
+        gecisZorla("test", t.durum, "tamamlandi"); // yalnız calisiyor → tamamlandi izinli; yetersizVeri aşağıda
+        const varyantlar = JSON.parse(t.varyantlar || "[]") as { id: string; metin: string }[];
+        const sonuclar = db.select().from(testResults).where(eq(testResults.testId, t.id)).all();
+        // Ölçüt tıklama bazlıysa (CTR vb.) pay tıklama, değilse dönüşüm sayılır
+        const tiklamaBazli = /click|ctr|tıklama/i.test(t.olcut || "");
+        const topla = (vid: string) => {
+          const rows = sonuclar.filter((r) => r.varyantId === vid);
+          return {
+            varyantId: vid,
+            gosterim: rows.reduce((a, r) => a + r.gosterim, 0),
+            donusum: rows.reduce((a, r) => a + (tiklamaBazli ? r.tiklama : r.donusum), 0),
+          };
+        };
+        const kontrol = topla("A");
+        const varyant = topla("B");
+        const karar = kazananKarari(kontrol, varyant, t.minimumOrneklem);
+
+        if (karar.tur === "yetersizVeri") {
+          // calisiyor → yetersizVeri geçişi durum makinesinde izinli
+          db.update(tests).set({ durum: "yetersizVeri", sonuc: karar.gerekce }).where(eq(tests.id, t.id)).run();
+          logAjan(input.workspaceId, "denetci", `Test evaluation ${t.id}`, karar.gerekce, "uygulanamaz", "kod");
+          return { durum: "yetersizVeri", gerekce: karar.gerekce, oranlar: karar.oranlar };
+        }
+
+        const kazananMetin = varyantlar.find((v) => v.id === karar.kazananVaryantId)?.metin ?? "";
+        db.update(tests)
+          .set({ durum: "tamamlandi", kazananVaryantId: karar.kazananVaryantId, pDegeri: Math.round(karar.pDegeri * 1e6), sonuc: `Winner: variant ${karar.kazananVaryantId} (p = ${karar.pDegeri.toFixed(4)})` })
+          .where(eq(tests.id, t.id))
+          .run();
+        const kanit = {
+          id: newId("evd"),
+          workspaceId: input.workspaceId,
+          testId: t.id,
+          kazananMesaj: kazananMetin,
+          ogrenim: `A/B test winner: variant ${karar.kazananVaryantId} — p = ${karar.pDegeri.toFixed(4)}, rates A=${(karar.oranlar.A * 100).toFixed(2)}%, B=${(karar.oranlar.B * 100).toFixed(2)}%. Metric: ${t.olcut}.`,
+          disaAktarimFormati: "markdown",
+          createdAt: Date.now(),
+        };
+        db.insert(evidenceFiles).values(kanit).run();
+        // Kanıtlanmış mesaj Strateji Belleği'ne işlenir (tek doğruluk kaynağı güncellenir)
+        const bellek = db.select().from(strategyBeliefs).where(eq(strategyBeliefs.workspaceId, input.workspaceId)).get();
+        if (bellek) {
+          const liste = JSON.parse(bellek.kanitlanmisMesajlar || "[]") as string[];
+          liste.push(kazananMetin);
+          db.update(strategyBeliefs)
+            .set({ kanitlanmisMesajlar: JSON.stringify(liste), guncelleyen: "Evidence Engine (kod)", guncellemeZamani: Date.now(), surum: bellek.surum + 1 })
+            .where(eq(strategyBeliefs.id, bellek.id))
+            .run();
+        }
+        logAjan(input.workspaceId, "denetci", `Test evaluation ${t.id}`, kanit.ogrenim, "gecti", "kod");
+        return { durum: "kazanan", kazananVaryantId: karar.kazananVaryantId, pDegeri: karar.pDegeri, oranlar: karar.oranlar, kanit };
+      }),
+
+    kanitlar: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        return db.select().from(evidenceFiles).where(eq(evidenceFiles.workspaceId, input.workspaceId)).orderBy(desc(evidenceFiles.createdAt)).all();
+      }),
+
+    // Kanıt dosyası dışa aktarımı — markdown (kilitlenme karşıtı, v2 SSS)
+    kanitDisaAktar: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        const { ws } = uyeZorla(input.workspaceId, ctx.user.id);
+        const liste = db.select().from(evidenceFiles).where(eq(evidenceFiles.workspaceId, input.workspaceId)).orderBy(desc(evidenceFiles.createdAt)).all();
+        const md = [
+          `# Evidence file — ${ws.musteriAdi}`,
+          `Exported: ${new Date().toISOString()}`,
+          "",
+          ...liste.flatMap((k) => [`## ${new Date(k.createdAt).toISOString().slice(0, 10)}`, "", `**Winning message:** ${k.kazananMesaj}`, "", k.ogrenim, ""]),
+        ].join("\n");
+        return { markdown: md };
+      }),
+  }),
+
+
+  // ===== /teshis — ücretsiz Mesaj Haritası (v2 Bölüm 15) =====
+  // Limitler [DV]: IP başına 3/gün, global 100/gün. E-posta isteğe bağlı + rıza.
+  teshis: router({
+    olustur: publicProcedure
+      .input(
+        z.object({
+          url: z.string().trim().min(4, "URL is required.").max(500),
+          eposta: z.string().trim().regex(EPOSTA_RE, "Enter a valid email address.").optional().or(z.literal("")),
+          riza: z.boolean().optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (input.eposta && !input.riza) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Storing your email requires consent." });
+        }
+        const gunBaslangic = new Date();
+        gunBaslangic.setHours(0, 0, 0, 0);
+        const bugun = db.select().from(diagnosisRequests).where(gte(diagnosisRequests.zaman, gunBaslangic.getTime())).all();
+        if (bugun.length >= 100) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "The daily free analysis capacity is full (100/day). Please try tomorrow." });
+        }
+        const ipHash = createHash("sha256").update(`konum-ip:${ctx.ip}`).digest("hex").slice(0, 24);
+        const ipSayisi = bugun.filter((r) => r.ipHash === ipHash).length;
+        if (ipSayisi >= 3) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "You have used today's 3 free analyses. Please try tomorrow." });
+        }
+
+        let scan: Awaited<ReturnType<typeof scanUrl>>;
+        try {
+          scan = await scanUrl(input.url);
+        } catch (e) {
+          if (e instanceof SsrfError) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: e.message });
+          }
+          throw e;
+        }
+        if (!scan.metin || scan.metin.length < 100) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: scan.robotsIzni
+              ? "Not enough text could be extracted from this page for a meaningful analysis."
+              : "This site's robots.txt does not allow scanning.",
+          });
+        }
+        const sonuc = await mesajHaritasiUret(scan.title, scan.metin);
+        const id = newId("tsh");
+        db.insert(diagnosisRequests)
+          .values({
+            id,
+            url: scan.finalUrl,
+            eposta: input.eposta ? input.eposta.toLocaleLowerCase("en") : null,
+            rapor: JSON.stringify({ ...sonuc.harita, baslik: scan.title, mod: sonuc.mod }),
+            ipHash,
+            zaman: Date.now(),
+          })
+          .run();
+        return { id, harita: sonuc.harita, baslik: scan.title, mod: sonuc.mod };
+      }),
+
+    getir: publicProcedure.input(z.object({ id: z.string() })).query(({ input }) => {
+      const r = db.select().from(diagnosisRequests).where(eq(diagnosisRequests.id, input.id)).get();
+      if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found." });
+      const parsed = JSON.parse(r.rapor || "{}") as Record<string, unknown>;
+      return { id: r.id, url: r.url, zaman: r.zaman, ...parsed };
+    }),
   }),
 
   ayarlar: router({

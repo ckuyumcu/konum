@@ -191,6 +191,18 @@ export default function Demo() {
             )}
           </AnimatePresence>
         </div>
+
+        <div className="mt-8 rounded-xl border border-border bg-[#fcfcf9] p-5 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm font-semibold text-foreground/80">
+            Curious what your own site's evidence looks like? Scan your homepage — free, no account.
+          </p>
+          <a
+            href="/teshis"
+            className="inline-flex items-center rounded-md bg-[#ff3500] text-white px-5 py-2.5 text-sm font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97]"
+          >
+            Try the free Message Map →
+          </a>
+        </div>
       </div>
     </section>
   )

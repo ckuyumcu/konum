@@ -15,6 +15,7 @@ export interface OturumKullanici {
 
 export interface Context {
   user: OturumKullanici | null;
+  ip: string;
 }
 
 export const OTURUM_CEREZI = "konum_oturum";
@@ -29,14 +30,19 @@ function cerezOku(header: string | null, ad: string): string | null {
 }
 
 export function createContext(opts?: FetchCreateContextFnOptions): Context {
-  const cookieHeader = opts?.req.headers.get("cookie") ?? null;
+  const headers = opts?.req.headers;
+  const ip =
+    headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    headers?.get("x-real-ip") ||
+    "yerel";
+  const cookieHeader = headers?.get("cookie") ?? null;
   const token = cerezOku(cookieHeader, OTURUM_CEREZI);
-  if (!token) return { user: null };
+  if (!token) return { user: null, ip };
   const oturum = db.select().from(sessions).where(eq(sessions.token, token)).get();
-  if (!oturum || oturum.expiresAt < Date.now()) return { user: null };
+  if (!oturum || oturum.expiresAt < Date.now()) return { user: null, ip };
   const user = db.select().from(users).where(eq(users.id, oturum.userId)).get();
-  if (!user) return { user: null };
-  return { user: { id: user.id, email: user.email, name: user.name } };
+  if (!user) return { user: null, ip };
+  return { user: { id: user.id, email: user.email, name: user.name }, ip };
 }
 
 const t = initTRPC.context<Context>().create();
