@@ -257,3 +257,11 @@ dışa aktarım ve manuel işaretleme kaydı tutar.
 - UI: `/app/:id/yayin` — kanal filtreleri, plan ekleme, kopyala penceresi, onay
   diyaloğuna bağlı "Mark as published (manual)". "Auto-publishing arrives in v1.1"
   notu her zaman görünür; sahte "bağlandı" butonu yok.
+
+## LLM anahtar doğrulaması (Aşama 5 eki)
+
+Ayarlar'daki "LLM key" alanı artık anahtarı kaydetmeden ÖNCE en ucuz canlı çağrıyla
+(max_tokens=1) Anthropic'e doğrulatır: 401/403 → anahtar saklanmaz ve açık hata
+döner (yanlış anahtar sistemi sessizce sonsuz simülasyonda bırakırdı). Ağ/başka
+hata → anahtar tutulur, "doğrulanamadı" uyarısı gösterilir; ilk gerçek ajan çağrısı
+karar verir. Model: claude-haiku-5-5 (Anthropic'in güncel Haiku 5.5 API kimliği).

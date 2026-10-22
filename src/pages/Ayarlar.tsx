@@ -61,9 +61,15 @@ function LlmAyar() {
             setMesgul(true);
             trpc.ayarlar.llmAnahtariKaydet
               .mutate({ anahtar })
-              .then(() => {
+              .then((r) => {
                 setAnahtar("");
-                toast.success("Key saved; it will not be shown again.");
+                if (r.dogrulama === "gecerli") {
+                  toast.success("Key saved and verified — live calls are now active.");
+                } else {
+                  toast.warning(
+                    `Key saved, but verification was inconclusive (${r.mesaj}). The first live agent call will confirm it.`,
+                  );
+                }
                 yenile();
               })
               .catch((err) => toast.error(err instanceof Error ? err.message : "Could not save."))

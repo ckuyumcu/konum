@@ -61,6 +61,30 @@ async function callAnthropic<T>(
 }
 
 /**
+ * Verifies a pasted key with the cheapest possible call BEFORE it is trusted.
+ * gecersiz: Anthropic rejected the key (401/403) — it must not be stored, otherwise
+ * the system would silently stay in simulation forever. bilinmiyor: network or other
+ * error — the key is kept and the first real call decides.
+ */
+export async function anahtariDogrula(anahtar: string): Promise<{ sonuc: "gecerli" | "gecersiz" | "bilinmiyor"; mesaj: string }> {
+  const client = new Anthropic({ apiKey: anahtar, maxRetries: 0, timeout: 15000 });
+  try {
+    await client.messages.create({
+      model: MODEL,
+      max_tokens: 1,
+      messages: [{ role: "user", content: "ping" }],
+    });
+    return { sonuc: "gecerli", mesaj: "Key verified with a live test call." };
+  } catch (err) {
+    const status = (err as { status?: number } | null)?.status;
+    if (status === 401 || status === 403) {
+      return { sonuc: "gecersiz", mesaj: `Anthropic rejected this key (${status}).` };
+    }
+    return { sonuc: "bilinmiyor", mesaj: err instanceof Error ? err.message : "The verification call failed." };
+  }
+}
+
+/**
  * Structured JSON generation. Retries on failed parsing/validation (max 2).
  * Falls back to simulation when there is no key or the call fails, and marks
  * mod as "simulasyon" — simulation is never reported as "real".

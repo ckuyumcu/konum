@@ -55,7 +55,7 @@ import {
   anthropicAnahtariYaz,
   platformSahibiMi,
 } from "./config";
-import { llmAktifMi, llmSaglayici } from "./agents/llm";
+import { llmAktifMi, llmSaglayici, anahtariDogrula } from "./agents/llm";
 
 function logAjan(
   workspaceId: string,
@@ -1731,15 +1731,29 @@ export const appRouter = router({
       };
     }),
 
-    // The key is written to a secret file outside the project on the server; never shown again (Cem's decision)
+    // The key is written to a secret file outside the project on the server; never shown again (Cem's decision).
+    // Before it is trusted, a live test call verifies it — a rejected key is deleted again,
+    // otherwise the system would silently stay in simulation mode forever.
     llmAnahtariKaydet: protectedProcedure
       .input(z.object({ anahtar: z.string().trim().min(10, "The key looks too short.") }))
-      .mutation(({ ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         if (!platformSahibiMi(ctx.user.email)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "This setting is only available to the platform owner." });
         }
         anthropicAnahtariYaz(input.anahtar);
-        return { ok: true };
+        const d = await anahtariDogrula(input.anahtar);
+        if (d.sonuc === "gecersiz") {
+          anthropicAnahtariSil();
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `The key was not saved: ${d.mesaj} Check it and paste again.`,
+          });
+        }
+        return {
+          ok: true,
+          dogrulama: d.sonuc === "gecerli" ? ("gecerli" as const) : ("dogrulanamadi" as const),
+          mesaj: d.mesaj,
+        };
       }),
 
     llmAnahtariKaldir: protectedProcedure.mutation(({ ctx }) => {

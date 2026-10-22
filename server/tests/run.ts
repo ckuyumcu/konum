@@ -524,6 +524,34 @@ async function main() {
     );
   });
 
+  console.log("LLM key verification:");
+
+  await test("llm: non-owner can neither read the status nor save a key (FORBIDDEN)", async () => {
+    await assert.rejects(() => yabanciCagri.ayarlar.llmDurumu(), (e) => e.code === "FORBIDDEN");
+    await assert.rejects(
+      () => yabanciCagri.ayarlar.llmAnahtariKaydet({ anahtar: "sk-ant-INVALID-TEST-000000" }),
+      (e) => e.code === "FORBIDDEN",
+    );
+  });
+
+  await test("llm: an invalid key is not stored (rejected on save or removed after)", async () => {
+    // Ağ varsa Anthropic 401 döner → kaydetme reddedilir ve anahtar silinir.
+    // Ağ yoksa doğrulama "dogrulanamadi" döner → anahtar tutulur; testte temizleriz.
+    let kaydedildi = false;
+    try {
+      const r = await sahipCagri.ayarlar.llmAnahtariKaydet({ anahtar: "sk-ant-INVALID-TEST-000000" });
+      kaydedildi = true;
+      assert.equal(r.dogrulama, "dogrulanamadi", "an invalid key must never verify as gecerli");
+      await sahipCagri.ayarlar.llmAnahtariKaldir();
+      console.log("    (no network to Anthropic — inconclusive path exercised, key cleaned up)");
+    } catch (e) {
+      assert.equal((e as { code?: string }).code, "BAD_REQUEST");
+    }
+    const durum = await sahipCagri.ayarlar.llmDurumu();
+    assert.equal(durum.anahtarKaynagi, "yok", kaydedildi ? "key must be removed after cleanup" : "rejected key must not be stored");
+    assert.equal(durum.aktifMod, "simulasyon");
+  });
+
   console.log(`\n${gecti} tests passed.`);
 }
 
