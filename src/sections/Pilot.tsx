@@ -149,7 +149,11 @@ export default function Pilot() {
                   />
                   <span id="pilot-note">
                     I agree to my email address being stored for the pilot application and being contacted when a seat
-                    opens. <span className="text-foreground/50">(Privacy notice: draft — pending legal review.)</span>
+                    opens. See our{' '}
+                    <a href="/privacy" className="underline decoration-foreground/40 hover:text-foreground">
+                      privacy notice
+                    </a>
+                    .
                   </span>
                 </label>
                 <button

@@ -14,6 +14,8 @@ import Radar from "./pages/Radar";
 import Teshis from "./pages/Teshis";
 import Ayarlar from "./pages/Ayarlar";
 import Konsol from "./pages/Konsol";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/giris" element={<Giris />} />
         <Route path="/teshis" element={<Teshis />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="/app" element={<WorkspaceList />} />
         <Route path="/app/yeni" element={<KurulumSihirbazi />} />
         <Route path="/app/konsol" element={<Konsol />} />

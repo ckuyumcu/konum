@@ -119,7 +119,10 @@ export default function Teshis() {
                 <input type="checkbox" checked={riza} onChange={(e) => setRiza(e.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#181818]" />
                 <span>
                   I agree to my email being stored so the report can be sent to me.{" "}
-                  <span className="text-foreground/50">(Privacy notice: draft — pending legal review.)</span>
+                  <a href="/privacy" className="underline decoration-foreground/40 hover:text-foreground">
+                    Privacy notice
+                  </a>
+                  .
                 </span>
               </label>
             )}

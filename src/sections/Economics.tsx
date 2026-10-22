@@ -19,7 +19,7 @@ export default function Economics() {
   const margin = Math.round(((pilotPrice - totalCost) / pilotPrice) * 100)
 
   return (
-    <section id="ekonomi" className="py-20 md:py-32 relative overflow-hidden">
+    <section id="math" className="py-20 md:py-32 relative overflow-hidden">
       <div className="blob bg-[#f5a409]/25 w-[360px] h-[360px] top-10 -right-24" aria-hidden="true" />
       <div className="mx-auto max-w-7xl px-5 md:px-8 relative">
         <motion.p

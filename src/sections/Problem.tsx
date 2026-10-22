@@ -22,7 +22,7 @@ const rows = [
 
 export default function Problem() {
   return (
-    <section id="sorun" className="py-20 md:py-32">
+    <section id="problem" className="py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-5 md:px-8 grid lg:grid-cols-12 gap-10">
         <div className="lg:col-span-5">
           <div className="lg:sticky lg:top-28">

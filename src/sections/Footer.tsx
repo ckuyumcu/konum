@@ -19,14 +19,24 @@ export default function Footer() {
             </p>
           </div>
           <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Footer navigation">
-            <a href="#sorun" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The Problem</a>
-            <a href="#nasil" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">How it works</a>
+            <a href="#problem" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The Problem</a>
+            <a href="#how" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">How it works</a>
             <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">What we learned</a>
             <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Live demo</a>
-            <a href="#ekonomi" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The math</a>
+            <a href="#math" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The math</a>
             <a href="#pilot" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot program</a>
-            <a href="#sss" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
+            <a href="#faq" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
+            <a href="/privacy" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Privacy notice</a>
+            <a href="/terms" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Terms of use</a>
           </nav>
+        </div>
+        <div className="mt-10 rounded-lg border border-[#fcfcf9]/15 bg-[#fcfcf9]/[0.04] p-5 text-sm text-[#fcfcf9]/70 max-w-2xl">
+          <p className="font-semibold text-[#fcfcf9]">Who builds Konum</p>
+          <p className="mt-1.5">
+            Konum is designed and built by <span className="font-semibold text-[#fcfcf9]">Cem Kuyumcu</span>, an energy
+            &amp; construction engineer, inside AIWork School. Questions, pilot requests or a wrong number you spotted
+            on this page: <a href="mailto:hello@aiworkschool.com" className="underline decoration-[#fcfcf9]/40 hover:text-[#fcfcf9]">hello@aiworkschool.com</a>
+          </p>
         </div>
         <div className="mt-12 pt-6 border-t border-[#fcfcf9]/15 flex flex-col md:flex-row justify-between gap-3 text-xs text-[#fcfcf9]/45">
           <span>© 2026 Konum, an AIWork School company — product preview. Demo data is simulated.</span>

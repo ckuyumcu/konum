@@ -39,7 +39,7 @@ const stages = [
 
 export default function Pipeline() {
   return (
-    <section id="nasil" className="py-20 md:py-32 bg-[#181818] text-[#fcfcf9] relative overflow-hidden">
+    <section id="how" className="py-20 md:py-32 bg-[#181818] text-[#fcfcf9] relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <motion.p
           initial={{ opacity: 0, y: 16 }}

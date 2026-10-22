@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 
 const links = [
-  { href: '#sorun', label: 'The Problem' },
-  { href: '#nasil', label: 'How it works' },
+  { href: '#problem', label: 'The Problem' },
+  { href: '#how', label: 'How it works' },
   { href: '#teardown', label: 'What we learned' },
   { href: '#demo', label: 'Live demo' },
-  { href: '#ekonomi', label: 'The math' },
+  { href: '#math', label: 'The math' },
   { href: '#pilot', label: 'Pilot' },
-  { href: '#sss', label: 'FAQ' },
+  { href: '#faq', label: 'FAQ' },
   { href: '/teshis', label: 'Free scan' },
 ]
 

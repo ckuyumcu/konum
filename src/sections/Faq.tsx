@@ -31,7 +31,7 @@ const faqs = [
 
 export default function Faq() {
   return (
-    <section id="sss" className="py-20 md:py-32 bg-[#efefe4] border-t border-border">
+    <section id="faq" className="py-20 md:py-32 bg-[#efefe4] border-t border-border">
       <div className="mx-auto max-w-4xl px-5 md:px-8">
         <motion.p
           initial={{ opacity: 0, y: 16 }}
