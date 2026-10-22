@@ -193,6 +193,22 @@ export const publishPackages = sqliteTable("publish_packages", {
   disaAktarimAnahtari: text("disa_aktarim_anahtari").notNull().default(""),
 });
 
+// Phase 5 — publish plan: schedules and tracks MANUAL publishing only.
+// The platform never touches ad accounts; auto-publishing is the v1.1 goal (v2 Section 3).
+export const publishPlanItems = sqliteTable("publish_plan_items", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
+  contentItemId: text("content_item_id").notNull(),
+  kanal: text("kanal").notNull(), // eposta | sosyal | reklam — taken from the content item, never from user input
+  planlananTarih: text("planlanan_tarih").notNull(), // yyyy-mm-dd
+  // planlandi | disaAktarildi | yayinlandiManuel | iptal (durum.ts: yayinPlani machine)
+  durum: text("durum").notNull().default("planlandi"),
+  not: text("not").notNull().default(""),
+  olusturan: text("olusturan").notNull().default(""),
+  createdAt: integer("created_at", { mode: "number" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "number" }).notNull(),
+});
+
 // Product-internal agents only; external advisor records are NEVER written here (v2 Section 12)
 export const agentLogs = sqliteTable("agent_logs", {
   id: text("id").primaryKey(),

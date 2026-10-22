@@ -120,10 +120,17 @@ CREATE TABLE IF NOT EXISTS outreach_drafts (
   eposta TEXT NOT NULL DEFAULT '', konu TEXT NOT NULL DEFAULT '', taslak TEXT NOT NULL DEFAULT '',
   rapor_ozeti TEXT NOT NULL DEFAULT '', durum TEXT NOT NULL DEFAULT 'taslak', created_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS publish_plan_items (
+  id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, content_item_id TEXT NOT NULL,
+  kanal TEXT NOT NULL, planlanan_tarih TEXT NOT NULL, durum TEXT NOT NULL DEFAULT 'planlandi',
+  "not" TEXT NOT NULL DEFAULT '', olusturan TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+);
 CREATE INDEX IF NOT EXISTS idx_agent_logs_ws ON agent_logs(workspace_id, zaman DESC);
 CREATE INDEX IF NOT EXISTS idx_content_ws ON content_items(workspace_id, durum);
 CREATE INDEX IF NOT EXISTS idx_members ON workspace_members(workspace_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_crawl_ws ON crawl_snapshots(workspace_id, zaman DESC);
+CREATE INDEX IF NOT EXISTS idx_plan_ws ON publish_plan_items(workspace_id, planlanan_tarih);
 `);
 
 // Column additions for databases left over from v1.0 (ignorable errors are tolerated)

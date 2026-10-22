@@ -49,6 +49,10 @@ const EYLEM_AD: Record<string, string> = {
   revize: "Revision requested",
   paketlendi: "Packaged",
   "duzenleme-onayi-bozdu": "Approval broken by edit",
+  "yayin-planlandi": "Added to publish plan",
+  "yayin-disaAktarildi": "Publish text exported",
+  "yayin-yayinlandiManuel": "Marked as published (manual)",
+  "yayin-iptal": "Publish plan cancelled",
 };
 
 function beklemeYaz(giris: number | null): string {

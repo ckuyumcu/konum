@@ -9,6 +9,7 @@ import Bellek from "./pages/Bellek";
 import KanitMotoru from "./pages/KanitMotoru";
 import Icra from "./pages/Icra";
 import Onay from "./pages/Onay";
+import YayinPlani from "./pages/YayinPlani";
 import Radar from "./pages/Radar";
 import Teshis from "./pages/Teshis";
 import Ayarlar from "./pages/Ayarlar";
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="kanit" element={<KanitMotoru />} />
           <Route path="icra" element={<Icra />} />
           <Route path="onay" element={<Onay />} />
+          <Route path="yayin" element={<YayinPlani />} />
           <Route path="radar" element={<Radar />} />
           <Route path="ayarlar" element={<Ayarlar />} />
         </Route>

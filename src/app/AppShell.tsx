@@ -22,6 +22,7 @@ const MODULLER = [
   { rota: "kanit", ad: "Evidence Engine", kilitlenebilir: true },
   { rota: "icra", ad: "Execution Studio", kilitlenebilir: true },
   { rota: "onay", ad: "Approval Center", kilitlenebilir: true },
+  { rota: "yayin", ad: "Publish Plan", kilitlenebilir: true },
   { rota: "radar", ad: "Signal Radar", kilitlenebilir: true },
   { rota: "ayarlar", ad: "Settings", kilitlenebilir: false },
 ];

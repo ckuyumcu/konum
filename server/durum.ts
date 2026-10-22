@@ -24,6 +24,15 @@ const GECISLER: Record<string, Record<string, string[]>> = {
     reddedildi: [],
     paketlendi: [],
   },
+  // Aşama 5 — yayın planı: planla → dışa aktar → kullanıcı kendi hesabında yayınlar →
+  // "yayınlandı (manuel)" işaretlenir. İptal edilen plan yeniden etkinleştirilebilir;
+  // yayınlandı işaretlenen kayıt geri alınamaz (denetim izi bütünlüğü).
+  yayinPlani: {
+    planlandi: ["disaAktarildi", "iptal"],
+    disaAktarildi: ["yayinlandiManuel", "iptal"],
+    yayinlandiManuel: [],
+    iptal: ["planlandi"],
+  },
 };
 
 export function gecisZorla(tur: keyof typeof GECISLER, mevcut: string, hedef: string): void {

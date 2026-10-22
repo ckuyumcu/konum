@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createHash, randomBytes } from "node:crypto";
-import { desc, eq, and, gte } from "drizzle-orm";
+import { desc, asc, eq, and, gte } from "drizzle-orm";
 import {
   router,
   publicProcedure,
@@ -23,6 +23,7 @@ import {
   outreachDrafts,
   pilotApplications,
   publishPackages,
+  publishPlanItems,
   signals,
   strategyBeliefs,
   testResults,
@@ -1101,6 +1102,178 @@ export const appRouter = router({
         const icerikler = db.select().from(contentItems).where(eq(contentItems.workspaceId, input.workspaceId)).all();
         const wsIds = new Set(icerikler.map((i) => i.id));
         return olaylar.filter((o) => wsIds.has(o.contentItemId)).slice(0, 100);
+      }),
+  }),
+
+  // ===== Aşama 5 — Yayın Planı =====
+  // v1: platform HİÇBİR hesapta işlem yapmaz. Plan + dışa aktarım + "yayınlandı
+  // (manuel)" işareti tutulur; otomatik yayın v1.1 hedefidir (v2 Bölüm 3, kural 274).
+  yayinPlani: router({
+    // Onaylı/paketlenmiş içerikler — plana eklenmeye aday liste
+    planlanabilir: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const icerikler = db
+          .select()
+          .from(contentItems)
+          .where(eq(contentItems.workspaceId, input.workspaceId))
+          .all()
+          .filter((i) => i.durum === "onayli" || i.durum === "paketlendi");
+        const aktifPlanlar = db
+          .select()
+          .from(publishPlanItems)
+          .where(eq(publishPlanItems.workspaceId, input.workspaceId))
+          .all()
+          .filter((p) => p.durum !== "iptal");
+        const planHarita = new Map(aktifPlanlar.map((p) => [p.contentItemId, p.id]));
+        return icerikler.map((i) => ({
+          id: i.id,
+          kanal: i.kanal,
+          baslik: i.baslik,
+          durum: i.durum,
+          aktifPlanId: planHarita.get(i.id) ?? null,
+        }));
+      }),
+
+    planla: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          contentItemId: z.string(),
+          planlananTarih: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be yyyy-mm-dd."),
+          not: z.string().trim().max(500).optional().default(""),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const bugun = new Date();
+        const bugunStr = `${bugun.getFullYear()}-${String(bugun.getMonth() + 1).padStart(2, "0")}-${String(bugun.getDate()).padStart(2, "0")}`;
+        if (input.planlananTarih < bugunStr) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "The planned date cannot be in the past." });
+        }
+        const item = db.select().from(contentItems).where(eq(contentItems.id, input.contentItemId)).get();
+        if (!item || item.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Content item not found." });
+        }
+        if (item.durum !== "onayli" && item.durum !== "paketlendi") {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "Only approved or packaged content can be added to the publish plan.",
+          });
+        }
+        const aktifPlan = db
+          .select()
+          .from(publishPlanItems)
+          .where(eq(publishPlanItems.contentItemId, input.contentItemId))
+          .all()
+          .find((p) => p.durum !== "iptal");
+        if (aktifPlan) {
+          throw new TRPCError({ code: "CONFLICT", message: "This item already has an active publish plan." });
+        }
+        const simdi = Date.now();
+        const satir = {
+          id: newId("plan"),
+          workspaceId: input.workspaceId,
+          contentItemId: item.id,
+          kanal: item.kanal, // kanal her zaman içerikten alınır, istemci girişinden asla
+          planlananTarih: input.planlananTarih,
+          durum: "planlandi",
+          not: input.not,
+          olusturan: ctx.user.email,
+          createdAt: simdi,
+          updatedAt: simdi,
+        };
+        db.insert(publishPlanItems).values(satir).run();
+        db.insert(approvalEvents)
+          .values({ id: newId("apr"), contentItemId: item.id, userId: ctx.user.id, eylem: "yayin-planlandi", not: `Plan ${satir.id} → ${input.planlananTarih}`, govdeHash: item.govdeHash, rol: "", redNedeni: "", zaman: simdi })
+          .run();
+        return satir;
+      }),
+
+    liste: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const planlar = db
+          .select()
+          .from(publishPlanItems)
+          .where(eq(publishPlanItems.workspaceId, input.workspaceId))
+          .orderBy(asc(publishPlanItems.planlananTarih), desc(publishPlanItems.createdAt))
+          .all();
+        const icerikHarita = new Map(
+          db.select().from(contentItems).where(eq(contentItems.workspaceId, input.workspaceId)).all().map((i) => [i.id, i]),
+        );
+        return planlar.map((p) => {
+          const item = icerikHarita.get(p.contentItemId);
+          return { ...p, baslik: item?.baslik ?? "", govdeHash: item?.govdeHash ?? "", icerikDurum: item?.durum ?? "" };
+        });
+      }),
+
+    // Dışa aktarım gerçekten sunucuda üretilir — bu yüzden "disaAktarildi" geçişi
+    // burada, kullanıcı beyanına değil fiili olaya bağlıdır.
+    disariAktar: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), planId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const plan = db.select().from(publishPlanItems).where(eq(publishPlanItems.id, input.planId)).get();
+        if (!plan || plan.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Plan item not found." });
+        }
+        if (plan.durum === "iptal") {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "A cancelled plan cannot be exported." });
+        }
+        const item = db.select().from(contentItems).where(eq(contentItems.id, plan.contentItemId)).get();
+        if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Content item not found." });
+        const kanalAd = { eposta: "Email", sosyal: "Social", reklam: "Ad" }[plan.kanal] ?? plan.kanal;
+        const metin = [
+          `Channel: ${kanalAd}`,
+          item.baslik ? `Title: ${item.baslik}` : "",
+          `Planned date: ${plan.planlananTarih}`,
+          "---",
+          item.govde,
+          "---",
+          "You publish this in your own account. The platform never posts on your behalf.",
+        ]
+          .filter(Boolean)
+          .join("\n");
+        const simdi = Date.now();
+        if (plan.durum === "planlandi") {
+          gecisZorla("yayinPlani", "planlandi", "disaAktarildi");
+          db.update(publishPlanItems).set({ durum: "disaAktarildi", updatedAt: simdi }).where(eq(publishPlanItems.id, plan.id)).run();
+          db.insert(approvalEvents)
+            .values({ id: newId("apr"), contentItemId: item.id, userId: ctx.user.id, eylem: "yayin-disaAktarildi", not: `Plan ${plan.id}`, govdeHash: item.govdeHash, rol: "", redNedeni: "", zaman: simdi })
+            .run();
+        }
+        return { metin, durum: plan.durum === "planlandi" ? "disaAktarildi" : plan.durum };
+      }),
+
+    durumGuncelle: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          planId: z.string(),
+          hedef: z.enum(["planlandi", "disaAktarildi", "yayinlandiManuel", "iptal"]),
+          not: z.string().trim().max(500).optional().default(""),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        onayYetkisiZorla(input.workspaceId, ctx.user.id);
+        const plan = db.select().from(publishPlanItems).where(eq(publishPlanItems.id, input.planId)).get();
+        if (!plan || plan.workspaceId !== input.workspaceId) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Plan item not found." });
+        }
+        gecisZorla("yayinPlani", plan.durum, input.hedef);
+        const item = db.select().from(contentItems).where(eq(contentItems.id, plan.contentItemId)).get();
+        const simdi = Date.now();
+        db.update(publishPlanItems)
+          .set({ durum: input.hedef, not: input.not || plan.not, updatedAt: simdi })
+          .where(eq(publishPlanItems.id, plan.id))
+          .run();
+        db.insert(approvalEvents)
+          .values({ id: newId("apr"), contentItemId: plan.contentItemId, userId: ctx.user.id, eylem: `yayin-${input.hedef}`, not: input.not || `Plan ${plan.id}`, govdeHash: item?.govdeHash ?? "", rol: "", redNedeni: "", zaman: simdi })
+          .run();
+        return { id: plan.id, durum: input.hedef };
       }),
   }),
 

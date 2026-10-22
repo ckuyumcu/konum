@@ -217,7 +217,7 @@ src/app/          Uygulama kabuğu (sol nav, mobil sheet)
 ```
 
 Rotalar: `/` landing · `/teshis` (ücretsiz Mesaj Haritası) · `/giris` · `/app` ·
-`/app/yeni` (kurulum sihirbazı) · `/app/:id/bellek|kanit|icra|onay|radar|ayarlar` ·
+`/app/yeni` (kurulum sihirbazı) · `/app/:id/bellek|kanit|icra|onay|yayin|radar|ayarlar` ·
 `/app/konsol` · API: `/api/trpc/*`, `/api/teshis/:id.pdf`
 
 ## Tasarım ek paketi değerlendirmesi (KAPI-TASARIM-EK.md → danisma/)
@@ -237,3 +237,23 @@ kapanması.
 
 Bu turda kapatılan tek gerçek boşluk: JS tabanlı sayaç artık prefers-reduced-motion'ı
 da saygılıyor (useReducedMotion — hareket azaltılmışsa sayı doğrudan görünür).
+
+## Aşama 5 — Yayın Planı (v1 kapsamında kanal yayın akışı)
+
+v2 talimatı Aşama 4'te biter; gerçek reklam platformu API yayını v1.1 hedefidir
+(Bölüm 3 ve kural 274: "otomatik yayınla" istekleri bu sürümde yapılmaz). Bu yüzden
+Aşama 5 v1-yasal biçimde kuruldu: **platform hiçbir hesapta işlem yapmaz** — plan,
+dışa aktarım ve manuel işaretleme kaydı tutar.
+
+- `publish_plan_items`: onaylı/paketlenmiş içerik + tarih → plan. Kanal her zaman
+  içerik kaydından alınır, istemci girişinden asla.
+- Durum makinesi (`durum.ts` → `yayinPlani`): planlandi → disaAktarildi →
+  yayinlandiManuel; iptal her aşamada, "yayınlandı" geri alınamaz. Tüm geçişler
+  sunucuda `gecisZorla` ile zorlanır; adım atlamak BAD_REQUEST döner.
+- Dışa aktarım metni sunucuda üretilir; "disaAktarildi" geçişi kullanıcı beyanına
+  değil fiilî üretim olayına bağlanır.
+- Her adım `approval_events`'e yazılır (yayin-planlandi / yayin-disaAktarildi /
+  yayin-yayinlandiManuel / yayin-iptal) — Onay Merkezi geçmişinde okunabilir etiketlerle.
+- UI: `/app/:id/yayin` — kanal filtreleri, plan ekleme, kopyala penceresi, onay
+  diyaloğuna bağlı "Mark as published (manual)". "Auto-publishing arrives in v1.1"
+  notu her zaman görünür; sahte "bağlandı" butonu yok.

@@ -422,6 +422,108 @@ async function main() {
     assert.equal(kep("hello@ajans-ornek.com"), false);
   });
 
+  console.log("Phase 5 — publish plan (createCaller E2E):");
+
+  const { contentItems: ci, approvalEvents: ae, publishPlanItems: ppi } = await import("../schema");
+  const icerikEkle = (durum: string, kanal = "sosyal") => {
+    const it = {
+      id: newId("cnt"), workspaceId: ws4.id, evidenceId: null, kanal,
+      baslik: `Test ${durum}`, govde: "gövde metni — deneme", durum, denetciNotu: "",
+      govdeHash: `hash-${Math.random()}`, kuyrugaGiris: null, surum: 1, oncekiSurumId: null, createdAt: simdi4,
+    };
+    db.insert(ci).values(it).run();
+    return it;
+  };
+  const yarin = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const dun = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  await test("yayinPlani: unapproved content cannot be planned", async () => {
+    const it = icerikEkle("denetimde");
+    await assert.rejects(
+      () => sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: yarin }),
+      (e) => e.code === "PRECONDITION_FAILED",
+    );
+  });
+
+  await test("yayinPlani: past date is rejected", async () => {
+    const it = icerikEkle("onayli");
+    await assert.rejects(
+      () => sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: dun }),
+      (e) => e.code === "BAD_REQUEST",
+    );
+  });
+
+  let plan1Id = "";
+  await test("yayinPlani: approved content plans; channel inherited from content; audit written", async () => {
+    const it = icerikEkle("onayli", "reklam");
+    const plan = await sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: yarin });
+    plan1Id = plan.id;
+    assert.equal(plan.durum, "planlandi");
+    assert.equal(plan.kanal, "reklam"); // kanal istemciden değil içerikten gelir
+    const olay = db.select().from(ae).where(andT(eqT(ae.contentItemId, it.id), eqT(ae.eylem, "yayin-planlandi"))).all();
+    assert.equal(olay.length, 1);
+  });
+
+  await test("yayinPlani: second active plan for the same item is a conflict", async () => {
+    const it = db.select().from(ci).where(eqT(ci.id, (await sahipCagri.yayinPlani.liste({ workspaceId: ws4.id }))[0].contentItemId)).get();
+    await assert.rejects(
+      () => sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it!.id, planlananTarih: yarin }),
+      (e) => e.code === "CONFLICT",
+    );
+  });
+
+  await test("yayinPlani: export returns text and moves planlandi → disaAktarildi", async () => {
+    const r = await sahipCagri.yayinPlani.disariAktar({ workspaceId: ws4.id, planId: plan1Id });
+    assert.equal(r.durum, "disaAktarildi");
+    assert.ok(r.metin.includes("gövde metni"));
+    assert.ok(r.metin.includes("never posts on your behalf"));
+    const kayit = db.select().from(ppi).where(eqT(ppi.id, plan1Id)).get();
+    assert.equal(kayit!.durum, "disaAktarildi");
+  });
+
+  await test("yayinPlani: skipping states is blocked (planlandi → yayinlandiManuel)", async () => {
+    const it = icerikEkle("onayli");
+    const plan = await sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: yarin });
+    await assert.rejects(
+      () => sahipCagri.yayinPlani.durumGuncelle({ workspaceId: ws4.id, planId: plan.id, hedef: "yayinlandiManuel" }),
+      (e) => e.code === "BAD_REQUEST",
+    );
+  });
+
+  await test("yayinPlani: disaAktarildi → yayinlandiManuel passes and is audited; state is terminal", async () => {
+    await sahipCagri.yayinPlani.durumGuncelle({ workspaceId: ws4.id, planId: plan1Id, hedef: "yayinlandiManuel" });
+    const kayit = db.select().from(ppi).where(eqT(ppi.id, plan1Id)).get();
+    assert.equal(kayit!.durum, "yayinlandiManuel");
+    const olay = db.select().from(ae).where(eqT(ae.eylem, "yayin-yayinlandiManuel")).all();
+    assert.equal(olay.length, 1);
+    await assert.rejects(
+      () => sahipCagri.yayinPlani.durumGuncelle({ workspaceId: ws4.id, planId: plan1Id, hedef: "iptal" }),
+      (e) => e.code === "BAD_REQUEST",
+    );
+  });
+
+  await test("yayinPlani: cancelled plan can be reactivated and the slot frees up", async () => {
+    const it = icerikEkle("paketlendi");
+    const plan = await sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: yarin });
+    await sahipCagri.yayinPlani.durumGuncelle({ workspaceId: ws4.id, planId: plan.id, hedef: "iptal" });
+    // iptal edilen plan aktif sayılmaz → aynı içerik yeniden planlanabilir
+    const plan2 = await sahipCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: yarin });
+    assert.equal(plan2.durum, "planlandi");
+    // iptal → planlandi geçişi de serbest
+    await sahipCagri.yayinPlani.durumGuncelle({ workspaceId: ws4.id, planId: plan.id, hedef: "planlandi" });
+    const kayit = db.select().from(ppi).where(eqT(ppi.id, plan.id)).get();
+    assert.equal(kayit!.durum, "planlandi");
+  });
+
+  await test("yayinPlani: non-member can neither list nor plan (workspace isolation)", async () => {
+    await assert.rejects(() => yabanciCagri.yayinPlani.liste({ workspaceId: ws4.id }), (e) => e.code === "FORBIDDEN");
+    const it = icerikEkle("onayli");
+    await assert.rejects(
+      () => yabanciCagri.yayinPlani.planla({ workspaceId: ws4.id, contentItemId: it.id, planlananTarih: yarin }),
+      (e) => e.code === "FORBIDDEN",
+    );
+  });
+
   console.log(`\n${gecti} tests passed.`);
 }
 
