@@ -57,13 +57,24 @@ ilk 20 gerçek testte "fark gösterilemedi" oranı > %50), teşhis hunisi panosu
 gözlem/dönüşüm penceresi, kısmi e-posta kilidi (PDF indirme e-postaya bağlanır
 — A4, önce huni ölçümü).
 
+**Tur 4 (Kapı 4 kabul paketi) — uygulananlar:** eskime karşılaştırması artık
+son anlık kayda değil **kabul edilmiş esas kayda** yapılır (`esas=1`; alarm
+ateşlenince yeni tarama yeni esas olur — kademeli drift alarmı atlatamaz);
+alarm yaşam döngüsü (`acik / okundu / ertelendi-7gün / cozuldu`) + aynı
+referansa 30 gün içinde ikinci alarm yok (okunmuş olsa bile); haftalık özet
+gerçek 7-gün filtresiyle çalışır ve dönem sınırları sinyalde yazar; ulaşım
+listesi kişisel e-posta alanlarını sunucuda reddeder (gmail/outlook/yahoo…);
+"Sent (manual)" etiketi "Marked as sent (manual)" olarak düzeltildi; tümü
+createCaller E2E testleriyle kilit altında (8 yeni test). Durum dürüstlüğü:
+bu hâlâ **yerel prototip** — canlı yayın, gerçek pilot ve gelir kanıtı yok.
+
 ## Çalıştırma
 
 ```bash
 npm install
 npm run dev      # http://localhost:3000 — arayüz + API (/api) tek süreçte
 npm run build    # tsc -b && vite build
-npm test         # otomatik testler (35 adet)
+npm test         # otomatik testler (43 adet — endpoint E2E'leri dahil)
 ```
 
 **İlk giriş:** `/giris` → e-posta `cem@konum.local`, davet kodu `KONUM-PILOT-1`

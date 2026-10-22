@@ -65,3 +65,19 @@ pilot başvurularıyla eşleşirse durum otomatik güncellenir. LLM anahtarı yo
 - **Grok → red-team** (alarm atlatma: rakibin taramayı algılayıp sabit içerik
   sunması, alarm flooding, ulaşım listesinin suistimali)
 - **Gemini → sinyal işleme** (soru 2, fark ölçüsünün iyileştirilmesi)
+
+## (e) Ek öneri — tasarım yönü ("neşeli / renkli / animasyonlu")
+
+Tam metin: `danisma/KAPI-TASARIM-EK.md`. Özet: pazarlama sitesi tam neşeli +
+animasyonlu (hero'da kanıt→varyasyon→onay boru hattı, scroll-reveal, sayı
+sayaçları); çalışma ekranları (İcra/Onay) aynı paletin düşük doygunluklu sakin
+sürümü; denetim izi ekranları nötr. Yeni palet ve tipografi token'ları ekte
+tanımlı; zorunlu sınırlar: prefers-reduced-motion, yalnız transform/opacity,
+performans bütçesi (LCP ≤ 2,5 sn, CLS ≤ 0,1).
+
+**4. danışma sorusu (tüm kapılara ek):** iki katmanlı ton ayrımı (neşeli
+pazarlama ↔ sakin çalışma ekranı) "onay/denetim ciddiyeti" algısını korurken
+marka enerjisi verir mi, yoksa kullanıcı siteden ürüne geçerken ton kırılması
+mı yaşar? Köprü onboarding mi, ürün içi ilk 60 saniye mi? Perspektif atamaları
+ek dosyada (Claude → erişilebilirlik, ChatGPT → marka, Grok → red-team,
+Gemini → tasarım sistemi).

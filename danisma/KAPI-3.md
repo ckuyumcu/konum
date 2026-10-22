@@ -67,3 +67,19 @@ LLM anahtarı yoksa tüm üretim "simülasyon" etiketli deterministik taslaktır
 - **Grok → red-team** (hash kapsamını atlatma: aynı metin farklı bağlam,
   onay-bozma olayını atlayan yazma yolu, kuyruk sırası manipülasyonu)
 - **Gemini → veri modeli** (soru 1, onay kapsamının şemaya taşınması)
+
+## (e) Ek öneri — tasarım yönü ("neşeli / renkli / animasyonlu")
+
+Tam metin: `danisma/KAPI-TASARIM-EK.md`. Özet: pazarlama sitesi tam neşeli +
+animasyonlu (hero'da kanıt→varyasyon→onay boru hattı, scroll-reveal, sayı
+sayaçları); çalışma ekranları (İcra/Onay) aynı paletin düşük doygunluklu sakin
+sürümü; denetim izi ekranları nötr. Yeni palet ve tipografi token'ları ekte
+tanımlı; zorunlu sınırlar: prefers-reduced-motion, yalnız transform/opacity,
+performans bütçesi (LCP ≤ 2,5 sn, CLS ≤ 0,1).
+
+**4. danışma sorusu (tüm kapılara ek):** iki katmanlı ton ayrımı (neşeli
+pazarlama ↔ sakin çalışma ekranı) "onay/denetim ciddiyeti" algısını korurken
+marka enerjisi verir mi, yoksa kullanıcı siteden ürüne geçerken ton kırılması
+mı yaşar? Köprü onboarding mi, ürün içi ilk 60 saniye mi? Perspektif atamaları
+ek dosyada (Claude → erişilebilirlik, ChatGPT → marka, Grok → red-team,
+Gemini → tasarım sistemi).
