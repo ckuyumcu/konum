@@ -20,8 +20,10 @@ import {
   evidenceFiles,
   hypotheses,
   organizations,
+  outreachDrafts,
   pilotApplications,
   publishPackages,
+  signals,
   strategyBeliefs,
   testResults,
   tests,
@@ -34,6 +36,7 @@ import { hipotezUret, testPlaniUret } from "./agents/kanit";
 import { mesajHaritasiUret } from "./agents/teshis";
 import { kanalVaryasyonlariUret } from "./agents/icra";
 import { denetle } from "./agents/denetci";
+import { haftalikOzetUret, metinFarkiYuzde } from "./agents/analist";
 import { gecisZorla } from "./durum";
 import { kazananKarari, payPaydaGecerliMi } from "./stats";
 import { gunlukIpHash } from "./guvenlik";
@@ -158,7 +161,12 @@ export const appRouter = router({
           .from(strategyBeliefs)
           .where(eq(strategyBeliefs.workspaceId, u.workspaceId))
           .get();
-        return { ...ws!, rol: u.rol, bellekDurumu: bellek?.onayDurumu ?? "yok" };
+        const bekleyenOnay = db
+          .select()
+          .from(contentItems)
+          .where(and(eq(contentItems.workspaceId, u.workspaceId), eq(contentItems.durum, "onayKuyrugu")))
+          .all().length;
+        return { ...ws!, rol: u.rol, bellekDurumu: bellek?.onayDurumu ?? "yok", bekleyenOnay };
       });
     }),
     get: protectedProcedure
@@ -197,6 +205,31 @@ export const appRouter = router({
           .values({ id: newId("mem"), workspaceId: ws.id, userId: ctx.user.id, rol: "sahip", createdAt: Date.now() })
           .run();
         return ws;
+      }),
+
+    // Beyaz etiket ayarları (Aşama 4, Ajans Konsolu) — yalnız sahip rolü
+    beyazEtiketGuncelle: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          markaAdi: z.string().trim().max(100).default(""),
+          vurguRenk: z
+            .string()
+            .trim()
+            .regex(/^#[0-9a-fA-F]{6}$/, "Enter a hex color like #ff3500.")
+            .or(z.literal(""))
+            .default(""),
+          alanAdi: z.string().trim().max(200).default(""),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        const { rol } = uyeZorla(input.workspaceId, ctx.user.id);
+        if (rol !== "sahip") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "White-label settings can only be changed by the owner role." });
+        }
+        const beyazEtiket = JSON.stringify({ markaAdi: input.markaAdi, vurguRenk: input.vurguRenk, alanAdi: input.alanAdi });
+        db.update(workspaces).set({ beyazEtiket }).where(eq(workspaces.id, input.workspaceId)).run();
+        return { ok: true };
       }),
   }),
 
@@ -1060,6 +1093,316 @@ export const appRouter = router({
         const icerikler = db.select().from(contentItems).where(eq(contentItems.workspaceId, input.workspaceId)).all();
         const wsIds = new Set(icerikler.map((i) => i.id));
         return olaylar.filter((o) => wsIds.has(o.contentItemId)).slice(0, 100);
+      }),
+  }),
+
+  // ===== Aşama 4 — Sinyal Radarı =====
+  // Analist salt-okur; eskime alarmı kuralı kodda (kanıt 30+ gün VEYA rakip
+  // taramasında hash değişimi + %20'yi aşan metin farkı). Otomatik zamanlama
+  // YOK — README'de açık; yenileme kullanıcı düğmesiyle tetiklenir.
+  radar: router({
+    sinyaller: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .query(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        return db
+          .select()
+          .from(signals)
+          .where(eq(signals.workspaceId, input.workspaceId))
+          .orderBy(desc(signals.createdAt))
+          .all()
+          .slice(0, 100);
+      }),
+
+    // Haftalık "ne öğrendik" özeti — Analist (LLM veya simülasyon)
+    ozetUret: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const { ws } = uyeZorla(input.workspaceId, ctx.user.id);
+        bellekOnayZorla(input.workspaceId);
+        gunlukLlmSiniriZorla(input.workspaceId);
+        const kanitlar = db
+          .select()
+          .from(evidenceFiles)
+          .where(eq(evidenceFiles.workspaceId, input.workspaceId))
+          .orderBy(desc(evidenceFiles.createdAt))
+          .all()
+          .slice(0, 10);
+        const testler = db
+          .select()
+          .from(tests)
+          .where(eq(tests.workspaceId, input.workspaceId))
+          .orderBy(desc(tests.createdAt))
+          .all()
+          .slice(0, 20);
+        const icerikler = db.select().from(contentItems).where(eq(contentItems.workspaceId, input.workspaceId)).all();
+        const icerikSayilari: Record<string, number> = {};
+        for (const c of icerikler) icerikSayilari[c.durum] = (icerikSayilari[c.durum] ?? 0) + 1;
+        const sonuc = await haftalikOzetUret({
+          musteriAdi: ws.musteriAdi,
+          kanitlar: kanitlar.map((k) => ({ kazananMesaj: k.kazananMesaj, ogrenim: k.ogrenim, createdAt: k.createdAt })),
+          testler: testler.map((t) => ({ olcut: t.olcut, durum: t.durum, sonuc: t.sonuc, pDegeri: t.pDegeri, deneme: t.deneme })),
+          icerikSayilari,
+        });
+        const sinyal = {
+          id: newId("sgn"),
+          workspaceId: input.workspaceId,
+          tip: "haftalikOzet",
+          icerik: JSON.stringify({ ...sonuc.ozet, mod: sonuc.mod }),
+          okundu: 0,
+          createdAt: Date.now(),
+        };
+        db.insert(signals).values(sinyal).run();
+        logAjan(
+          input.workspaceId,
+          "analist",
+          `Weekly brief: ${kanitlar.length} evidence file(s), ${testler.length} test(s)`,
+          sonuc.ozet.ozet,
+          "uygulanamaz",
+          sonuc.mod,
+          sonuc.tokenSayisi,
+        );
+        return sinyal;
+      }),
+
+    // Eskime kontrolü — kullanıcı düğmesiyle ("Şimdi yeniden tara"); cron yok
+    eskimeKontrol: protectedProcedure
+      .input(z.object({ workspaceId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        bellekOnayZorla(input.workspaceId);
+        const simdi = Date.now();
+        const OTUZ_GUN = 30 * 24 * 60 * 60 * 1000;
+        const okunmamislar = db
+          .select()
+          .from(signals)
+          .where(and(eq(signals.workspaceId, input.workspaceId), eq(signals.tip, "eskimeAlarmi"), eq(signals.okundu, 0)))
+          .all();
+        const mevcutReferanslar = new Set(
+          okunmamislar.map((s) => {
+            try {
+              return (JSON.parse(s.icerik) as { referansId?: string }).referansId ?? "";
+            } catch {
+              return "";
+            }
+          }),
+        );
+        const yeniAlarmlar: string[] = [];
+
+        // Kural 1: kanıt dosyasındaki mesaj 30+ gündür yenilenmediyse
+        const kanitlar = db.select().from(evidenceFiles).where(eq(evidenceFiles.workspaceId, input.workspaceId)).all();
+        for (const k of kanitlar) {
+          if (simdi - k.createdAt >= OTUZ_GUN && !mevcutReferanslar.has(k.id)) {
+            const yas = Math.floor((simdi - k.createdAt) / (24 * 60 * 60 * 1000));
+            db.insert(signals)
+              .values({
+                id: newId("sgn"),
+                workspaceId: input.workspaceId,
+                tip: "eskimeAlarmi",
+                icerik: JSON.stringify({
+                  baslik: "Positioning staleness: proven message is getting old",
+                  govde: `"${k.kazananMesaj.slice(0, 140)}" has not been refreshed for ${yas} days. Markets move — re-test this claim against a new challenger.`,
+                  referansId: k.id,
+                }),
+                okundu: 0,
+                createdAt: simdi,
+              })
+              .run();
+            mevcutReferanslar.add(k.id);
+            yeniAlarmlar.push(`kanıt:${k.id}`);
+          }
+        }
+
+        // Kural 2: taranmış sayfa (ürün/rakip) değiştiyse ve metin farkı %20'yi aştıysa
+        const anliklar = db
+          .select()
+          .from(crawlSnapshots)
+          .where(eq(crawlSnapshots.workspaceId, input.workspaceId))
+          .orderBy(desc(crawlSnapshots.zaman))
+          .all();
+        const sonByUrl = new Map<string, (typeof anliklar)[number]>();
+        for (const s of anliklar) if (!sonByUrl.has(s.url)) sonByUrl.set(s.url, s);
+        let taranan = 0;
+        const taramaHatalari: string[] = [];
+        for (const [url, eski] of sonByUrl) {
+          try {
+            const scan = await scanUrl(url);
+            taranan++;
+            if (!scan.metin) continue;
+            const yeniHash = createHash("sha256").update(scan.metin).digest("hex");
+            if (yeniHash === eski.hash) continue;
+            db.insert(crawlSnapshots)
+              .values({ id: newId("crw"), workspaceId: input.workspaceId, url: scan.finalUrl, tip: eski.tip, metin: scan.metin, hash: yeniHash, zaman: simdi })
+              .run();
+            const fark = metinFarkiYuzde(eski.metin, scan.metin);
+            if (fark > 0.2 && !mevcutReferanslar.has(url)) {
+              db.insert(signals)
+                .values({
+                  id: newId("sgn"),
+                  workspaceId: input.workspaceId,
+                  tip: "eskimeAlarmi",
+                  icerik: JSON.stringify({
+                    baslik: `${eski.tip === "rakip" ? "Competitor" : "Product"} page changed: ${url}`,
+                    govde: `The page text changed by ${Math.round(fark * 100)}% since the last scan. If the competitor repositioned, your proven messages may need a fresh look.`,
+                    referansId: url,
+                  }),
+                  okundu: 0,
+                  createdAt: simdi,
+                })
+                .run();
+              mevcutReferanslar.add(url);
+              yeniAlarmlar.push(`tarama:${url}`);
+            }
+          } catch (e) {
+            taramaHatalari.push(`${url}: ${e instanceof Error ? e.message : "scan failed"}`);
+          }
+        }
+        logAjan(
+          input.workspaceId,
+          "analist",
+          `Staleness check: ${kanitlar.length} evidence file(s), ${sonByUrl.size} URL(s)`,
+          `${yeniAlarmlar.length} new alarm(s)${taramaHatalari.length ? `; ${taramaHatalari.length} scan error(s)` : ""}`,
+          "uygulanamaz",
+          "yerel",
+        );
+        return { yeniAlarm: yeniAlarmlar.length, tarananUrl: taranan, taramaHatalari };
+      }),
+
+    // Rakip sayfası kaydı — eskime alarmının karşılaştırma tabanını kurar
+    rakipEkle: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), url: z.string().trim().min(4).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        bellekOnayZorla(input.workspaceId);
+        const scan = await scanUrl(input.url);
+        if (!scan.metin) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: scan.not || "No text could be extracted from this URL." });
+        }
+        db.insert(crawlSnapshots)
+          .values({
+            id: newId("crw"),
+            workspaceId: input.workspaceId,
+            url: scan.finalUrl,
+            tip: "rakip",
+            metin: scan.metin,
+            hash: createHash("sha256").update(scan.metin).digest("hex"),
+            zaman: Date.now(),
+          })
+          .run();
+        logAjan(input.workspaceId, "arastirmaci", `Competitor baseline: ${input.url}`, `${scan.metin.length} characters. Title: ${scan.title}`, "uygulanamaz", "tarama");
+        return { ok: true, url: scan.finalUrl, title: scan.title };
+      }),
+
+    okundu: protectedProcedure
+      .input(z.object({ workspaceId: z.string(), sinyalId: z.string() }))
+      .mutation(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        db.update(signals)
+          .set({ okundu: 1 })
+          .where(and(eq(signals.id, input.sinyalId), eq(signals.workspaceId, input.workspaceId)))
+          .run();
+        return { ok: true };
+      }),
+  }),
+
+  // ===== Bölüm 15.2 — Ulaşım hazırlık listesi (yalnız platform sahibi) =====
+  // Hiçbir e-posta otomatik gönderilmez; taslak kopyala-yapıştır içindir.
+  ulasim: router({
+    listele: protectedProcedure.query(({ ctx }) => {
+      if (!platformSahibiMi(ctx.user.email)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "This screen is visible only to the platform owner." });
+      }
+      const satirlar = db.select().from(outreachDrafts).orderBy(desc(outreachDrafts.createdAt)).all();
+      const basvurular = new Set(db.select().from(pilotApplications).all().map((p) => p.eposta));
+      // Otomatik eşleşme: e-posta pilot_applications'ta varsa durum "pilot-basvurdu"
+      for (const s of satirlar) {
+        if (s.eposta && s.durum !== "pilot-basvurdu" && basvurular.has(s.eposta.toLocaleLowerCase("en"))) {
+          db.update(outreachDrafts).set({ durum: "pilot-basvurdu" }).where(eq(outreachDrafts.id, s.id)).run();
+          s.durum = "pilot-basvurdu";
+        }
+      }
+      return satirlar;
+    }),
+
+    ekle: protectedProcedure
+      .input(
+        z.object({
+          url: z.string().trim().min(4, "URL is required.").max(500),
+          ajansAdi: z.string().trim().max(200).optional().default(""),
+          eposta: z.string().trim().regex(EPOSTA_RE, "Enter a valid email address.").optional().or(z.literal("")).default(""),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        if (!platformSahibiMi(ctx.user.email)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This screen is visible only to the platform owner." });
+        }
+        const satir = {
+          id: newId("out"),
+          url: input.url,
+          ajansAdi: input.ajansAdi,
+          eposta: input.eposta.toLocaleLowerCase("en"),
+          konu: "",
+          taslak: "",
+          raporOzeti: "",
+          durum: "taslak",
+          createdAt: Date.now(),
+        };
+        db.insert(outreachDrafts).values(satir).run();
+        return satir;
+      }),
+
+    // Siteyi tarar, mesaj haritasını çıkarır, kişiselleştirilmiş e-posta TASLAĞI yazar (gönderim yok)
+    taslakUret: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        if (!platformSahibiMi(ctx.user.email)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This screen is visible only to the platform owner." });
+        }
+        const satir = db.select().from(outreachDrafts).where(eq(outreachDrafts.id, input.id)).get();
+        if (!satir) throw new TRPCError({ code: "NOT_FOUND", message: "Row not found." });
+        const scan = await scanUrl(satir.url);
+        if (!scan.metin) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: scan.not || "No text could be extracted from this URL." });
+        }
+        const { harita, mod } = await mesajHaritasiUret(scan.title, scan.metin);
+        const ad = satir.ajansAdi || scan.title || satir.url;
+        const konu = `Your homepage's main claim, mapped — ${ad}`;
+        const taslak = [
+          `Hello,`,
+          ``,
+          `I ran your site through our message-mapping tool. Your main claim reads as: "${harita.anaIddia}".`,
+          harita.eksikKanitlar.length > 0
+            ? `The evidence gap that stood out most: ${harita.eksikKanitlar[0]}.`
+            : `Your evidence base looks unusually complete — the opportunity is testing which proof converts best.`,
+          ``,
+          `We built Konum so agencies can offer this kind of evidence-first positioning to their own clients, under their own brand. Happy to send the full one-page map (score: ${harita.skor}/100) or walk you through it in 15 minutes.`,
+          ``,
+          `Best regards`,
+        ].join("\n");
+        db.update(outreachDrafts)
+          .set({
+            konu,
+            taslak,
+            raporOzeti: JSON.stringify({ anaIddia: harita.anaIddia, skor: harita.skor, eksikKanitlar: harita.eksikKanitlar, mod }),
+          })
+          .where(eq(outreachDrafts.id, satir.id))
+          .run();
+        return { ok: true, mod };
+      }),
+
+    durumGuncelle: protectedProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          durum: z.enum(["taslak", "gonderildi-manuel", "yanit-geldi", "pilot-basvurdu"]),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        if (!platformSahibiMi(ctx.user.email)) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "This screen is visible only to the platform owner." });
+        }
+        db.update(outreachDrafts).set({ durum: input.durum }).where(eq(outreachDrafts.id, input.id)).run();
+        return { ok: true };
       }),
   }),
 

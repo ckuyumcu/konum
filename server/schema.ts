@@ -223,6 +223,19 @@ export const pilotApplications = sqliteTable("pilot_applications", {
   zaman: integer("zaman", { mode: "number" }).notNull(),
 });
 
+// Section 15.2 outreach prep list (Phase 4) — platform owner only; nothing is sent automatically
+export const outreachDrafts = sqliteTable("outreach_drafts", {
+  id: text("id").primaryKey(),
+  url: text("url").notNull(),
+  ajansAdi: text("ajans_adi").notNull().default(""),
+  eposta: text("eposta").notNull().default(""), // yalnız kurumsal genel iletişim adresi
+  konu: text("konu").notNull().default(""),
+  taslak: text("taslak").notNull().default(""),
+  raporOzeti: text("rapor_ozeti").notNull().default(""),
+  durum: text("durum").notNull().default("taslak"), // taslak | gonderildi-manuel | yanit-geldi | pilot-basvurdu
+  createdAt: integer("created_at", { mode: "number" }).notNull(),
+});
+
 // Section 15 free diagnosis tool (used in Phase 2)
 export const diagnosisRequests = sqliteTable("diagnosis_requests", {
   id: text("id").primaryKey(),

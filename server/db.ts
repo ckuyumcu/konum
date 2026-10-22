@@ -114,6 +114,11 @@ CREATE TABLE IF NOT EXISTS diagnosis_requests (
   id TEXT PRIMARY KEY, url TEXT NOT NULL, eposta TEXT, rapor TEXT NOT NULL DEFAULT '',
   ip_hash TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS outreach_drafts (
+  id TEXT PRIMARY KEY, url TEXT NOT NULL, ajans_adi TEXT NOT NULL DEFAULT '',
+  eposta TEXT NOT NULL DEFAULT '', konu TEXT NOT NULL DEFAULT '', taslak TEXT NOT NULL DEFAULT '',
+  rapor_ozeti TEXT NOT NULL DEFAULT '', durum TEXT NOT NULL DEFAULT 'taslak', created_at INTEGER NOT NULL
+);
 CREATE INDEX IF NOT EXISTS idx_agent_logs_ws ON agent_logs(workspace_id, zaman DESC);
 CREATE INDEX IF NOT EXISTS idx_content_ws ON content_items(workspace_id, durum);
 CREATE INDEX IF NOT EXISTS idx_members ON workspace_members(workspace_id, user_id);

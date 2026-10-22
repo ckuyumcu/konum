@@ -33,6 +33,7 @@ async function main() {
   const { db, newId } = await import("../db");
   const { uyeZorla, bellekOnayZorla } = await import("../trpc");
   const { workspaces, workspaceMembers, users, strategyBeliefs } = await import("../schema");
+  const { metinFarkiYuzde } = await import("../agents/analist");
 
   console.log("Auditor (Section 11.3):");
   await test("output containing a banned phrase is rejected", () => {
@@ -84,6 +85,27 @@ async function main() {
   await test("paketlendi is terminal — no transition out", () => {
     assert.throws(() => gecisZorla("icerik", "paketlendi", "onayKuyrugu"));
     assert.throws(() => gecisZorla("icerik", "paketlendi", "onayli"));
+  });
+
+  console.log("Signal Radar — text diff measure (Phase 4 staleness rule):");
+  await test("identical text: 0% difference", () => {
+    assert.equal(metinFarkiYuzde("The quick brown fox jumps", "The quick brown fox jumps"), 0);
+  });
+  await test("one word swapped in a longer page stays under the 20% threshold", () => {
+    const eski = "Natural skincare with proven ingredients for sensitive skin tested by independent labs and loved by thousands of customers";
+    const yeni = eski.replace("thousands", "millions");
+    const fark = metinFarkiYuzde(eski, yeni);
+    assert.ok(fark < 0.2, `expected < 0.2, got ${fark}`);
+  });
+  await test("a fully rewritten page exceeds the 20% threshold", () => {
+    const fark = metinFarkiYuzde(
+      "Natural skincare with proven ingredients for sensitive skin",
+      "Enterprise cloud hosting with unlimited bandwidth and uptime",
+    );
+    assert.ok(fark > 0.2, `expected > 0.2, got ${fark}`);
+  });
+  await test("empty inputs do not crash", () => {
+    assert.equal(metinFarkiYuzde("", ""), 0);
   });
 
   console.log("Workspace isolation (Section 11.5):");

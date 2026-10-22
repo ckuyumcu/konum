@@ -63,7 +63,7 @@ gözlem/dönüşüm penceresi, kısmi e-posta kilidi (PDF indirme e-postaya bağ
 npm install
 npm run dev      # http://localhost:3000 — arayüz + API (/api) tek süreçte
 npm run build    # tsc -b && vite build
-npm test         # otomatik testler (31 adet)
+npm test         # otomatik testler (35 adet)
 ```
 
 **İlk giriş:** `/giris` → e-posta `cem@konum.local`, davet kodu `KONUM-PILOT-1`
@@ -124,6 +124,30 @@ aynı e-posta + kodla tekrar giriş yapabilir (yerel geliştirme eşdeğeri).
   terminal duruma geçer (`paketlendi`)
 - Karar geçmişi: tüm onay/red/revize/paketleme olayları rol ve hash
   kopyasıyla listelenir
+
+**Aşama 4 — gerçek (çalışıyor):**
+- Sinyal Radarı (`/app/:id/radar`): Analist haftalık "ne öğrendik" özeti
+  (salt-okur; test sonuçları + kanıt dosyaları + içerik durumlarından),
+  simülasyon etiketi anahtar yokken zorunlu
+- Eskime alarmı kuralı kodda: kanıt dosyası 30+ gün yenilenmediyse VEYA
+  taranmış sayfanın (ürün/rakip) hash'i değişip metin farkı %20'yi aştıysa
+  alarm üretilir; okunmamış alarm varken aynı referans için yinelenen alarm
+  açılmaz. Metin farkı ölçüsü: normalize kelime kümelerinde simetrik
+  fark/birleşim (`server/agents/analist.ts`, birim testli)
+- **Otomatik zamanlama YOK** — haftalık özet ve yeniden tarama kullanıcı
+  düğmesiyle çalışır ("Generate weekly brief" / "Rescan now"); çalışıyormuş
+  gibi gösterilen sahte cron yok
+- Rakip sayfası tabanı: Radar'dan URL eklenir, tarama `crawl_snapshots`'a
+  `tip: rakip` olarak yazılır
+- Ajans Konsolu (`/app/konsol`): bekleyen onay sayıları gerçek
+  (`content_items.onayKuyrugu` sayımı, Onay Merkezi'ne bağlantılı), beyaz
+  etiket ayarları (marka adı / vurgu rengi / alan adı — sahip rolü, sunucuda
+  zorlanır; alan adı eşlemesi v1.1'de devreye girer, kayıt şimdiden gerçek)
+- Ulaşım hazırlık listesi (Bölüm 15.2, yalnız platform sahibi): ajans URL'leri
+  taranır, mesaj haritası + kişiselleştirilmiş e-posta **taslağı** üretilir;
+  hiçbir e-posta otomatik gönderilmez (kopyala-yapıştır); durum takibi
+  (taslak / gönderildi-manuel / yanıt geldi / pilot başvurdu) — e-posta
+  `pilot_applications` ile eşleşirse durum otomatik "pilot başvurdu" olur
 
 **Simülasyon (açıkça etiketli):**
 - **LLM ajan çıktıları.** Sağlayıcı: Anthropic (`claude-haiku-5-5`, resmî
