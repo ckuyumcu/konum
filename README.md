@@ -219,3 +219,21 @@ src/app/          Uygulama kabuğu (sol nav, mobil sheet)
 Rotalar: `/` landing · `/teshis` (ücretsiz Mesaj Haritası) · `/giris` · `/app` ·
 `/app/yeni` (kurulum sihirbazı) · `/app/:id/bellek|kanit|icra|onay|radar|ayarlar` ·
 `/app/konsol` · API: `/api/trpc/*`, `/api/teshis/:id.pdf`
+
+## Tasarım ek paketi değerlendirmesi (KAPI-TASARIM-EK.md → danisma/)
+
+Dış tasarım eki incelendi; karar: **seçici uygulama**.
+
+Uygulanmayan: toptan palet/font değişimi (Space Grotesk/Inter, yeni renk rampası).
+Gerekçe: v2 talimatı Bölüm 9 "tasarım sistemi değiştirme" der; mevcut sunset rampası
+(#ff3500 coral, violet, amber, teal) istenen canlılığı zaten veriyor; toptan değişim
+çalışma ekranlarını riske atar.
+
+Zaten mevcut olduğu doğrulanan: Metrics bölümünde görünüme girince sayan animasyonlu
+sayaçlar (useInView + easeOut), Pipeline'da dört istasyon arasında akan dash-flow
+bağlantı çizgisi ve pulse-dot'lar, Hero'da "3 varyasyon onay bekliyor" canlı sahnesi,
+renk+ikon+metin rozet kuralı, prefers-reduced-motion'da tüm CSS animasyonlarının
+kapanması.
+
+Bu turda kapatılan tek gerçek boşluk: JS tabanlı sayaç artık prefers-reduced-motion'ı
+da saygılıyor (useReducedMotion — hareket azaltılmışsa sayı doğrudan görünür).

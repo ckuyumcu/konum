@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 
 const easeOut = [0.16, 1, 0.3, 1] as const
 
@@ -7,10 +7,15 @@ const easeOut = [0.16, 1, 0.3, 1] as const
 function Counter({ to, suffix = '', decimals = 0 }: { to: number; suffix?: string; decimals?: number }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
+  const reduceMotion = useReducedMotion()
   const [val, setVal] = useState(0)
 
   useEffect(() => {
     if (!inView) return
+    if (reduceMotion) {
+      setVal(to)
+      return
+    }
     const dur = 1400
     const t0 = performance.now()
     let raf = 0
@@ -22,7 +27,7 @@ function Counter({ to, suffix = '', decimals = 0 }: { to: number; suffix?: strin
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [inView, to])
+  }, [inView, to, reduceMotion])
 
   return (
     <span ref={ref} className="font-mono tabular-nums">
