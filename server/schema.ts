@@ -79,6 +79,8 @@ export const strategyBeliefs = sqliteTable("strategy_beliefs", {
 });
 
 // Baseline for the staleness alarm (v2 Section 4)
+// esas=1: kabul edilmiş başlangıç kaydı — kademeli drift'i kapatmak için
+// karşılaştırma her zaman bu kayda yapılır; alarm ateşlenince yeni tarama esas olur.
 export const crawlSnapshots = sqliteTable("crawl_snapshots", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id").notNull(),
@@ -86,6 +88,7 @@ export const crawlSnapshots = sqliteTable("crawl_snapshots", {
   tip: text("tip").notNull().default("urun"), // urun | rakip
   metin: text("metin").notNull().default(""),
   hash: text("hash").notNull().default(""),
+  esas: integer("esas").notNull().default(0),
   zaman: integer("zaman", { mode: "number" }).notNull(),
 });
 
@@ -209,6 +212,8 @@ export const signals = sqliteTable("signals", {
   tip: text("tip").notNull(), // haftalikOzet | eskimeAlarmi
   icerik: text("icerik").notNull().default(""),
   okundu: integer("okundu").notNull().default(0),
+  durum: text("durum").notNull().default("acik"), // acik | okundu | ertelendi | cozuldu
+  ertelemeBitis: integer("erteleme_bitis", { mode: "number" }),
   createdAt: integer("created_at", { mode: "number" }).notNull(),
 });
 

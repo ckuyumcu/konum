@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS strategy_beliefs (
 CREATE TABLE IF NOT EXISTS crawl_snapshots (
   id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, url TEXT NOT NULL,
   tip TEXT NOT NULL DEFAULT 'urun', metin TEXT NOT NULL DEFAULT '',
-  hash TEXT NOT NULL DEFAULT '', zaman INTEGER NOT NULL
+  hash TEXT NOT NULL DEFAULT '', esas INTEGER NOT NULL DEFAULT 0, zaman INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS hypotheses (
   id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, iddia TEXT NOT NULL,
@@ -103,7 +103,8 @@ CREATE TABLE IF NOT EXISTS agent_logs (
 );
 CREATE TABLE IF NOT EXISTS signals (
   id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL, tip TEXT NOT NULL,
-  icerik TEXT NOT NULL DEFAULT '', okundu INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL
+  icerik TEXT NOT NULL DEFAULT '', okundu INTEGER NOT NULL DEFAULT 0,
+  durum TEXT NOT NULL DEFAULT 'acik', erteleme_bitis INTEGER, created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS pilot_applications (
   id TEXT PRIMARY KEY, eposta TEXT NOT NULL, ajans_adi TEXT NOT NULL DEFAULT '',
@@ -140,6 +141,9 @@ for (const stmt of [
   "ALTER TABLE approval_events ADD COLUMN govde_hash TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE approval_events ADD COLUMN rol TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE approval_events ADD COLUMN red_nedeni TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE crawl_snapshots ADD COLUMN esas INTEGER NOT NULL DEFAULT 0",
+  "ALTER TABLE signals ADD COLUMN durum TEXT NOT NULL DEFAULT 'acik'",
+  "ALTER TABLE signals ADD COLUMN erteleme_bitis INTEGER",
 ]) {
   try {
     sqlite.exec(stmt);
@@ -175,6 +179,22 @@ try {
   `);
 } catch {
   /* not needed if the tables were just created */
+}
+
+// Backfill: mevcut veritabanlarında her (workspace, url) için EN ESKİ anlık kayıt
+// esas=1 yapılır — kademeli drift düzeltmesinin başlangıç tabanı (bir kerelik)
+try {
+  sqlite.exec(`
+    UPDATE crawl_snapshots SET esas = 1
+    WHERE esas = 0 AND id IN (
+      SELECT id FROM crawl_snapshots c2
+      WHERE c2.esas = 0
+      GROUP BY c2.workspace_id, c2.url
+      HAVING c2.zaman = MIN(c2.zaman)
+    );
+  `);
+} catch {
+  /* not needed on a fresh database */
 }
 
 export const db = drizzle(sqlite, { schema });

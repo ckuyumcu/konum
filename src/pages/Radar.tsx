@@ -10,6 +10,8 @@ interface Sinyal {
   tip: string; // haftalikOzet | eskimeAlarmi
   icerik: string; // JSON
   okundu: number;
+  durum: string; // acik | okundu | ertelendi | cozuldu
+  ertelemeBitis: number | null;
   createdAt: number;
 }
 
@@ -20,6 +22,8 @@ interface OzetIcerik {
   mod?: string;
   baslik?: string;
   govde?: string;
+  donem?: { baslangic: number; bitis: number };
+  donemdeVeriVar?: boolean;
 }
 
 function icerikOku(icerik: string): OzetIcerik {
@@ -64,7 +68,7 @@ export default function Radar() {
     }
   }
 
-  const okunmamis = sinyaller.filter((s) => s.okundu === 0).length;
+  const okunmamis = sinyaller.filter((s) => s.durum === "acik").length;
 
   return (
     <div className="max-w-4xl grid gap-12">
@@ -147,6 +151,7 @@ export default function Radar() {
             {sinyaller.map((s, i) => {
               const c = icerikOku(s.icerik);
               const alarm = s.tip === "eskimeAlarmi";
+              const acik = s.durum === "acik";
               return (
                 <motion.li
                   key={s.id}
@@ -154,11 +159,7 @@ export default function Radar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: Math.min(i, 6) * 0.05, ease: [0.16, 1, 0.3, 1] }}
                   className={`rounded-xl border p-5 bg-card ${
-                    s.okundu === 0
-                      ? alarm
-                        ? "border-[#c52a00]/50"
-                        : "border-[#ff3500]/60"
-                      : "border-border opacity-75"
+                    acik ? (alarm ? "border-[#c52a00]/50" : "border-[#ff3500]/60") : "border-border opacity-75"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
@@ -168,18 +169,46 @@ export default function Radar() {
                       }`}
                     >
                       {alarm ? "Staleness alarm" : "Weekly brief"}
+                      {!acik && (
+                        <span className="normal-case font-semibold">
+                          {" "}
+                          · {s.durum === "ertelendi" ? `snoozed${s.ertelemeBitis ? ` until ${tarihYaz(s.ertelemeBitis)}` : ""}` : s.durum === "cozuldu" ? "resolved" : "read"}
+                        </span>
+                      )}
                     </span>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-muted-foreground">{tarihYaz(s.createdAt)}</span>
-                      {s.okundu === 0 && (
-                        <button
-                          onClick={() =>
-                            void islem(`oku-${s.id}`, () => trpc.radar.okundu.mutate({ workspaceId, sinyalId: s.id }), "Marked as read.")
-                          }
-                          className="text-xs font-semibold underline underline-offset-2 text-muted-foreground hover:text-foreground"
-                        >
-                          Mark as read
-                        </button>
+                      {acik && (
+                        <>
+                          <button
+                            onClick={() =>
+                              void islem(`oku-${s.id}`, () => trpc.radar.sinyalDurum.mutate({ workspaceId, sinyalId: s.id, durum: "okundu" }), "Marked as read.")
+                            }
+                            className="text-xs font-semibold underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                          >
+                            Mark as read
+                          </button>
+                          {alarm && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  void islem(`erte-${s.id}`, () => trpc.radar.sinyalDurum.mutate({ workspaceId, sinyalId: s.id, durum: "ertelendi" }), "Snoozed for 7 days.")
+                                }
+                                className="text-xs font-semibold underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                              >
+                                Snooze 7 days
+                              </button>
+                              <button
+                                onClick={() =>
+                                  void islem(`coz-${s.id}`, () => trpc.radar.sinyalDurum.mutate({ workspaceId, sinyalId: s.id, durum: "cozuldu" }), "Marked as resolved.")
+                                }
+                                className="text-xs font-semibold underline underline-offset-2 text-[#0d6e3f]"
+                              >
+                                Resolved
+                              </button>
+                            </>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -190,6 +219,12 @@ export default function Radar() {
                     </>
                   ) : (
                     <>
+                      {c.donem && (
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Period: {tarihYaz(c.donem.baslangic)} – {tarihYaz(c.donem.bitis)} (last 7 days)
+                          {c.donemdeVeriVar === false && " — no new tests or evidence in this period"}
+                        </p>
+                      )}
                       <p className="font-medium mb-3">{c.ozet}</p>
                       {c.ogrenimler && c.ogrenimler.length > 0 && (
                         <ul className="grid gap-1 mb-3">

@@ -37,6 +37,14 @@ import { mesajHaritasiUret } from "./agents/teshis";
 import { kanalVaryasyonlariUret } from "./agents/icra";
 import { denetle } from "./agents/denetci";
 import { haftalikOzetUret, metinFarkiYuzde } from "./agents/analist";
+import {
+  alarmAcilabilirMi,
+  kanitAlarmiGerekirMi,
+  kisiselEpostaMi,
+  taramaAlarmiGerekirMi,
+  ERTELEME_GUN,
+  type AlarmKaydi,
+} from "./radar";
 import { gecisZorla } from "./durum";
 import { kazananKarari, payPaydaGecerliMi } from "./stats";
 import { gunlukIpHash } from "./guvenlik";
@@ -1115,23 +1123,27 @@ export const appRouter = router({
       }),
 
     // Haftalık "ne öğrendik" özeti — Analist (LLM veya simülasyon)
+    // Dönem filtresi gerçek: yalnız son 7 günün kanıt ve testleri okunur;
+    // dönem sınırları sinyal içeriğine yazılır.
     ozetUret: protectedProcedure
       .input(z.object({ workspaceId: z.string() }))
       .mutation(async ({ ctx, input }) => {
         const { ws } = uyeZorla(input.workspaceId, ctx.user.id);
         bellekOnayZorla(input.workspaceId);
         gunlukLlmSiniriZorla(input.workspaceId);
+        const simdi = Date.now();
+        const donemBaslangic = simdi - 7 * 24 * 60 * 60 * 1000;
         const kanitlar = db
           .select()
           .from(evidenceFiles)
-          .where(eq(evidenceFiles.workspaceId, input.workspaceId))
+          .where(and(eq(evidenceFiles.workspaceId, input.workspaceId), gte(evidenceFiles.createdAt, donemBaslangic)))
           .orderBy(desc(evidenceFiles.createdAt))
           .all()
           .slice(0, 10);
         const testler = db
           .select()
           .from(tests)
-          .where(eq(tests.workspaceId, input.workspaceId))
+          .where(and(eq(tests.workspaceId, input.workspaceId), gte(tests.createdAt, donemBaslangic)))
           .orderBy(desc(tests.createdAt))
           .all()
           .slice(0, 20);
@@ -1148,9 +1160,16 @@ export const appRouter = router({
           id: newId("sgn"),
           workspaceId: input.workspaceId,
           tip: "haftalikOzet",
-          icerik: JSON.stringify({ ...sonuc.ozet, mod: sonuc.mod }),
+          icerik: JSON.stringify({
+            ...sonuc.ozet,
+            mod: sonuc.mod,
+            donem: { baslangic: donemBaslangic, bitis: simdi },
+            donemdeVeriVar: kanitlar.length > 0 || testler.length > 0,
+          }),
           okundu: 0,
-          createdAt: Date.now(),
+          durum: "acik",
+          ertelemeBitis: null,
+          createdAt: simdi,
         };
         db.insert(signals).values(sinyal).run();
         logAjan(
@@ -1165,93 +1184,110 @@ export const appRouter = router({
         return sinyal;
       }),
 
-    // Eskime kontrolü — kullanıcı düğmesiyle ("Şimdi yeniden tara"); cron yok
+    // Eskime kontrolü — kullanıcı düğmesiyle ("Şimdi yeniden tara"); cron yok.
+    // Karşılaştırma KABUL EDİLMİŞ ESAS kayda yapılır (kademeli drift kapatıldı);
+    // alarm ateşlenince yeni tarama yeni esas olur. Dedupe: açık/ertelenmiş alarm
+    // veya son 30 gün içinde aynı referansa açılmış alarm varken yenisi açılmaz.
     eskimeKontrol: protectedProcedure
       .input(z.object({ workspaceId: z.string() }))
       .mutation(async ({ ctx, input }) => {
         uyeZorla(input.workspaceId, ctx.user.id);
         bellekOnayZorla(input.workspaceId);
         const simdi = Date.now();
-        const OTUZ_GUN = 30 * 24 * 60 * 60 * 1000;
-        const okunmamislar = db
+        const eskiAlarmlar: AlarmKaydi[] = db
           .select()
           .from(signals)
-          .where(and(eq(signals.workspaceId, input.workspaceId), eq(signals.tip, "eskimeAlarmi"), eq(signals.okundu, 0)))
-          .all();
-        const mevcutReferanslar = new Set(
-          okunmamislar.map((s) => {
+          .where(and(eq(signals.workspaceId, input.workspaceId), eq(signals.tip, "eskimeAlarmi")))
+          .all()
+          .map((s) => {
+            let referansId = "";
             try {
-              return (JSON.parse(s.icerik) as { referansId?: string }).referansId ?? "";
+              referansId = (JSON.parse(s.icerik) as { referansId?: string }).referansId ?? "";
             } catch {
-              return "";
+              /* eski kayıt */
             }
-          }),
-        );
+            return { referansId, durum: s.durum, ertelemeBitis: s.ertelemeBitis, createdAt: s.createdAt };
+          });
         const yeniAlarmlar: string[] = [];
+        const alarmYaz = (baslik: string, govde: string, referansId: string) => {
+          db.insert(signals)
+            .values({
+              id: newId("sgn"),
+              workspaceId: input.workspaceId,
+              tip: "eskimeAlarmi",
+              icerik: JSON.stringify({ baslik, govde, referansId }),
+              okundu: 0,
+              durum: "acik",
+              ertelemeBitis: null,
+              createdAt: simdi,
+            })
+            .run();
+          eskiAlarmlar.push({ referansId, durum: "acik", ertelemeBitis: null, createdAt: simdi });
+          yeniAlarmlar.push(referansId);
+        };
 
         // Kural 1: kanıt dosyasındaki mesaj 30+ gündür yenilenmediyse
         const kanitlar = db.select().from(evidenceFiles).where(eq(evidenceFiles.workspaceId, input.workspaceId)).all();
         for (const k of kanitlar) {
-          if (simdi - k.createdAt >= OTUZ_GUN && !mevcutReferanslar.has(k.id)) {
+          if (kanitAlarmiGerekirMi({ id: k.id, createdAt: k.createdAt }, eskiAlarmlar, simdi)) {
             const yas = Math.floor((simdi - k.createdAt) / (24 * 60 * 60 * 1000));
-            db.insert(signals)
-              .values({
-                id: newId("sgn"),
-                workspaceId: input.workspaceId,
-                tip: "eskimeAlarmi",
-                icerik: JSON.stringify({
-                  baslik: "Positioning staleness: proven message is getting old",
-                  govde: `"${k.kazananMesaj.slice(0, 140)}" has not been refreshed for ${yas} days. Markets move — re-test this claim against a new challenger.`,
-                  referansId: k.id,
-                }),
-                okundu: 0,
-                createdAt: simdi,
-              })
-              .run();
-            mevcutReferanslar.add(k.id);
-            yeniAlarmlar.push(`kanıt:${k.id}`);
+            alarmYaz(
+              "Positioning staleness: proven message is getting old",
+              `"${k.kazananMesaj.slice(0, 140)}" has not been refreshed for ${yas} days. Markets move — re-test this claim against a new challenger.`,
+              k.id,
+            );
           }
         }
 
-        // Kural 2: taranmış sayfa (ürün/rakip) değiştiyse ve metin farkı %20'yi aştıysa
+        // Kural 2: sayfa, ESAS kaydından %20'den fazla uzaklaştıysa
         const anliklar = db
           .select()
           .from(crawlSnapshots)
           .where(eq(crawlSnapshots.workspaceId, input.workspaceId))
           .orderBy(desc(crawlSnapshots.zaman))
           .all();
-        const sonByUrl = new Map<string, (typeof anliklar)[number]>();
-        for (const s of anliklar) if (!sonByUrl.has(s.url)) sonByUrl.set(s.url, s);
+        const esasByUrl = new Map<string, (typeof anliklar)[number]>();
+        for (const s of anliklar) {
+          if (!esasByUrl.has(s.url)) {
+            // en yeni→eski geziyoruz; esas=1 olan ilk kayıt esastır, yoksa en eski kayıt
+            const adaylar = anliklar.filter((x) => x.url === s.url);
+            esasByUrl.set(s.url, adaylar.find((x) => x.esas === 1) ?? adaylar[adaylar.length - 1]);
+          }
+        }
         let taranan = 0;
         const taramaHatalari: string[] = [];
-        for (const [url, eski] of sonByUrl) {
+        for (const [url, esas] of esasByUrl) {
           try {
             const scan = await scanUrl(url);
             taranan++;
             if (!scan.metin) continue;
             const yeniHash = createHash("sha256").update(scan.metin).digest("hex");
-            if (yeniHash === eski.hash) continue;
-            db.insert(crawlSnapshots)
-              .values({ id: newId("crw"), workspaceId: input.workspaceId, url: scan.finalUrl, tip: eski.tip, metin: scan.metin, hash: yeniHash, zaman: simdi })
-              .run();
-            const fark = metinFarkiYuzde(eski.metin, scan.metin);
-            if (fark > 0.2 && !mevcutReferanslar.has(url)) {
-              db.insert(signals)
-                .values({
-                  id: newId("sgn"),
-                  workspaceId: input.workspaceId,
-                  tip: "eskimeAlarmi",
-                  icerik: JSON.stringify({
-                    baslik: `${eski.tip === "rakip" ? "Competitor" : "Product"} page changed: ${url}`,
-                    govde: `The page text changed by ${Math.round(fark * 100)}% since the last scan. If the competitor repositioned, your proven messages may need a fresh look.`,
-                    referansId: url,
-                  }),
-                  okundu: 0,
-                  createdAt: simdi,
-                })
+            const { gerek, fark } = taramaAlarmiGerekirMi(
+              { hash: esas.hash, metin: esas.metin },
+              { hash: yeniHash, metin: scan.metin },
+              metinFarkiYuzde,
+            );
+            if (yeniHash === esas.hash) continue;
+            if (gerek && alarmAcilabilirMi(url, eskiAlarmlar, simdi)) {
+              // Alarm → yeni tarama yeni esas olur (alarm sonrası taban sıfırlanır)
+              db.update(crawlSnapshots)
+                .set({ esas: 0 })
+                .where(and(eq(crawlSnapshots.workspaceId, input.workspaceId), eq(crawlSnapshots.url, url)))
                 .run();
-              mevcutReferanslar.add(url);
-              yeniAlarmlar.push(`tarama:${url}`);
+              db.insert(crawlSnapshots)
+                .values({ id: newId("crw"), workspaceId: input.workspaceId, url: scan.finalUrl, tip: esas.tip, metin: scan.metin, hash: yeniHash, esas: 1, zaman: simdi })
+                .run();
+              alarmYaz(
+                `${esas.tip === "rakip" ? "Competitor" : "Product"} page changed: ${url}`,
+                `The page text moved ${Math.round(fark * 100)}% away from the accepted baseline. If the competitor repositioned, your proven messages may need a fresh look.`,
+                url,
+              );
+            } else {
+              // Eşik altı değişim: tarihçeye işlenir ama esas YERİNDE kalır —
+              // küçük adımlar birikimli olarak esastan uzaklaşmayı görünmez kılamaz.
+              db.insert(crawlSnapshots)
+                .values({ id: newId("crw"), workspaceId: input.workspaceId, url: scan.finalUrl, tip: esas.tip, metin: scan.metin, hash: yeniHash, esas: 0, zaman: simdi })
+                .run();
             }
           } catch (e) {
             taramaHatalari.push(`${url}: ${e instanceof Error ? e.message : "scan failed"}`);
@@ -1260,7 +1296,7 @@ export const appRouter = router({
         logAjan(
           input.workspaceId,
           "analist",
-          `Staleness check: ${kanitlar.length} evidence file(s), ${sonByUrl.size} URL(s)`,
+          `Staleness check: ${kanitlar.length} evidence file(s), ${esasByUrl.size} URL(s)`,
           `${yeniAlarmlar.length} new alarm(s)${taramaHatalari.length ? `; ${taramaHatalari.length} scan error(s)` : ""}`,
           "uygulanamaz",
           "yerel",
@@ -1286,6 +1322,7 @@ export const appRouter = router({
             tip: "rakip",
             metin: scan.metin,
             hash: createHash("sha256").update(scan.metin).digest("hex"),
+            esas: 1, // bu kayıt karşılaştırma tabanıdır — drift buradan ölçülür
             zaman: Date.now(),
           })
           .run();
@@ -1298,7 +1335,30 @@ export const appRouter = router({
       .mutation(({ ctx, input }) => {
         uyeZorla(input.workspaceId, ctx.user.id);
         db.update(signals)
-          .set({ okundu: 1 })
+          .set({ okundu: 1, durum: "okundu" })
+          .where(and(eq(signals.id, input.sinyalId), eq(signals.workspaceId, input.workspaceId)))
+          .run();
+        return { ok: true };
+      }),
+
+    // Alarm yaşam döngüsü: ertelendi (7 gün susar) / çözüldü (yeniden doğrulama kaydı)
+    sinyalDurum: protectedProcedure
+      .input(
+        z.object({
+          workspaceId: z.string(),
+          sinyalId: z.string(),
+          durum: z.enum(["okundu", "ertelendi", "cozuldu"]),
+        }),
+      )
+      .mutation(({ ctx, input }) => {
+        uyeZorla(input.workspaceId, ctx.user.id);
+        const simdi = Date.now();
+        db.update(signals)
+          .set({
+            durum: input.durum,
+            okundu: 1,
+            ertelemeBitis: input.durum === "ertelendi" ? simdi + ERTELEME_GUN * 24 * 60 * 60 * 1000 : null,
+          })
           .where(and(eq(signals.id, input.sinyalId), eq(signals.workspaceId, input.workspaceId)))
           .run();
         return { ok: true };
@@ -1335,6 +1395,13 @@ export const appRouter = router({
       .mutation(({ ctx, input }) => {
         if (!platformSahibiMi(ctx.user.email)) {
           throw new TRPCError({ code: "FORBIDDEN", message: "This screen is visible only to the platform owner." });
+        }
+        // v2 Bölüm 15.2: yalnız kurumsal genel iletişim adresi — kişisel alan adları reddedilir
+        if (input.eposta && kisiselEpostaMi(input.eposta)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Only corporate contact addresses are accepted (e.g. hello@agency.com). Personal addresses (Gmail, Outlook, Yahoo…) are not collected.",
+          });
         }
         const satir = {
           id: newId("out"),

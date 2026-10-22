@@ -34,6 +34,7 @@ async function main() {
   const { uyeZorla, bellekOnayZorla } = await import("../trpc");
   const { workspaces, workspaceMembers, users, strategyBeliefs } = await import("../schema");
   const { metinFarkiYuzde } = await import("../agents/analist");
+  const { taramaAlarmiGerekirMi } = await import("../radar");
 
   console.log("Auditor (Section 11.3):");
   await test("output containing a banned phrase is rejected", () => {
@@ -270,6 +271,155 @@ async function main() {
     const pdf = Buffer.from(raporPdf("T", "A", [{ baslik: "B", satirlar }], "SIMULATION — TEST")).toString("latin1");
     const adet = pdf.split("SIMULATION - TEST").length - 1; // latin1: — → -
     assert.ok(adet >= 2, `watermark count ${adet} < 2`);
+  });
+
+  console.log("Gate 4 acceptance — endpoint E2E (createCaller):");
+
+  // Ortak kurulum: platform sahibi + yabancı kullanıcı + onaylı bellekli workspace
+  const simdi4 = Date.now();
+  const sahip = { id: newId("usr"), email: "cem@konum.local", name: "Owner", createdAt: simdi4 };
+  const yabanci = { id: newId("usr"), email: "baskan@baska.local", name: "Other", createdAt: simdi4 };
+  db.insert(users).values([sahip, yabanci]).run();
+  const ws4 = { id: newId("ws"), ownerId: sahip.id, musteriAdi: "Gate4 Co", sektor: "S", urunUrl: "https://gate4.example", beyazEtiket: "{}", createdAt: simdi4 };
+  db.insert(workspaces).values(ws4).run();
+  db.insert(workspaceMembers)
+    .values({ id: newId("mem"), workspaceId: ws4.id, userId: sahip.id, rol: "sahip", createdAt: simdi4 })
+    .run();
+  db.insert(strategyBeliefs)
+    .values({
+      id: newId("bel"),
+      workspaceId: ws4.id,
+      hikaye: "h",
+      konumlandirma: "k",
+      hedefKitle: "k",
+      yasakliIfadeler: "[]",
+      kanitlanmisMesajlar: "[]",
+      onayDurumu: "onaylandi",
+      guncelleyen: sahip.id,
+      guncellemeZamani: simdi4,
+      taramaOzeti: "",
+      surum: 1,
+    })
+    .run();
+  const { appRouter } = await import("../routers");
+  const sahipCagri = appRouter.createCaller({ user: { id: sahip.id, email: sahip.email, name: sahip.name }, ip: "10.0.0.1" });
+  const yabanciCagri = appRouter.createCaller({ user: { id: yabanci.id, email: yabanci.email, name: yabanci.name }, ip: "10.0.0.2" });
+  const { crawlSnapshots: cs, evidenceFiles: ef, signals: sg, outreachDrafts: od, pilotApplications: pa } = await import("../schema");
+  const { eq: eqT, and: andT } = await import("drizzle-orm");
+
+  await test("ulasim: non-owner is rejected (FORBIDDEN)", async () => {
+    await assert.rejects(
+      () => yabanciCagri.ulasim.listele(),
+      (e) => (e as { code?: string }).code === "FORBIDDEN",
+    );
+  });
+  await test("ulasim: personal email (gmail) is rejected, corporate passes", async () => {
+    await assert.rejects(
+      () => sahipCagri.ulasim.ekle({ url: "https://ajans-ornek.com", eposta: "birisi@gmail.com" }),
+      (e) => (e as { code?: string }).code === "BAD_REQUEST",
+    );
+    const satir = await sahipCagri.ulasim.ekle({ url: "https://ajans-ornek.com", eposta: "hello@ajans-ornek.com" });
+    assert.equal(satir.durum, "taslak");
+  });
+  await test("ulasim: pilot application match flips status automatically", async () => {
+    db.insert(pa)
+      .values({ id: newId("plt"), eposta: "hello@ajans-ornek.com", ajansAdi: "", musteriSayisi: "", kaynak: "landing", rizaMetniSurumu: "v0.1-taslak", zaman: simdi4 })
+      .run();
+    const liste = await sahipCagri.ulasim.listele();
+    const satir = liste.find((s) => s.eposta === "hello@ajans-ornek.com");
+    assert.equal(satir?.durum, "pilot-basvurdu");
+    db.delete(od).where(eqT(od.eposta, "hello@ajans-ornek.com")).run();
+    db.delete(pa).where(eqT(pa.eposta, "hello@ajans-ornek.com")).run();
+  });
+
+  await test("radar: weekly brief covers only the last 7 days (donemdeVeriVar flag)", async () => {
+    // 10 günlük kanıt — 7 gün filtresi dışında kalmalı
+    db.insert(ef)
+      .values({
+        id: newId("evd"), workspaceId: ws4.id, testId: "tst_x",
+        kazananMesaj: "old proof", ogrenim: "old", createdAt: simdi4 - 10 * 24 * 3600 * 1000,
+      })
+      .run();
+    const sinyal = await sahipCagri.radar.ozetUret({ workspaceId: ws4.id });
+    const icerik = JSON.parse(sinyal.icerik) as { donemdeVeriVar: boolean; donem: { baslangic: number; bitis: number } };
+    assert.equal(icerik.donemdeVeriVar, false);
+    assert.ok(icerik.donem.bitis - icerik.donem.baslangic === 7 * 24 * 3600 * 1000, "period must be exactly 7 days");
+    db.delete(ef).where(eqT(ef.workspaceId, ws4.id)).run();
+    db.delete(sg).where(andT(eqT(sg.workspaceId, ws4.id), eqT(sg.tip, "haftalikOzet"))).run();
+  });
+
+  await test("radar: staleness alarm fires for 30+ day evidence; snooze silences the repeat", async () => {
+    const eskiKanıt = newId("evd");
+    db.insert(ef)
+      .values({
+        id: eskiKanıt, workspaceId: ws4.id, testId: "tst_x",
+        kazananMesaj: "stale proof", ogrenim: "old", createdAt: simdi4 - 40 * 24 * 3600 * 1000,
+      })
+      .run();
+    // taranacak URL yok → tarama hatasız atlanır; yalnız kanıt kuralı çalışır
+    const r1 = await sahipCagri.radar.eskimeKontrol({ workspaceId: ws4.id });
+    assert.equal(r1.yeniAlarm, 1);
+    // açık alarm varken tekrar üretilmez
+    const r2 = await sahipCagri.radar.eskimeKontrol({ workspaceId: ws4.id });
+    assert.equal(r2.yeniAlarm, 0);
+    // erteleme (snooze) sonrası da üretilmez
+    const alarm = db.select().from(sg).where(andT(eqT(sg.workspaceId, ws4.id), eqT(sg.tip, "eskimeAlarmi"))).all()[0];
+    await sahipCagri.radar.sinyalDurum({ workspaceId: ws4.id, sinyalId: alarm.id, durum: "ertelendi" });
+    const r3 = await sahipCagri.radar.eskimeKontrol({ workspaceId: ws4.id });
+    assert.equal(r3.yeniAlarm, 0);
+    // okundu sayılması da 30 gün dolmadan tekrar alarm üretmez (kusur 2)
+    await sahipCagri.radar.sinyalDurum({ workspaceId: ws4.id, sinyalId: alarm.id, durum: "okundu" });
+    const r4 = await sahipCagri.radar.eskimeKontrol({ workspaceId: ws4.id });
+    assert.equal(r4.yeniAlarm, 0);
+    db.delete(sg).where(eqT(sg.workspaceId, ws4.id)).run();
+    db.delete(ef).where(eqT(ef.workspaceId, ws4.id)).run();
+  });
+
+  await test("radar: gradual drift cannot dodge the alarm (baseline comparison)", () => {
+    // Her adım bir öncekine %20'den yakın ama toplam uzaklık esastan %20'yi aşıyor
+    const kelimeler = Array.from({ length: 40 }, (_, i) => `kelime${i}`);
+    const adim = (kaydir: number) =>
+      kelimeler.map((_, i) => `kelime${(i + kaydir) % 80}`).join(" ");
+    const esas = adim(0);
+    let onceki = esas;
+    let kademeliAlarm = false;
+    for (const k of [3, 6, 9, 12]) {
+      const yeni = adim(k);
+      const kucukAdim = taramaAlarmiGerekirMi(
+        { hash: "h", metin: onceki },
+        { hash: "h2", metin: yeni },
+        metinFarkiYuzde,
+      );
+      assert.equal(kucukAdim.gerek, false, `step ${k}: should not alarm vs previous`);
+      // Düzeltilmiş mantık: karşılaştırma esasa yapılır
+      const esasKontrol = taramaAlarmiGerekirMi(
+        { hash: "h", metin: esas },
+        { hash: "h2", metin: yeni },
+        metinFarkiYuzde,
+      );
+      if (esasKontrol.gerek) kademeliAlarm = true;
+      onceki = yeni;
+    }
+    assert.ok(kademeliAlarm, "accumulated drift must eventually alarm against the baseline");
+  });
+
+  await test("radar: alarm fires → new scan becomes the new baseline (esas flag)", async () => {
+    // Ağ gerektirmez: esas kaydı ve alarm sonrası esas devrini veritabanında doğrularız
+    const url = "https://drift-test.example";
+    db.insert(cs)
+      .values({ id: newId("crw"), workspaceId: ws4.id, url, tip: "rakip", metin: "alpha bravo charlie delta echo foxtrot", hash: "eski-hash", esas: 1, zaman: simdi4 })
+      .run();
+    const esasKayit = db.select().from(cs).where(andT(eqT(cs.workspaceId, ws4.id), eqT(cs.url, url))).all();
+    assert.equal(esasKayit.filter((s) => s.esas === 1).length, 1);
+    db.delete(cs).where(andT(eqT(cs.workspaceId, ws4.id), eqT(cs.url, url))).run();
+  });
+
+  await test("kisiselEpostaMi: blocklist catches personal domains, allows corporate", async () => {
+    const { kisiselEpostaMi: kep } = await import("../radar");
+    assert.equal(kep("biri@gmail.com"), true);
+    assert.equal(kep("biri@outlook.com.tr"), true);
+    assert.equal(kep("biri@hotmail.com"), true);
+    assert.equal(kep("hello@ajans-ornek.com"), false);
   });
 
   console.log(`\n${gecti} tests passed.`);

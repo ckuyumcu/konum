@@ -29,7 +29,7 @@ interface UlasimSatir {
 
 const DURUM_AD: Record<string, string> = {
   taslak: "Draft",
-  "gonderildi-manuel": "Sent (manual)",
+  "gonderildi-manuel": "Marked as sent (manual)",
   "yanit-geldi": "Reply received",
   "pilot-basvurdu": "Applied to pilot",
 };
