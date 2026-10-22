@@ -162,6 +162,9 @@ export const contentItems = sqliteTable("content_items", {
   denetciNotu: text("denetci_notu").notNull().default(""),
   // Danışma turu 1 (P0): onay içerik hash'ine bağlanır; düzenleme hash'i değiştirir → onay geçersiz
   govdeHash: text("govde_hash").notNull().default(""),
+  // "llm" | "simulasyon" | "" (eski kayıt) — Onay kuyruğu bunu rozet olarak gösterir;
+  // simülasyon üretim asla etiketsiz onaya gitmez
+  mod: text("mod").notNull().default(""),
   // Onay gecikmesi metriği için: öğenin kuyruğa girdiği an
   kuyrugaGiris: integer("kuyruga_giris", { mode: "number" }),
   surum: integer("surum").notNull().default(1),

@@ -145,6 +145,8 @@ for (const stmt of [
   "ALTER TABLE test_results ADD COLUMN tarih TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE content_items ADD COLUMN govde_hash TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE content_items ADD COLUMN kuyruga_giris INTEGER",
+  // Onay kuyruğu etiketi: öğe LLM'den mi simülasyondan mı — boş = eski kayıt, bilinmiyor
+  "ALTER TABLE content_items ADD COLUMN mod TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE approval_events ADD COLUMN govde_hash TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE approval_events ADD COLUMN rol TEXT NOT NULL DEFAULT ''",
   "ALTER TABLE approval_events ADD COLUMN red_nedeni TEXT NOT NULL DEFAULT ''",

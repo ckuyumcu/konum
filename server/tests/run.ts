@@ -332,6 +332,25 @@ async function main() {
     db.delete(pa).where(eqT(pa.eposta, "hello@ajans-ornek.com")).run();
   });
 
+  await test("icra: varyasyon modu içerik kaydına yazılır (simülasyon etiketsiz onaya gidemez)", async () => {
+    const { contentItems: ci } = await import("../schema");
+    const evdId = newId("evd");
+    db.insert(ef)
+      .values({ id: evdId, workspaceId: ws4.id, testId: "tst_x", kazananMesaj: "proven message", ogrenim: "l", createdAt: simdi4 })
+      .run();
+    // test ortamında API anahtarı yok → simülasyon beklenir
+    const sonuc = await sahipCagri.icra.varyasyonUret({ workspaceId: ws4.id, evidenceId: evdId });
+    assert.equal(sonuc.mod, "simulasyon");
+    assert.ok(sonuc.ogeler.length > 0, "at least one variation expected");
+    for (const o of sonuc.ogeler) {
+      assert.equal((o as { mod?: string }).mod, "simulasyon", "returned item must carry the mod");
+      const kayit = db.select().from(ci).where(eqT(ci.id, o.id)).get();
+      assert.equal(kayit?.mod, "simulasyon", "mod must persist on the content_items row");
+    }
+    db.delete(ci).where(eqT(ci.workspaceId, ws4.id)).run();
+    db.delete(ef).where(eqT(ef.id, evdId)).run();
+  });
+
   await test("radar: weekly brief covers only the last 7 days (donemdeVeriVar flag)", async () => {
     // 10 günlük kanıt — 7 gün filtresi dışında kalmalı
     db.insert(ef)

@@ -11,6 +11,7 @@ interface KuyrukOge {
   baslik: string;
   govde: string;
   surum: number;
+  mod: string;
   kuyrugaGiris: number | null;
   createdAt: number;
 }
@@ -183,7 +184,19 @@ export default function Onay() {
                   <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                     {KANAL_ETIKET[c.kanal] ?? c.kanal} · v{c.surum}
                   </p>
-                  <p className="text-xs text-[#b45309] font-semibold">{beklemeYaz(c.kuyrugaGiris)}</p>
+                  <span className="flex items-center gap-2">
+                    {c.mod === "simulasyon" && (
+                      <span className="rounded-full border border-[#b45309]/50 bg-[#b45309]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#b45309]">
+                        Simulation — not live copy
+                      </span>
+                    )}
+                    {c.mod === "llm" && (
+                      <span className="rounded-full border border-[#0d6e3f]/40 bg-[#0d6e3f]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#0d6e3f]">
+                        Live LLM
+                      </span>
+                    )}
+                    <span className="text-xs text-[#b45309] font-semibold">{beklemeYaz(c.kuyrugaGiris)}</span>
+                  </span>
                 </div>
                 <p className="font-semibold mb-1">{c.baslik}</p>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap mb-4">{c.govde}</p>

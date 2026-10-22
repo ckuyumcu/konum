@@ -854,6 +854,7 @@ export const appRouter = router({
             durum: gecti ? "onayKuyrugu" : "denetimde",
             denetciNotu: gecti ? "" : sonuc.denetci.gerekce,
             govdeHash,
+            mod: sonuc.mod,
             kuyrugaGiris: gecti ? simdi : null,
             surum: 1,
             oncekiSurumId: null,

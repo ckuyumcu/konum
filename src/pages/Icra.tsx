@@ -21,6 +21,7 @@ interface Icerik {
   durum: string;
   denetciNotu: string;
   surum: number;
+  mod: string;
   kuyrugaGiris: number | null;
   createdAt: number;
 }
@@ -150,8 +151,15 @@ export default function Icra() {
                     <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                       {KANAL_ETIKET[c.kanal] ?? c.kanal} · v{c.surum}
                     </p>
-                    <span className={`text-xs font-bold uppercase tracking-widest rounded-full px-3 py-1 border ${durum.renk}`}>
-                      {durum.ad}
+                    <span className="flex items-center gap-2">
+                      {c.mod === "simulasyon" && (
+                        <span className="rounded-full border border-[#b45309]/50 bg-[#b45309]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#b45309]">
+                          Simulation
+                        </span>
+                      )}
+                      <span className={`text-xs font-bold uppercase tracking-widest rounded-full px-3 py-1 border ${durum.renk}`}>
+                        {durum.ad}
+                      </span>
                     </span>
                   </div>
                   <p className="font-semibold mb-1">{c.baslik}</p>
