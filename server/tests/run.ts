@@ -552,6 +552,18 @@ async function main() {
     assert.equal(durum.aktifMod, "simulasyon");
   });
 
+  await test("bellek: draft generation without real scan text is rejected (confabulation guard)", async () => {
+    // Boş/kısa tarama metniyle taslak üretimi LLM'in site hakkında uydurması demektir — engellenir
+    await assert.rejects(
+      () => sahipCagri.bellek.taslakUret({ workspaceId: ws4.id, taramaMetni: "", taramaBaslik: "x" }),
+      (e) => e.code === "BAD_REQUEST",
+    );
+    await assert.rejects(
+      () => sahipCagri.bellek.taslakUret({ workspaceId: ws4.id, taramaMetni: "kisa metin", taramaBaslik: "x" }),
+      (e) => e.code === "BAD_REQUEST",
+    );
+  });
+
   console.log(`\n${gecti} tests passed.`);
 }
 

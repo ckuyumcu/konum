@@ -290,7 +290,8 @@ export const appRouter = router({
       .input(
         z.object({
           workspaceId: z.string(),
-          taramaMetni: z.string().max(12000),
+          // Boş/kısa metin reddedilir: taramasız taslak, LLM'in site hakkında uydurması demektir
+          taramaMetni: z.string().min(200, "Scan text is too short — run the site scan first; a draft without real scan text is not allowed.").max(12000),
           taramaBaslik: z.string().max(500),
         }),
       )
