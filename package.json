@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "start": "tsx server/serve.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "tsx server/tests/run.ts"
