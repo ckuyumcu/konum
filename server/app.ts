@@ -45,10 +45,10 @@ function tohumlama() {
     db.insert(invites)
       .values({
         id: newId("inv"),
-        eposta: "cem@konum.local",
+        eposta: process.env.KONUM_PLATFORM_SAHIBI || "cem@konum.local",
         rol: "sahip",
         workspaceId: null,
-        token: "KONUM-PILOT-1",
+        token: process.env.KONUM_PILOT_DAVET || "KONUM-PILOT-1",
         sonKullanma: Date.now() + 1000 * 60 * 60 * 24 * 365,
         kullanildi: 0,
         createdAt: Date.now(),
