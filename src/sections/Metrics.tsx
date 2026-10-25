@@ -62,8 +62,8 @@ export default function Metrics() {
   return (
     <section className="py-20 md:py-28 bg-[#181818] text-[#fcfcf9] relative overflow-hidden">
       {/* ambient color */}
-      <div className="blob bg-[#ff3500]/25 w-[420px] h-[420px] -top-24 -left-24" aria-hidden="true" />
-      <div className="blob bg-[#8b5cf6]/20 w-[380px] h-[380px] bottom-0 right-0" style={{ animationDelay: '-6s' }} aria-hidden="true" />
+      <div className="blob bg-[#ff3500]/35 w-[420px] h-[420px] -top-24 -left-24" aria-hidden="true" />
+      <div className="blob bg-[#8b5cf6]/30 w-[380px] h-[380px] bottom-0 right-0" style={{ animationDelay: '-6s' }} aria-hidden="true" />
 
       <div className="mx-auto max-w-7xl px-5 md:px-8 relative">
         <motion.p
@@ -95,7 +95,7 @@ export default function Metrics() {
               transition={{ duration: 0.55, ease: easeOut, delay: i * 0.09 }}
               className="rounded-xl border border-[#fcfcf9]/15 bg-[#fcfcf9]/[0.05] p-6"
             >
-              <p className="font-display font-black text-5xl text-[#ff3500]">
+              <p className="font-display font-black text-5xl gradient-text">
                 <Counter to={c.to} suffix={c.suffix} decimals={c.decimals ?? 0} />
               </p>
               <p className="mt-2 font-semibold">{c.label}</p>

@@ -186,6 +186,51 @@
     pointer-events: none;
     animation: floaty 14s ease-in-out infinite;
   }
+
+  /* Rotating aurora — slow conic sweep of the full sunset ramp behind the hero */
+  @property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+  .aurora {
+    position: absolute;
+    inset: -25% -15%;
+    background: conic-gradient(
+      from var(--angle) at 50% 42%,
+      hsl(var(--signal) / 0.18),
+      hsl(var(--coral) / 0.15),
+      hsl(var(--violet) / 0.17),
+      hsl(var(--amber) / 0.15),
+      hsl(var(--teal) / 0.16),
+      hsl(var(--signal) / 0.18)
+    );
+    filter: blur(55px);
+    pointer-events: none;
+    animation: auroraspin 26s linear infinite;
+  }
+  @keyframes auroraspin {
+    to {
+      --angle: 360deg;
+    }
+  }
+
+  /* Gradient CTA with soft glow */
+  .btn-glow {
+    background-image: linear-gradient(100deg, #ff3500, #f43f5e 45%, #8b5cf6 100%);
+    background-size: 200% 100%;
+    background-position: 0% 50%;
+    color: #fff;
+    box-shadow: 0 10px 30px -8px hsl(var(--signal) / 0.55);
+    transition:
+      background-position 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.15s ease,
+      box-shadow 0.3s ease;
+  }
+  .btn-glow:hover {
+    background-position: 100% 50%;
+    box-shadow: 0 14px 38px -8px hsl(var(--violet) / 0.55);
+  }
   @keyframes floaty {
     0%,
     100% {
@@ -279,6 +324,7 @@
   .cursor-blink,
   .gradient-text,
   .blob,
+  .aurora,
   .draw-line,
   .fill-bar,
   .fill-bar-x,

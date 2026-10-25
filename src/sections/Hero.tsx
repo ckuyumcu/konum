@@ -11,9 +11,10 @@ const agentLines = [
 export default function Hero() {
   return (
     <section id="top" className="relative grid-bg pt-28 md:pt-36 pb-16 md:pb-24 overflow-hidden">
-      <div className="blob bg-[#ff3500]/20 w-[440px] h-[440px] -top-32 -right-24" aria-hidden="true" />
-      <div className="blob bg-[#8b5cf6]/15 w-[380px] h-[380px] top-1/2 -left-32" style={{ animationDelay: '-5s' }} aria-hidden="true" />
-      <div className="blob bg-[#f5a409]/15 w-[300px] h-[300px] bottom-0 right-1/3" style={{ animationDelay: '-9s' }} aria-hidden="true" />
+      <div className="aurora" aria-hidden="true" />
+      <div className="blob bg-[#ff3500]/35 w-[440px] h-[440px] -top-32 -right-24" aria-hidden="true" />
+      <div className="blob bg-[#8b5cf6]/30 w-[380px] h-[380px] top-1/2 -left-32" style={{ animationDelay: '-5s' }} aria-hidden="true" />
+      <div className="blob bg-[#f5a409]/30 w-[300px] h-[300px] bottom-0 right-1/3" style={{ animationDelay: '-9s' }} aria-hidden="true" />
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-6 items-start">
           <div className="lg:col-span-7">
@@ -33,7 +34,8 @@ export default function Hero() {
             >
               Everyone ships copy now.
               <br />
-              The winner <span className="gradient-text">proves</span> <em className="not-italic text-[#c52a00]">&ldquo;why&nbsp;me?&rdquo;</em>
+              <span className="gradient-text">The winner proves</span>{' '}
+              <em className="not-italic text-[#c52a00]">&ldquo;why&nbsp;me?&rdquo;</em>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 22 }}
@@ -54,7 +56,7 @@ export default function Hero() {
             >
               <a
                 href="#pilot"
-                className="inline-flex items-center rounded-md bg-foreground text-background px-6 py-3.5 text-base font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97]"
+                className="btn-glow inline-flex items-center rounded-md px-6 py-3.5 text-base font-bold active:scale-[0.97]"
               >
                 Join early access
                 <svg width="16" height="16" viewBox="0 0 16 16" className="ml-2" aria-hidden="true">
