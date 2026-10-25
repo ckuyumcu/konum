@@ -46,8 +46,10 @@ export default function Pilot() {
   }
 
   return (
-    <section id="pilot" className="py-20 md:py-32">
-      <div className="mx-auto max-w-7xl px-5 md:px-8 grid lg:grid-cols-12 gap-10 items-start">
+    <section id="pilot" className="py-20 md:py-32 relative overflow-hidden">
+      <div className="aurora opacity-60" aria-hidden="true" />
+      <div className="blob bg-[#0d9488]/20 w-[320px] h-[320px] -bottom-16 right-10" style={{ animationDelay: '-4s' }} aria-hidden="true" />
+      <div className="mx-auto max-w-7xl px-5 md:px-8 grid lg:grid-cols-12 gap-10 items-start relative">
         <div className="lg:col-span-6">
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -65,7 +67,7 @@ export default function Pilot() {
             transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
             className="font-display font-black text-4xl sm:text-5xl leading-[1.05]"
           >
-            Building <span className="hl">together</span> with the first 10 agencies.
+            Building <span className="gradient-text">together</span> with the first 10 agencies.
           </motion.h2>
           <motion.ul
             initial={{ opacity: 0, y: 18 }}
@@ -76,7 +78,12 @@ export default function Pilot() {
           >
             {perks.map((p, i) => (
               <li key={p} className="flex gap-3 items-baseline">
-                <span className="font-mono text-xs font-bold text-[#c52a00]">{String(i + 1).padStart(2, '0')}</span>
+                <span
+                  className="font-mono text-xs font-bold"
+                  style={{ color: ['#ff3500', '#f43f5e', '#8b5cf6', '#0d9488'][i] }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
                 <span className="text-foreground/80 font-medium">{p}</span>
               </li>
             ))}
@@ -88,7 +95,7 @@ export default function Pilot() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.55, ease: easeOut, delay: 0.1 }}
-          className="lg:col-span-6 rounded-xl border border-border bg-white/60 p-7 md:p-9 shadow-[0_4px_10px_rgba(0,0,0,0.06),0_24px_48px_-28px_rgba(0,0,0,0.22)]"
+          className="lg:col-span-6 rounded-xl border border-border bg-white/60 backdrop-blur-sm p-7 md:p-9 shadow-[0_4px_10px_rgba(0,0,0,0.06),0_24px_48px_-24px_rgba(255,53,0,0.30)]"
         >
           {state === 'ok' ? (
             <div role="status">
@@ -159,7 +166,7 @@ export default function Pilot() {
                 <button
                   type="submit"
                   disabled={mesgul}
-                  className="rounded-md bg-foreground text-background px-6 py-3 text-base font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97] cursor-pointer disabled:opacity-50"
+                  className="btn-glow rounded-md px-6 py-3 text-base font-bold active:scale-[0.97] cursor-pointer disabled:opacity-50"
                 >
                   {mesgul ? 'Saving…' : 'Join'}
                 </button>

@@ -22,8 +22,10 @@ const rows = [
 
 export default function Problem() {
   return (
-    <section id="problem" className="py-20 md:py-32">
-      <div className="mx-auto max-w-7xl px-5 md:px-8 grid lg:grid-cols-12 gap-10">
+    <section id="problem" className="py-20 md:py-32 relative overflow-hidden">
+      <div className="blob bg-[#f43f5e]/20 w-[360px] h-[360px] top-10 -right-24" aria-hidden="true" />
+      <div className="blob bg-[#8b5cf6]/15 w-[300px] h-[300px] bottom-10 -left-20" style={{ animationDelay: '-7s' }} aria-hidden="true" />
+      <div className="mx-auto max-w-7xl px-5 md:px-8 grid lg:grid-cols-12 gap-10 relative">
         <div className="lg:col-span-5">
           <div className="lg:sticky lg:top-28">
             <motion.p
@@ -87,7 +89,12 @@ export default function Problem() {
               transition={{ duration: 0.55, ease: easeOut, delay: i * 0.08 }}
               className="border-t border-border py-9 grid sm:grid-cols-12 gap-4"
             >
-              <span className="sm:col-span-2 font-mono text-sm font-bold text-[#c52a00] pt-1">{r.n}</span>
+              <span
+                className="sm:col-span-2 font-mono text-sm font-bold pt-1"
+                style={{ color: ['#ff3500', '#8b5cf6', '#f5a409'][i] }}
+              >
+                {r.n}
+              </span>
               <div className="sm:col-span-10">
                 <h3 className="font-display font-bold text-2xl md:text-[1.7rem] leading-snug mb-3">{r.title}</h3>
                 <p className="text-foreground/70 max-w-[58ch]">{r.body}</p>
@@ -102,7 +109,7 @@ export default function Problem() {
             className="border-t border-border pt-9 text-lg font-semibold"
           >
             The easier it gets to ship code, the harder it gets to earn attention.{' '}
-            <span className="text-[#c52a00]">The era of marketers is beginning</span> — with infrastructure worthy of them.
+            <span className="gradient-text">The era of marketers is beginning</span> — with infrastructure worthy of them.
           </motion.p>
         </div>
       </div>

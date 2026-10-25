@@ -40,7 +40,10 @@ const stages = [
 export default function Pipeline() {
   return (
     <section id="how" className="py-20 md:py-32 bg-[#181818] text-[#fcfcf9] relative overflow-hidden">
-      <div className="mx-auto max-w-7xl px-5 md:px-8">
+      <div className="blob bg-[#ff3500]/30 w-[420px] h-[420px] -top-24 -right-24" aria-hidden="true" />
+      <div className="blob bg-[#8b5cf6]/25 w-[380px] h-[380px] top-1/3 -left-28" style={{ animationDelay: '-5s' }} aria-hidden="true" />
+      <div className="blob bg-[#0d9488]/25 w-[320px] h-[320px] -bottom-20 right-1/4" style={{ animationDelay: '-9s' }} aria-hidden="true" />
+      <div className="mx-auto max-w-7xl px-5 md:px-8 relative">
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -57,7 +60,7 @@ export default function Pipeline() {
           transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
           className="font-display font-black text-4xl sm:text-5xl lg:text-6xl leading-[1.02] max-w-[20ch]"
         >
-          One line, four stations.
+          One line, <span className="gradient-text">four stations.</span>
           <br />
           <span className="text-[#fcfcf9]/60">The only door to production: your approval.</span>
         </motion.h2>
@@ -85,7 +88,10 @@ export default function Pipeline() {
               >
                 <div className="flex items-center gap-3 mb-5">
                   <span className="relative flex h-5 w-5 items-center justify-center" aria-hidden="true">
-                    <span className="pulse-dot absolute inline-flex h-3 w-3 rounded-full bg-[#ff3500]" />
+                    <span
+                      className="pulse-dot absolute inline-flex h-3 w-3 rounded-full"
+                      style={{ backgroundColor: ['#ff3500', '#f43f5e', '#8b5cf6', '#0d9488'][i] }}
+                    />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#fcfcf9]" />
                   </span>
                   <span className="font-mono text-xs font-bold text-[#fcfcf9]/50">0{i + 1}</span>
@@ -98,7 +104,11 @@ export default function Pipeline() {
                 {s.agents.length > 0 && (
                   <div className="mt-5 flex flex-wrap gap-2">
                     {s.agents.map((a) => (
-                      <span key={a} className="rounded-full border border-[#fcfcf9]/20 px-3 py-1 text-xs font-semibold text-[#fcfcf9]/80">
+                      <span
+                        key={a}
+                        className="rounded-full border px-3 py-1 text-xs font-semibold text-[#fcfcf9]/80"
+                        style={{ borderColor: `${['#ff3500', '#f43f5e', '#8b5cf6', '#0d9488'][i]}66` }}
+                      >
                         {a}
                       </span>
                     ))}
