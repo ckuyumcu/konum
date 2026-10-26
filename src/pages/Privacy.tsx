@@ -8,7 +8,7 @@ export default function Privacy() {
         <div className="space-y-6 text-foreground/80 leading-relaxed">
           <p>
             Konum is a product preview built by AIWork School. This notice explains, in plain language, what we store
-            and why. Questions: <a href="mailto:hello@aiworkschool.com" className="underline">hello@aiworkschool.com</a>
+            and why. Questions: <a href="mailto:hello@konumos.com" className="underline">hello@konumos.com</a>
           </p>
 
           <h2 className="font-display font-bold text-xl text-foreground pt-2">What we store</h2>
@@ -47,7 +47,7 @@ export default function Privacy() {
           <h2 className="font-display font-bold text-xl text-foreground pt-2">Your controls</h2>
           <p>
             Ask us any time to show, correct or delete what we hold about you:
-            <a href="mailto:hello@aiworkschool.com" className="underline"> hello@aiworkschool.com</a>. Deletion
+            <a href="mailto:hello@konumos.com" className="underline"> hello@konumos.com</a>. Deletion
             requests are honored without argument.
           </p>
 

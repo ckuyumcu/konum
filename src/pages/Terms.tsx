@@ -8,7 +8,7 @@ export default function Terms() {
         <div className="space-y-6 text-foreground/80 leading-relaxed">
           <p>
             These terms govern the use of Konum, a product preview by AIWork School. Questions:
-            <a href="mailto:hello@aiworkschool.com" className="underline"> hello@aiworkschool.com</a>
+            <a href="mailto:hello@konumos.com" className="underline"> hello@konumos.com</a>
           </p>
 
           <h2 className="font-display font-bold text-xl text-foreground pt-2">Product preview status</h2>

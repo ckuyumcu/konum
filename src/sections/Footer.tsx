@@ -35,7 +35,7 @@ export default function Footer() {
           <p className="mt-1.5">
             Konum is designed and built by <span className="font-semibold text-[#fcfcf9]">Cem Kuyumcu</span>, an energy
             &amp; construction engineer, inside AIWork School. Questions, pilot requests or a wrong number you spotted
-            on this page: <a href="mailto:hello@aiworkschool.com" className="underline decoration-[#fcfcf9]/40 hover:text-[#fcfcf9]">hello@aiworkschool.com</a>
+            on this page: <a href="mailto:hello@konumos.com" className="underline decoration-[#fcfcf9]/40 hover:text-[#fcfcf9]">hello@konumos.com</a>
           </p>
         </div>
         <div className="mt-12 pt-6 border-t border-[#fcfcf9]/15 flex flex-col md:flex-row justify-between gap-3 text-xs text-[#fcfcf9]/45">
