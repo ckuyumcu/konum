@@ -2,18 +2,18 @@ export default function Terms() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <main className="mx-auto max-w-3xl px-5 md:px-8 py-16 md:py-24">
-        <p className="eyebrow text-[#c52a00] mb-3">Konum — legal</p>
+        <p className="eyebrow text-[#c52a00] mb-3">KonumOS — legal</p>
         <h1 className="font-display font-black text-4xl leading-tight mb-8">Terms of use</h1>
 
         <div className="space-y-6 text-foreground/80 leading-relaxed">
           <p>
-            These terms govern the use of Konum, a product preview by AIWork School. Questions:
+            These terms govern the use of KonumOS, a product preview by AIWork School. Questions:
             <a href="mailto:hello@konumos.com" className="underline"> hello@konumos.com</a>
           </p>
 
           <h2 className="font-display font-bold text-xl text-foreground pt-2">Product preview status</h2>
           <p>
-            Konum is in pilot. Features may change, break or be removed. Demo figures on the site are simulated and
+            KonumOS is in pilot. Features may change, break or be removed. Demo figures on the site are simulated and
             labeled as such; they are not promises of results.
           </p>
 

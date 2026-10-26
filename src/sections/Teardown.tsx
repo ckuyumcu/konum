@@ -3,12 +3,12 @@ import { motion } from 'framer-motion'
 const easeOut = [0.16, 1, 0.3, 1] as const
 
 // v2 Section 8 (Phase 1, item 3): competitor brand names removed; format is
-// "common market approach → Konum's difference". No competitor is praised in any card.
+// "common market approach → KonumOS's difference". No competitor is praised in any card.
 const lessons = [
   {
     from: 'Common approach: white-label dashboards',
     lesson: 'A multi-client console makes the agency the hero.',
-    ours: 'Konum runs under the agency\'s own brand; the platform stays invisible, the agency shines.',
+    ours: 'KonumOS runs under the agency\'s own brand; the platform stays invisible, the agency shines.',
     span: 'lg:col-span-4',
   },
   {
@@ -32,7 +32,7 @@ const lessons = [
   {
     from: 'Common approach: autonomous ad execution',
     lesson: 'Autonomy looks attractive; unapproved spend is risky.',
-    ours: 'In Konum v1 nothing touches your accounts: it produces publish-ready packages, and the final touch stays human.',
+    ours: 'In KonumOS v1 nothing touches your accounts: it produces publish-ready packages, and the final touch stays human.',
     span: 'lg:col-span-6',
   },
   {
@@ -93,7 +93,7 @@ export default function Teardown() {
               </p>
               <h3 className="font-display font-bold text-xl md:text-[1.35rem] leading-snug mb-3">{l.lesson}</h3>
               <p className="text-sm text-foreground/70 leading-relaxed mt-auto pt-2 border-t border-border/70">
-                <span className="font-bold text-foreground">In Konum: </span>
+                <span className="font-bold text-foreground">In KonumOS: </span>
                 {l.ours}
               </p>
             </motion.article>

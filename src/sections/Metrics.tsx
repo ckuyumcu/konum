@@ -73,7 +73,7 @@ export default function Metrics() {
           transition={{ duration: 0.5, ease: easeOut }}
           className="eyebrow text-[#ff8a66] mb-4"
         >
-          A week inside Konum
+          A week inside KonumOS
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 22 }}

@@ -130,7 +130,7 @@ export default function Pipeline() {
         >
           Architectural principle: agents can never publish directly. The only exit is the Approval Center — it is both
           quality control and the boundary of responsibility.{' '}
-          <span className="hand inline-block -rotate-2 text-xl text-[#f5a409] align-middle" aria-hidden="true">
+          <span className="hand wiggle-hover inline-block -rotate-2 text-xl text-[#f5a409] align-middle" aria-hidden="true">
             nothing escapes this door →
           </span>
         </motion.p>

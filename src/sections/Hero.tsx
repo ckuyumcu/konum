@@ -56,7 +56,7 @@ export default function Hero() {
               Everyone ships copy now.
               <br />
               <span className="gradient-text">The winner proves</span>{' '}
-              <em className="not-italic text-[#c52a00]">&ldquo;why&nbsp;me?&rdquo;</em>
+              <em className="not-italic text-[#c52a00] inline-block wiggle-hover cursor-default">&ldquo;why&nbsp;me?&rdquo;</em>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 22 }}
@@ -112,6 +112,27 @@ export default function Hero() {
               style={{ x: cardX, y: cardY }}
               className="relative rounded-xl border border-border bg-white/70 backdrop-blur-sm p-5 shadow-[0_4px_10px_rgba(0,0,0,0.08),0_24px_48px_-24px_rgba(0,0,0,0.25)]"
             >
+              {/* floating sticker chips */}
+              <span
+                className="chip-float absolute -top-5 -right-3 z-10 rounded-full bg-[#8b5cf6] px-3 py-1.5 text-xs font-black text-white shadow-lg select-none"
+                style={{ '--chip-tilt': '4deg', animationDelay: '-1.2s' } as React.CSSProperties}
+                aria-hidden="true"
+              >
+                3 awaiting your OK
+              </span>
+              <span
+                className="chip-float absolute -bottom-5 -left-4 z-10 rounded-full bg-[#0d9488] px-3 py-1.5 text-xs font-black text-white shadow-lg select-none"
+                style={{ '--chip-tilt': '-5deg', animationDelay: '-3s' } as React.CSSProperties}
+                aria-hidden="true"
+              >
+                evidence first ✓
+              </span>
+              <svg className="sparkle -top-7 right-24" width="18" height="18" viewBox="0 0 18 18" style={{ animationDelay: '-0.6s' }} aria-hidden="true">
+                <path d="M9 0l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="#f5a409" />
+              </svg>
+              <svg className="sparkle -bottom-6 right-10" width="14" height="14" viewBox="0 0 18 18" style={{ animationDelay: '-1.7s' }} aria-hidden="true">
+                <path d="M9 0l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="#f43f5e" />
+              </svg>
               <p className="hand absolute -top-10 -left-1 -rotate-3 text-2xl text-[#c52a00] select-none" aria-hidden="true">
                 live right now ↴
               </p>

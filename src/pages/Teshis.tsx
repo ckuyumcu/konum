@@ -223,7 +223,7 @@ export default function Teshis() {
             </div>
 
             <p className="rounded-xl border border-[#ff3500]/30 bg-[#ff3500]/5 p-5 text-sm">
-              <strong>This is one afternoon of what Konum does continuously.</strong> The platform keeps scanning,
+              <strong>This is one afternoon of what KonumOS does continuously.</strong> The platform keeps scanning,
               testing and proving your message every week — with your approval on everything that ships.{" "}
               <Link to="/#pilot" className="underline font-semibold">Join the pilot →</Link>
             </p>
@@ -233,7 +233,7 @@ export default function Teshis() {
 
       <footer className="border-t border-border py-8 relative">
         <p className="max-w-3xl mx-auto px-6 text-xs text-muted-foreground">
-          © 2026 Konum, an AIWork School company. Free analyses are limited to 3 per day per visitor, 100 per day in total.
+          © 2026 KonumOS, an AIWork School company. Free analyses are limited to 3 per day per visitor, 100 per day in total.
         </p>
       </footer>
     </div>

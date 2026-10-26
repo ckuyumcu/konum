@@ -318,6 +318,83 @@
       transform: translateX(100%);
     }
   }
+
+  /* Floating sticker chips — bobbing cards around the hero */
+  .chip-float {
+    animation: bob 5s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(var(--chip-tilt, -3deg));
+    }
+    50% {
+      transform: translateY(-12px) rotate(var(--chip-tilt, -3deg));
+    }
+  }
+
+  /* Playful wiggle on hover (handwritten notes, badges) */
+  .wiggle-hover {
+    transition: transform 0.2s ease;
+  }
+  .wiggle-hover:hover {
+    animation: wiggle 0.5s ease-in-out;
+  }
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-4deg) scale(1.06);
+    }
+    75% {
+      transform: rotate(4deg) scale(1.06);
+    }
+  }
+
+  /* Twinkling sparkles */
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    animation: twinkle 2.6s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.15;
+      transform: scale(0.7) rotate(0deg);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.15) rotate(20deg);
+    }
+  }
+
+  /* Rainbow underline that slides in on section titles */
+  .rainbow-underline {
+    background-image: linear-gradient(90deg, #ff3500, #f5a409, #0d9488, #8b5cf6, #f43f5e);
+    background-size: 200% 100%;
+    animation: gradientmove 7s ease-in-out infinite;
+  }
+
+  /* Confetti dots drifting across vivid bands */
+  .confetti-dot {
+    position: absolute;
+    border-radius: 9999px;
+    pointer-events: none;
+    animation: drift 9s ease-in-out infinite;
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(14px, -18px);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -334,6 +411,11 @@
   .draw-line,
   .fill-bar,
   .fill-bar-x,
+  .chip-float,
+  .sparkle,
+  .confetti-dot,
+  .rainbow-underline,
+  .wiggle-hover:hover,
   .shimmer::after {
     animation: none !important;
   }

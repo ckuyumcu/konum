@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AwsMark from '../components/AwsMark'
 
 const links = [
   { href: '#problem', label: 'The Problem' },
@@ -13,12 +14,12 @@ const links = [
 
 function Logo() {
   return (
-    <a href="#top" className="flex items-center gap-2.5 group" aria-label="Konum home">
+    <a href="#top" className="flex items-center gap-2.5 group" aria-label="KonumOS home">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" className="transition-transform duration-500 group-hover:rotate-180">
         <circle cx="12" cy="15" r="9" fill="hsl(14 100% 50%)" />
         <circle cx="21" cy="15" r="5.5" fill="none" stroke="hsl(0 0% 9.4%)" strokeWidth="2.5" />
       </svg>
-      <span className="font-display font-bold text-xl tracking-tight">Konum</span>
+      <span className="font-display font-bold text-xl tracking-tight">KonumOS</span>
     </a>
   )
 }
@@ -54,6 +55,9 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center justify-end gap-3">
+          <span className="hidden lg:inline-flex" aria-hidden="false">
+            <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AIWork School" />
+          </span>
           <a
             href="#pilot"
             className="hidden md:inline-flex items-center rounded-md bg-foreground text-background px-4 py-2 text-sm font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97]"
