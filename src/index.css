@@ -73,6 +73,12 @@
     font-variation-settings: "opsz" 144;
     letter-spacing: -0.02em;
   }
+  /* Handwritten annotations — the human-hand layer */
+  .hand {
+    font-family: "Caveat", "Segoe Script", cursive;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
   /* Marker highlight — ink underpaint instead of gradient text */
   .hl {
     background-image: linear-gradient(

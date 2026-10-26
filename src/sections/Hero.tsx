@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useReducedMotion } from 'framer-motion'
 
 const easeOut = [0.16, 1, 0.3, 1] as const
 
@@ -9,12 +9,33 @@ const agentLines = [
 ]
 
 export default function Hero() {
+  const reduceMotion = useReducedMotion()
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  // Background layer drifts WITH the mouse; the card floats gently AGAINST it
+  const bgX = useTransform(mx, [-0.5, 0.5], [-26, 26])
+  const bgY = useTransform(my, [-0.5, 0.5], [-18, 18])
+  const cardX = useTransform(mx, [-0.5, 0.5], [9, -9])
+  const cardY = useTransform(my, [-0.5, 0.5], [7, -7])
+
+  const onMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (reduceMotion) return
+    mx.set(e.clientX / window.innerWidth - 0.5)
+    my.set(e.clientY / window.innerHeight - 0.5)
+  }
+
   return (
-    <section id="top" className="relative grid-bg pt-28 md:pt-36 pb-16 md:pb-24 overflow-hidden">
-      <div className="aurora" aria-hidden="true" />
-      <div className="blob bg-[#ff3500]/35 w-[440px] h-[440px] -top-32 -right-24" aria-hidden="true" />
-      <div className="blob bg-[#8b5cf6]/30 w-[380px] h-[380px] top-1/2 -left-32" style={{ animationDelay: '-5s' }} aria-hidden="true" />
-      <div className="blob bg-[#f5a409]/30 w-[300px] h-[300px] bottom-0 right-1/3" style={{ animationDelay: '-9s' }} aria-hidden="true" />
+    <section
+      id="top"
+      className="relative grid-bg pt-28 md:pt-36 pb-16 md:pb-24 overflow-hidden"
+      onMouseMove={onMouseMove}
+    >
+      <motion.div className="absolute inset-0" style={{ x: bgX, y: bgY }} aria-hidden="true">
+        <div className="aurora" />
+        <div className="blob bg-[#ff3500]/35 w-[440px] h-[440px] -top-32 -right-24" />
+        <div className="blob bg-[#8b5cf6]/30 w-[380px] h-[380px] top-1/2 -left-32" style={{ animationDelay: '-5s' }} />
+        <div className="blob bg-[#f5a409]/30 w-[300px] h-[300px] bottom-0 right-1/3" style={{ animationDelay: '-9s' }} />
+      </motion.div>
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-6 items-start">
           <div className="lg:col-span-7">
@@ -87,7 +108,13 @@ export default function Hero() {
             transition={{ duration: 0.7, ease: easeOut, delay: 0.4 }}
             className="lg:col-span-5 lg:mt-10"
           >
-            <div className="relative rounded-xl border border-border bg-white/70 backdrop-blur-sm p-5 shadow-[0_4px_10px_rgba(0,0,0,0.08),0_24px_48px_-24px_rgba(0,0,0,0.25)]">
+            <motion.div
+              style={{ x: cardX, y: cardY }}
+              className="relative rounded-xl border border-border bg-white/70 backdrop-blur-sm p-5 shadow-[0_4px_10px_rgba(0,0,0,0.08),0_24px_48px_-24px_rgba(0,0,0,0.25)]"
+            >
+              <p className="hand absolute -top-10 -left-1 -rotate-3 text-2xl text-[#c52a00] select-none" aria-hidden="true">
+                live right now ↴
+              </p>
               <div className="flex items-center justify-between mb-4">
                 <p className="eyebrow text-foreground/50">Evidence Card · Live</p>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#c52a00]">
@@ -142,7 +169,7 @@ export default function Hero() {
                 <span className="text-xs text-foreground/50">Nothing ships without your approval.</span>
                 <span className="text-xs font-bold uppercase tracking-widest text-foreground/40">simulation</span>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>

@@ -47,6 +47,9 @@ export default function Problem() {
               You built five sites.
               <br />
               Sales? <span className="hl">Zero.</span>
+              <span className="hand block mt-3 -rotate-2 text-3xl text-[#8b5cf6] select-none" aria-hidden="true">
+                ouch. we&apos;ve been there.
+              </span>
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 18 }}

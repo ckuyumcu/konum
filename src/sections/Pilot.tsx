@@ -121,6 +121,9 @@ export default function Pilot() {
               <label htmlFor="pilot-email" className="font-display font-bold text-2xl block mb-2">
                 Early access list
               </label>
+              <p className="hand -rotate-1 text-xl text-[#c52a00] mb-2 select-none" aria-hidden="true">
+                we read every single one ✎
+              </p>
               <p className="text-sm text-foreground/60 mb-6">
                 Leave your work email; when a pilot seat opens we&apos;ll talk to the list first.
               </p>

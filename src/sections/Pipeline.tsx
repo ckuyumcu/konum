@@ -85,6 +85,8 @@ export default function Pipeline() {
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.55, ease: easeOut, delay: i * 0.1 }}
                 className="relative rounded-xl border border-[#fcfcf9]/15 bg-[#fcfcf9]/[0.04] p-6 backdrop-blur-[2px]"
+                style={{ rotate: ['-0.8deg', '0.6deg', '-0.5deg', '0.7deg'][i] }}
+                whileHover={{ rotate: 0, y: -6 }}
               >
                 <div className="flex items-center gap-3 mb-5">
                   <span className="relative flex h-5 w-5 items-center justify-center" aria-hidden="true">
@@ -127,7 +129,10 @@ export default function Pipeline() {
           className="mt-12 text-sm text-[#fcfcf9]/50 max-w-[70ch]"
         >
           Architectural principle: agents can never publish directly. The only exit is the Approval Center — it is both
-          quality control and the boundary of responsibility.
+          quality control and the boundary of responsibility.{' '}
+          <span className="hand inline-block -rotate-2 text-xl text-[#f5a409] align-middle" aria-hidden="true">
+            nothing escapes this door →
+          </span>
         </motion.p>
       </div>
     </section>
