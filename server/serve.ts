@@ -15,8 +15,8 @@ const PORT = Number(process.env.PORT || 3000);
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript",
+  ".css": "text/css",
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -70,7 +70,14 @@ async function apiServis(req: IncomingMessage, res: ServerResponse) {
 }
 
 async function statikServis(req: IncomingMessage, res: ServerResponse) {
-  const yol = decodeURIComponent(new URL(req.url || "/", "http://x").pathname);
+  // Bozuk kodlanmış adresler (tarama botları vb.) süreci düşürmesin
+  let yol: string;
+  try {
+    yol = decodeURIComponent(new URL(req.url || "/", "http://x").pathname);
+  } catch {
+    res.statusCode = 400;
+    return res.end("Bad Request");
+  }
   // dizin dışına çıkışı engelle
   const guvenli = path.normalize(yol).replace(/^(\.\.[/\\])+/, "");
   let dosya = path.join(DIST, guvenli);
@@ -97,11 +104,25 @@ async function statikServis(req: IncomingMessage, res: ServerResponse) {
   }
 }
 
+// Beklenmeyen hata hiçbir zaman süreci düşürmesin
+function guvenliSonlandir(res: ServerResponse) {
+  try {
+    if (!res.headersSent) res.statusCode = 500;
+    res.end();
+  } catch {
+    /* bağlantı zaten kopmuş olabilir */
+  }
+}
+
 createServer((req, res) => {
-  if ((req.url || "").startsWith("/api")) {
-    void apiServis(req, res);
-  } else {
-    void statikServis(req, res);
+  try {
+    if ((req.url || "").startsWith("/api")) {
+      void apiServis(req, res).catch(() => guvenliSonlandir(res));
+    } else {
+      void statikServis(req, res).catch(() => guvenliSonlandir(res));
+    }
+  } catch {
+    guvenliSonlandir(res);
   }
 }).listen(PORT, () => {
   console.log(`konum üretim sunucusu: http://localhost:${PORT} (mod: ${process.env.KONUM_ENV ?? "gelistirme"})`);
