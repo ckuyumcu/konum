@@ -104,7 +104,7 @@ export default function Teshis() {
             </label>
             <label className="grid gap-1.5">
               <span className="text-sm font-semibold">
-                Email <span className="font-normal text-muted-foreground">(optional — we send the report)</span>
+                Email <span className="font-normal text-muted-foreground">(optional — stored with this analysis)</span>
               </span>
               <input
                 type="email"
@@ -118,7 +118,7 @@ export default function Teshis() {
               <label className="flex items-start gap-3 text-sm text-foreground/70 cursor-pointer">
                 <input type="checkbox" checked={riza} onChange={(e) => setRiza(e.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#181818]" />
                 <span>
-                  I agree to my email being stored so the report can be sent to me.{" "}
+                  I agree to my email being stored with this analysis.{" "}
                   <a href="/privacy" className="underline decoration-foreground/40 hover:text-foreground">
                     Privacy notice
                   </a>
