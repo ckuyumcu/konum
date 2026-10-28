@@ -8,6 +8,7 @@ import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServerApp } from "./app";
+import { isPrivatePage, pageSeo } from "./seo";
 
 const KOK = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const DIST = path.join(KOK, "dist");
@@ -90,7 +91,11 @@ async function statikServis(req: IncomingMessage, res: ServerResponse) {
     dosya = path.join(DIST, "index.html");
   }
   try {
-    const icerik = await readFile(dosya);
+    let icerik = await readFile(dosya);
+    if (dosya === path.join(DIST, "index.html")) {
+      icerik = Buffer.from(pageSeo(icerik.toString("utf8"), yol));
+      if (isPrivatePage(yol)) res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    }
     res.setHeader("Content-Type", MIME[path.extname(dosya).toLowerCase()] ?? "application/octet-stream");
     if (/\.(js|css|svg|png|jpg|webp|woff2?)$/.test(dosya) && dosya.includes("assets")) {
       res.setHeader("Cache-Control", "public, max-age=31536000, immutable");

@@ -33,6 +33,7 @@ export default function Footer() {
             <a href="#math" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The math</a>
             <a href="#pilot" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot program</a>
             <a href="#faq" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
+            <a href="/about.html" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Product &amp; limits</a>
             <a href="/privacy" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Privacy notice</a>
             <a href="/terms" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Terms of use</a>
           </nav>
