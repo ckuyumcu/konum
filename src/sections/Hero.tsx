@@ -30,7 +30,7 @@ export default function Hero() {
       className="relative grid-bg pt-28 md:pt-36 pb-16 md:pb-24 overflow-hidden"
       onMouseMove={onMouseMove}
     >
-      <motion.div className="absolute inset-0" style={{ x: bgX, y: bgY }} aria-hidden="true">
+      <motion.div className="absolute inset-0 pointer-events-none" style={{ x: bgX, y: bgY }} aria-hidden="true">
         <div className="aurora" />
         <div className="blob bg-[#ff3500]/35 w-[440px] h-[440px] -top-32 -right-24" />
         <div className="blob bg-[#8b5cf6]/30 w-[380px] h-[380px] top-1/2 -left-32" style={{ animationDelay: '-5s' }} />
