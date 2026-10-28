@@ -20,7 +20,7 @@ const lessons = [
   {
     from: 'Common approach: brand voice settings',
     lesson: 'Without a defined brand voice, AI output goes generic.',
-    ours: 'Banned phrases + the Auditor agent: no rule-breaking text ever reaches approval.',
+    ours: 'Brand rules and Auditor checks flag potential issues for human review; they do not replace the final editorial check.',
     span: 'lg:col-span-4',
   },
   {

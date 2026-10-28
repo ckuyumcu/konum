@@ -223,8 +223,8 @@ export default function Teshis() {
             </div>
 
             <p className="rounded-xl border border-[#ff3500]/30 bg-[#ff3500]/5 p-5 text-sm">
-              <strong>This is one afternoon of what KonumOS does continuously.</strong> The platform keeps scanning,
-              testing and proving your message every week — with your approval on everything that ships.{" "}
+              <strong>This Message Map is a starting point for human review.</strong> It does not prove demand or a campaign result.
+              The v1 preview does not run live tests, spend your budget or publish into your accounts.{" "}
               <Link to="/#pilot" className="underline font-semibold">Join the pilot →</Link>
             </p>
           </motion.div>
