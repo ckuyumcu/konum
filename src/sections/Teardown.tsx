@@ -26,7 +26,7 @@ const lessons = [
   {
     from: 'Common approach: content calendars',
     lesson: 'Calendar and queue discipline is continuity itself.',
-    ours: 'Execution Studio spreads proven messages across channels; the rhythm is the agent\'s, the decision is yours.',
+    ours: 'Execution Studio prepares channel variations for review and export; people decide what to publish.',
     span: 'lg:col-span-6',
   },
   {
@@ -38,7 +38,7 @@ const lessons = [
   {
     from: 'Common approach: variation factories',
     lesson: 'Producing variations is easy; knowing which one won and why is valuable.',
-    ours: 'The Evidence Engine documents the "why" with tests — the output is an exportable evidence file.',
+    ours: 'The Evidence Engine workflow organizes hypotheses and supporting sources for review. An exported file is not proof of a campaign result.',
     span: 'lg:col-span-12',
   },
 ]

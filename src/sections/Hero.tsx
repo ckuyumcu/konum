@@ -65,9 +65,9 @@ export default function Hero() {
               className="mt-6 max-w-[62ch] text-lg text-foreground/70"
             >
               Here&apos;s the deal: you keep the strategy and the story — the parts only a person can own.{' '}
-              <strong className="text-foreground">Our agents take the grind</strong>: scanning, drafting, testing, scheduling.
-              Every claim gets proven in a small live test before a cent of real budget touches it. And nothing — nothing —
-              ships without your signature on it.
+              <strong className="text-foreground">This preview shows the workflow</strong>: research hypotheses, drafts and approval.
+              Demo activity is simulated, and a hypothesis is not proof. In v1, you run any real tests and publish the exports yourself;
+              KonumOS does not spend your budget or act in your accounts.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 18 }}
@@ -85,7 +85,7 @@ export default function Hero() {
                 </svg>
               </a>
               <a
-                href="#nasil"
+                href="#how"
                 className="inline-flex items-center rounded-md border-2 border-foreground/20 px-6 py-3 text-base font-bold transition-all duration-150 hover:border-foreground active:scale-[0.97]"
               >
                 Get it in 90 seconds
@@ -134,13 +134,13 @@ export default function Hero() {
                 <path d="M9 0l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" fill="#f43f5e" />
               </svg>
               <p className="hand absolute -top-10 -left-1 -rotate-3 text-2xl text-[#c52a00] select-none" aria-hidden="true">
-                live right now ↴
+                workflow preview ↴
               </p>
               <div className="flex items-center justify-between mb-4">
-                <p className="eyebrow text-foreground/50">Evidence Card · Live</p>
+                <p className="eyebrow text-foreground/50">Evidence Card · Simulation</p>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#c52a00]">
                   <span className="pulse-dot inline-block h-2 w-2 rounded-full bg-[#ff3500]" aria-hidden="true" />
-                  test running
+                  sample test
                 </span>
               </div>
 

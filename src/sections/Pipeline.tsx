@@ -8,7 +8,7 @@ const stages = [
     title: 'Strategy Memory',
     who: 'Built by humans',
     whoAccent: false,
-    body: 'Story, positioning, target audience, banned phrases, proven messages. The single source of truth every agent reads.',
+    body: 'Record your story, positioning, target audience, brand rules and supporting sources for later review.',
     agents: [],
   },
   {
@@ -16,7 +16,7 @@ const stages = [
     title: 'Evidence Engine',
     who: 'Agents work · humans choose',
     whoAccent: true,
-    body: 'Scans competitor messaging, mines the customer\'s language, generates hypotheses, designs small-budget tests. Saying "insufficient data" is also a valid output.',
+    body: 'Organize competitor-message reviews, hypotheses and proposed test plans. A hypothesis is not proof; real tests are run by people outside v1.',
     agents: ['Researcher', 'Strategist Asst.', 'Test Designer'],
   },
   {
@@ -24,7 +24,7 @@ const stages = [
     title: 'Execution Studio',
     who: 'Agents produce · humans approve',
     whoAccent: true,
-    body: 'Turns proven messages into Instagram, Meta Ads, Google Ads and email variations, then schedules them. The Auditor agent won\'t even send rule-breaking work to approval.',
+    body: 'Prepare channel variations for brand-rule checks and human approval. Approved export packages are published by people, not directly into their accounts.',
     agents: ['Content Producer', 'Publisher', 'Auditor'],
   },
   {
@@ -32,7 +32,7 @@ const stages = [
     title: 'Signal Radar',
     who: 'Agents watch · humans decide',
     whoAccent: true,
-    body: 'Reads performance, writes the weekly "what we learned" digest, and raises an alarm when positioning goes stale. The decision is always yours.',
+    body: 'Review recorded observations and questions for the next decision. Simulated demo figures are not evidence of live monitoring or campaign performance.',
     agents: ['Analyst'],
   },
 ]

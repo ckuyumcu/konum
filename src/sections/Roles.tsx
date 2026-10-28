@@ -3,11 +3,11 @@ import { motion } from 'framer-motion'
 const easeOut = [0.16, 1, 0.3, 1] as const
 
 const aiList = [
-  'Scans competitor messaging and category language 24/7',
-  'Generates message hypotheses and channel variations',
-  'Sets up and runs small-budget A/B tests',
-  'Schedules, measures performance, and reports',
-  'Raises an alarm when positioning goes stale',
+  'Prepare competitor-message and category reviews',
+  'Develop message hypotheses and draft variations',
+  'Prepare test plans for people to review and run',
+  'Organize export packages and recorded observations',
+  'Flag questions for the next positioning review',
 ]
 
 const humanList = [
@@ -38,12 +38,12 @@ export default function Roles() {
           transition={{ duration: 0.5, ease: easeOut, delay: 0.08 }}
           className="mt-5 max-w-[56ch] text-xl font-bold leading-snug"
         >
-          The platform doesn&apos;t do the marketing for you; it applies your decisions to every client at the same quality.
+          The preview illustrates the intended division of work. Demo activity is simulated; v1 does not run campaigns or spend in your accounts.
         </motion.p>
 
         <div className="mt-14 grid md:grid-cols-2 gap-6">
           {[
-            { title: 'The agent does', items: aiList, dark: true },
+            { title: 'Workflow shown in the preview', items: aiList, dark: true },
             { title: 'The human decides', items: humanList, dark: false },
           ].map((col, ci) => (
             <motion.div

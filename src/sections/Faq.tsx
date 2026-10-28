@@ -5,7 +5,7 @@ const easeOut = [0.16, 1, 0.3, 1] as const
 const faqs = [
   {
     q: 'Does the AI do everything on its own?',
-    a: 'No — by design, it can\'t. Agents take over routine work (scanning, variations, publishing prep, measurement, reporting); strategy, hypothesis selection, budget, and publishing approval stay with the human. Without the Approval Center, the system has no door to production.',
+    a: 'No. This is a product preview with simulated demonstrations. Strategy, hypothesis selection, real tests, budgets and publication stay with the human. In v1, KonumOS prepares work for review and export; it does not act in your accounts.',
   },
   {
     q: 'What happens to my ad accounts and data?',
@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'How are you different from competing platforms?',
-    a: 'Execution tools have commoditized: producing variations is something everyone can do now. Our core is the Evidence Engine — it documents the answer to "why should people choose you?" with tests and turns it into the source for all execution. And it\'s white-label: the agency sells it as its own methodology.',
+    a: 'Execution tools have commoditized: producing variations is something everyone can do now. The preview centers on an Evidence Engine workflow: record hypotheses, plan tests and keep the sources behind a decision. It does not prove a claim or run a live test by itself. And it\'s white-label: the agency sells it as its own methodology.',
   },
   {
     q: 'Is there lock-in? Can I take my data?',
