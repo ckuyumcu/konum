@@ -23,6 +23,7 @@ export class SsrfError extends Error {
 
 const MAX_METIN = 12_000;
 const MAX_YANIT = 2 * 1024 * 1024; // 2 MB
+const MAX_ROBOTS_YANIT = 512 * 1024;
 const ZAMAN_ASIMI = 10_000; // 10 sn
 const MAX_YONLENDIRME = 5;
 
@@ -93,10 +94,37 @@ export async function hedefGuvenliMi(rawUrl: string): Promise<{ guvenli: boolean
 
 async function robotsAllows(url: string, ua: string): Promise<boolean> {
   try {
-    const origin = new URL(url).origin;
-    const res = await fetch(`${origin}/robots.txt`, { signal: AbortSignal.timeout(ZAMAN_ASIMI) });
-    if (!res.ok) return true;
-    const txt = (await res.text()).slice(0, 64_000);
+    let hedef = `${new URL(url).origin}/robots.txt`;
+    let txt: string | undefined;
+    for (let i = 0; i <= MAX_YONLENDIRME; i++) {
+      const kontrol = await hedefGuvenliMi(hedef);
+      if (!kontrol.guvenli) {
+        throw new SsrfError(`Unsafe robots.txt target: ${kontrol.gerekce}`);
+      }
+      const res = await fetch(hedef, {
+        headers: { "User-Agent": ua, Accept: "text/plain" },
+        redirect: "manual",
+        signal: AbortSignal.timeout(ZAMAN_ASIMI),
+      });
+      if ([301, 302, 303, 307, 308].includes(res.status)) {
+        const location = res.headers.get("location");
+        await res.body?.cancel();
+        if (!location || i === MAX_YONLENDIRME) throw new Error("Invalid or excessive robots.txt redirects.");
+        hedef = new URL(location, hedef).toString();
+        continue;
+      }
+      if (res.status === 404 || res.status === 410) {
+        await res.body?.cancel();
+        return true;
+      }
+      if (!res.ok) {
+        await res.body?.cancel();
+        throw new Error(`robots.txt response: HTTP ${res.status}`);
+      }
+      txt = await sinirliOku(res, MAX_ROBOTS_YANIT);
+      break;
+    }
+    if (txt === undefined) throw new Error("Could not retrieve robots.txt.");
     const path = new URL(url).pathname;
     let appliesToUs = false;
     let blocked = false;
@@ -110,8 +138,9 @@ async function robotsAllows(url: string, ua: string): Promise<boolean> {
       }
     }
     return !blocked;
-  } catch {
-    return true;
+  } catch (error) {
+    if (error instanceof SsrfError) throw error;
+    throw new Error("Could not verify robots.txt; no scan was performed. Please try again later.", { cause: error });
   }
 }
 
@@ -145,7 +174,7 @@ function decodeEntities(s: string): string {
     .replace(/&nbsp;/g, " ");
 }
 
-async function sinirliOku(res: Response): Promise<string> {
+async function sinirliOku(res: Response, limit = MAX_YANIT): Promise<string> {
   if (!res.body) return "";
   const reader = res.body.getReader();
   const parcalar: Uint8Array[] = [];
@@ -154,9 +183,9 @@ async function sinirliOku(res: Response): Promise<string> {
     const { done, value } = await reader.read();
     if (done) break;
     toplam += value.byteLength;
-    if (toplam > MAX_YANIT) {
+    if (toplam > limit) {
       await reader.cancel();
-      throw new Error("Response exceeded the 2 MB limit; scan stopped.");
+      throw new Error(`Response exceeded the ${limit / 1024} KB limit; scan stopped.`);
     }
     parcalar.push(value);
   }
@@ -178,22 +207,21 @@ export async function scanUrl(inputUrl: string): Promise<ScanResult> {
   const ilk = await hedefGuvenliMi(url);
   if (!ilk.guvenli) throw new SsrfError(ilk.gerekce || "Target is not safe.");
 
-  const izin = await robotsAllows(url, "KonumBot");
-  if (!izin) {
-    return {
-      url: inputUrl,
-      finalUrl: url,
-      title: "",
-      metin: "",
-      robotsIzni: false,
-      not: "robots.txt does not allow scanning this page; no scan was performed.",
-    };
-  }
-
   // Follow redirects manually: the SSRF check is repeated at every hop
   let mevcut = url;
   let res: Response | null = null;
   for (let i = 0; i <= MAX_YONLENDIRME; i++) {
+    // A redirect may change both the origin and the path covered by robots.txt.
+    if (!(await robotsAllows(mevcut, "KonumBot"))) {
+      return {
+        url: inputUrl,
+        finalUrl: mevcut,
+        title: "",
+        metin: "",
+        robotsIzni: false,
+        not: "robots.txt does not allow scanning this page; no scan was performed.",
+      };
+    }
     res = await fetch(mevcut, {
       headers: { "User-Agent": ua, Accept: "text/html,application/xhtml+xml" },
       redirect: "manual",
@@ -201,6 +229,7 @@ export async function scanUrl(inputUrl: string): Promise<ScanResult> {
     });
     if (res.status >= 300 && res.status < 400) {
       const hedef = res.headers.get("location");
+      await res.body?.cancel();
       if (!hedef) break;
       mevcut = new URL(hedef, mevcut).toString();
       const kontrol = await hedefGuvenliMi(mevcut);

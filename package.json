@@ -9,7 +9,8 @@
     "start": "tsx server/serve.ts",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "tsx server/tests/run.ts"
+    "test": "tsx server/tests/run.ts",
+    "test:scanner": "node --import tsx --test server/agents/scanner.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.137.0",
