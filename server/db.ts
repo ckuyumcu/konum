@@ -208,6 +208,9 @@ try {
 
 export const db = drizzle(sqlite, { schema });
 
+// Yedekleme ucunun (.backup) tutarlı kopya üretebilmesi için ham sqlite örneği dışa açılır.
+export { sqlite };
+
 export function newId(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }

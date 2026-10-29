@@ -9,6 +9,7 @@ import { diagnosisRequests, invites, sessions, users, workspaceMembers } from ".
 import { raporPdf } from "./pdf";
 import { envYukle } from "./config";
 import { ipNormallestir } from "./guvenlik";
+import { anahtarDogruMu, yedekAcikMi, yedekIndir, yedekOzet } from "./yedek";
 
 envYukle();
 
@@ -164,6 +165,27 @@ export function createServerApp(): Hono {
         "Content-Disposition": `attachment; filename="konum-message-map-${id}.pdf"`,
       },
     });
+  });
+
+  // Tam SQLite yedeği — kalıcı disksiz ortamlarda (Render Free) veri kurtarmanın tek yolu.
+  // Yalnızca KONUM_YEDEK_ANAHTARI tanımlıysa açık; değilse 404 (uç gizli kalır), yanlış anahtar 401.
+  app.get("/admin/yedek", async (c) => {
+    if (!yedekAcikMi()) return c.json({ hata: "Not found." }, 404);
+    if (!anahtarDogruMu(c)) return c.json({ hata: "Unauthorized." }, 401);
+    const dosya = await yedekIndir();
+    const damga = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    return new Response(new Uint8Array(dosya), {
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": `attachment; filename="konum-yedek-${damga}.db"`,
+      },
+    });
+  });
+
+  app.get("/admin/yedek/ozet", (c) => {
+    if (!yedekAcikMi()) return c.json({ hata: "Not found." }, 404);
+    if (!anahtarDogruMu(c)) return c.json({ hata: "Unauthorized." }, 401);
+    return c.json({ zaman: new Date().toISOString(), ...yedekOzet() });
   });
 
   app.use(
