@@ -56,7 +56,7 @@ export default function Header() {
         </nav>
         <div className="flex items-center justify-end gap-3">
           <span className="hidden lg:inline-flex" aria-hidden="false">
-            <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AIWork School" />
+            <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AI Work School" />
           </span>
           <a
             href="#pilot"
