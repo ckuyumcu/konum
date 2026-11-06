@@ -28,7 +28,7 @@ export default function Giris() {
       }
       navigate("/app");
     } catch {
-      setHata("Could not reach the server. Is the dev server running?");
+      setHata("Could not reach the server. Please try again shortly.");
     } finally {
       setMesgul(false);
     }
@@ -89,7 +89,7 @@ export default function Giris() {
         </form>
 
         <p className="mt-6 text-sm text-[#fcfcf9]/50">
-          Local development build: a local session is opened with email + invite code instead of Kimi OAuth.
+          Invitation-only pilot. Your email and private invite code open a session for your account.
         </p>
       </motion.div>
     </div>

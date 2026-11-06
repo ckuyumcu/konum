@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import Database from "better-sqlite3";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -34,9 +35,33 @@ test("özet ucu tablo sayımlarını döner", async () => {
   assert.equal(typeof json.toplam, "number");
 });
 
+test("downloaded backup restores independently with intact rows and schema", async () => {
+  const { sqlite } = await import("./db");
+  sqlite.exec("CREATE TABLE backup_probe (value TEXT NOT NULL)");
+  sqlite.prepare("INSERT INTO backup_probe (value) VALUES (?)").run("offline restore fixture");
+  const app = createServerApp();
+  const r = await app.request("/admin/yedek", { headers: { authorization: "Bearer test-anahtar" } });
+  assert.equal(r.status, 200);
+  const restoredPath = path.join(gecici, "restored.db");
+  writeFileSync(restoredPath, Buffer.from(await r.arrayBuffer()));
+  const restored = new Database(restoredPath, { readonly: true });
+  try {
+    assert.deepEqual(restored.pragma("integrity_check"), [{ integrity_check: "ok" }]);
+    assert.equal((restored.prepare("SELECT value FROM backup_probe").get() as { value: string }).value, "offline restore fixture");
+    const tables = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all() as { name: string }[];
+    for (const { name } of tables) {
+      const quoted = name.replace(/\"/g, '\"\"');
+      assert.deepEqual(restored.prepare(`SELECT COUNT(*) AS n FROM \"${quoted}\"`).get(), sqlite.prepare(`SELECT COUNT(*) AS n FROM \"${quoted}\"`).get());
+    }
+  } finally {
+    restored.close();
+  }
+});
+
 test("anahtar tanımsızken uç gizli kalır (404)", async () => {
   delete process.env.KONUM_YEDEK_ANAHTARI;
   const app = createServerApp();
   const r = await app.request("/admin/yedek", { headers: { authorization: "Bearer test-anahtar" } });
   assert.equal(r.status, 404);
 });
+

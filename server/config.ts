@@ -71,11 +71,15 @@ export function anthropicAnahtariSil(): void {
   }
 }
 
+export function uretimMi(): boolean {
+  return process.env.KONUM_ENV === "production" || process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+}
+
 // Platform owner: the seed invite's email in local development; will be tied to the Kimi
 // OAuth identity in production. Can be overridden with KONUM_PLATFORM_SAHIBI.
 export function platformSahibiMi(email: string): boolean {
-  const sahip = (process.env.KONUM_PLATFORM_SAHIBI || "cem@konum.local").toLocaleLowerCase("tr");
-  return email.toLocaleLowerCase("tr") === sahip;
+  const sahip = process.env.KONUM_PLATFORM_SAHIBI || (uretimMi() ? "" : "cem@konum.local");
+  return Boolean(sahip) && email.toLocaleLowerCase("en") === sahip.toLocaleLowerCase("en");
 }
 
 // HMAC key for the daily IP hash (consultation round 2): generated once, stored in the
