@@ -89,7 +89,7 @@ function LlmAyar() {
             disabled={mesgul || anahtar.trim().length < 10}
             className="h-11 px-5 rounded-lg bg-[#181818] text-[#fcfcf9] font-semibold transition-transform duration-200 active:scale-[0.97] disabled:opacity-50"
           >
-            Save key
+            Verify and save key
           </button>
           {durum.anahtarKaynagi === "dosya" && (
             <button
@@ -113,7 +113,8 @@ function LlmAyar() {
         </form>
         <p className="text-xs text-muted-foreground">
           The key is written to a secret file outside the project on the server (~/.konum), never enters git,
-          and never returns to the client. Alternative: add ANTHROPIC_API_KEY to the .env file at the project root.
+          and never returns to the client. Saving sends a small verification request to your model provider and may incur usage charges.
+          Alternative: add ANTHROPIC_API_KEY to the .env file at the project root.
         </p>
       </div>
     </section>

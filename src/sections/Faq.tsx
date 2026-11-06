@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: 'How much does it cost?',
-    a: 'Our pilot target is $149 per workspace per month, and our own math is on this page: a workspace costs us about $3 a month to run at full throttle. The final number is set together with the first 10 pilot agencies, against the value we actually prove — we don\'t pretend the price list is finished before the value is.',
+    a: 'The current pilot target is $149 per workspace per month. It is not an active subscription or a final quote. Scope, limits, price, taxes and payment terms are agreed in writing before a paid pilot. Joining early access does not start a paid subscription.',
   },
 ]
 

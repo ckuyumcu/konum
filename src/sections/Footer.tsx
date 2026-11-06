@@ -19,18 +19,18 @@ export default function Footer() {
               <span className="font-display font-bold text-xl">KonumOS</span>
             </div>
             <p className="text-sm text-[#fcfcf9]/60 max-w-[42ch]">
-              The agent-powered continuous product marketing operating system. Strategy from you, routine execution from agents.
+              A product marketing workspace in preview. Prepare drafts, review sources and export approved content.
             </p>
             <div className="mt-4">
-              <AwsMark accent="#ff6a3d" ink="#181818" dark text="An AIWork School company" />
+              <AwsMark accent="#ff6a3d" ink="#181818" dark text="An AI Work School company" />
             </div>
           </div>
           <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Footer navigation">
             <a href="#problem" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The Problem</a>
             <a href="#how" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">How it works</a>
             <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">What we learned</a>
-            <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Live demo</a>
-            <a href="#math" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The math</a>
+            <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Workflow demo</a>
+            <a href="#math" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot scope</a>
             <a href="#pilot" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot program</a>
             <a href="#faq" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
             <a href="/about.html" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Product &amp; limits</a>
@@ -42,12 +42,12 @@ export default function Footer() {
           <p className="font-semibold text-[#fcfcf9]">Who builds KonumOS</p>
           <p className="mt-1.5">
             KonumOS is designed and built by <span className="font-semibold text-[#fcfcf9]">Cem Kuyumcu</span>, an energy
-            &amp; construction engineer, inside AIWork School. Questions, pilot requests or a wrong number you spotted
+            &amp; construction engineer, inside AI Work School. Questions, pilot requests or a wrong number you spotted
             on this page: <a href="mailto:hello@konumos.com" className="underline decoration-[#fcfcf9]/40 hover:text-[#fcfcf9]">hello@konumos.com</a>
           </p>
         </div>
         <div className="mt-12 pt-6 border-t border-[#fcfcf9]/15 flex flex-col md:flex-row justify-between gap-3 text-xs text-[#fcfcf9]/45">
-          <span>© 2026 KonumOS, an AIWork School company — product preview. Demo data is simulated.</span>
+          <span>© 2026 KonumOS, an AI Work School company — product preview. Demo data is simulated.</span>
           <span>This page makes no market-size or revenue claims; unverified assumptions are tested in the pilot program.</span>
         </div>
       </div>

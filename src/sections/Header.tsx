@@ -5,8 +5,8 @@ const links = [
   { href: '#problem', label: 'The Problem' },
   { href: '#how', label: 'How it works' },
   { href: '#teardown', label: 'What we learned' },
-  { href: '#demo', label: 'Live demo' },
-  { href: '#math', label: 'The math' },
+  { href: '#demo', label: 'Workflow demo' },
+  { href: '#math', label: 'Pilot scope' },
   { href: '#pilot', label: 'Pilot' },
   { href: '#faq', label: 'FAQ' },
   { href: '/teshis', label: 'Free scan' },
@@ -56,7 +56,7 @@ export default function Header() {
         </nav>
         <div className="flex items-center justify-end gap-3">
           <span className="hidden lg:inline-flex" aria-hidden="false">
-            <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AIWork School" />
+            <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AI Work School" />
           </span>
           <a
             href="#pilot"

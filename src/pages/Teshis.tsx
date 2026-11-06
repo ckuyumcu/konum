@@ -53,7 +53,7 @@ export default function Teshis() {
 
       <header className="border-b border-border relative">
         <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="eyebrow text-foreground">KONUM</Link>
+          <Link to="/" className="eyebrow text-foreground">KonumOS</Link>
           <Link to="/#pilot" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
             Early access →
           </Link>
@@ -145,6 +145,11 @@ export default function Teshis() {
         ) : (
           <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: easeOut }} className="grid gap-6">
             <div className="rounded-xl border border-border bg-white/60 p-7">
+              {sonuc.mod === "simulasyon" && (
+                <p className="mb-5 rounded-lg border border-[#c52a00]/40 bg-[#c52a00]/5 p-3 text-sm font-semibold text-[#c52a00]">
+                  SIMULATION — live analysis was unavailable. This is a format preview, not a verified review of your business.
+                </p>
+              )}
               <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
                 <div>
                   <p className="eyebrow text-muted-foreground mb-1">MESSAGE MAP</p>
@@ -166,6 +171,7 @@ export default function Teshis() {
                   transition={{ duration: 1.2, ease: easeOut }}
                 />
               </div>
+              <p className="text-xs text-muted-foreground mb-6">This score describes the report&apos;s assessment of page evidence. It is not a conversion forecast, a sales probability or an independent verification.</p>
               <p className="eyebrow text-muted-foreground mb-1">CORE CLAIM</p>
               <p className="text-lg font-medium mb-6">{sonuc.harita.anaIddia}</p>
 
@@ -199,7 +205,7 @@ export default function Teshis() {
 
               {sonuc.mod === "simulasyon" && (
                 <p className="mt-6 inline-block text-xs font-bold uppercase tracking-widest text-[#c52a00] border border-[#c52a00]/40 rounded-full px-3 py-1">
-                  Simulation output — the live model is not connected yet
+                  Simulation output — not a live analysis
                 </p>
               )}
             </div>
@@ -233,7 +239,7 @@ export default function Teshis() {
 
       <footer className="border-t border-border py-8 relative">
         <p className="max-w-3xl mx-auto px-6 text-xs text-muted-foreground">
-          © 2026 KonumOS, an AIWork School company. Free analyses are limited to 3 per day per visitor, 100 per day in total.
+          © 2026 KonumOS, an AI Work School company. Free analyses are limited to 3 per day per visitor, 100 per day in total.
         </p>
       </footer>
     </div>

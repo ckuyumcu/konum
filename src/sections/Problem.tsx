@@ -10,13 +10,13 @@ const rows = [
   },
   {
     n: '02',
-    title: 'AI recommends the same average campaign to everyone.',
+    title: 'Generic copy does not explain your difference.',
     body: 'The tools write copy, but they don\'t write difference. Difference still comes from the human who builds the story, knows the audience, and positions the product.',
   },
   {
     n: '03',
-    title: 'No sales is the system\'s fault, not the product\'s.',
-    body: 'Message, audience, and evidence — none of them are one-off tasks. Marketing is not a launch; it\'s a continuously operated line. Most teams don\'t have that line.',
+    title: 'Find the cause before changing the campaign.',
+    body: 'Demand, audience, price, trust and the buying journey can all affect sales. Review the evidence before deciding whether to change the message, the offer or the product.',
   },
 ]
 
@@ -58,8 +58,8 @@ export default function Problem() {
               transition={{ duration: 0.5, ease: easeOut, delay: 0.14 }}
               className="mt-6 text-lg text-foreground/70 max-w-[48ch]"
             >
-              Sound familiar? The product works, the design is fine — but you reach no one. This isn&apos;t a software
-              problem; it&apos;s a <strong className="text-foreground">marketing operations</strong> problem.
+              Sound familiar? A lack of sales does not tell you whether the problem is the product, the audience or the buying journey.
+              Start with a <strong className="text-foreground">review of the evidence</strong> before changing the campaign.
             </motion.p>
             <motion.svg
               initial={{ opacity: 0 }}

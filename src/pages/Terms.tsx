@@ -7,7 +7,7 @@ export default function Terms() {
 
         <div className="space-y-6 text-foreground/80 leading-relaxed">
           <p>
-            These terms govern the use of KonumOS, a product preview by AIWork School. Questions:
+            These terms govern the use of KonumOS, a product preview by AI Work School. Questions:
             <a href="mailto:hello@konumos.com" className="underline"> hello@konumos.com</a>
           </p>
 
@@ -38,7 +38,7 @@ export default function Terms() {
 
           <h2 className="font-display font-bold text-xl text-foreground pt-2">Liability</h2>
           <p>
-            The service is provided "as is" during the preview. To the extent permitted by law, AIWork School's
+            The service is provided "as is" during the preview. To the extent permitted by law, AI Work School's
             liability is limited to the amount you paid us in the three months before the event giving rise to the
             claim.
           </p>

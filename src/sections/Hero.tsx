@@ -45,7 +45,7 @@ export default function Hero() {
               transition={{ duration: 0.5, ease: easeOut }}
               className="eyebrow text-[#c52a00] mb-5"
             >
-              The agent-powered continuous marketing operating system
+              A review workspace for product marketing
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 26 }}
@@ -88,7 +88,7 @@ export default function Hero() {
                 href="#how"
                 className="inline-flex items-center rounded-md border-2 border-foreground/20 px-6 py-3 text-base font-bold transition-all duration-150 hover:border-foreground active:scale-[0.97]"
               >
-                Get it in 90 seconds
+                See how it works
               </a>
             </motion.div>
             <motion.p
@@ -97,7 +97,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="mt-5 text-sm text-foreground/50"
             >
-              Built by people who&apos;ve run agency desks. Preview release — the pilot is open.
+              Preview release. Pilot scope and availability are confirmed individually.
             </motion.p>
           </div>
 
