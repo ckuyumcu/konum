@@ -7,7 +7,7 @@ export default function Privacy() {
 
         <div className="space-y-6 text-foreground/80 leading-relaxed">
           <p>
-            KonumOS is a product preview built by AIWork School. This notice explains, in plain language, what we store
+            KonumOS is a product preview built by AI Work School. This notice explains, in plain language, what we store
             and why. Questions: <a href="mailto:hello@konumos.com" className="underline">hello@konumos.com</a>
           </p>
 

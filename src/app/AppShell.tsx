@@ -105,11 +105,11 @@ export default function AppShell() {
         {/* Desktop: left vertical navigation */}
         <aside className="hidden md:flex w-60 shrink-0 bg-[#181818] text-[#fcfcf9] flex-col min-h-dvh">
           <div className="px-5 py-5 border-b border-white/10">
-            <Link to="/" className="eyebrow text-[#fcfcf9]">KONUM</Link>
+            <Link to="/" className="eyebrow text-[#fcfcf9]">KonumOS</Link>
           </div>
           <nav className="flex-1 py-4" aria-label="Modules">{navListesi}</nav>
           <div className="px-5 py-4 border-t border-white/10 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AIWork School company</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AI Work School company</p>
             <Link to="/app" className="block text-xs text-[#fcfcf9]/50 hover:text-[#fcfcf9] transition-colors">
               ← Workspaces
             </Link>
@@ -126,7 +126,7 @@ export default function AppShell() {
             />
             <aside className="absolute inset-y-0 left-0 w-64 bg-[#181818] text-[#fcfcf9] flex flex-col">
               <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
-                <span className="eyebrow">KONUM</span>
+                <span className="eyebrow">KonumOS</span>
                 <button
                   onClick={() => setMenuAcik(false)}
                   aria-label="Close"
@@ -139,7 +139,7 @@ export default function AppShell() {
               </div>
               <nav className="flex-1 py-4 overflow-auto" aria-label="Modules">{navListesi}</nav>
               <div className="px-5 py-4 border-t border-white/10 space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AIWork School company</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AI Work School company</p>
                 <Link to="/app" onClick={() => setMenuAcik(false)} className="block text-xs text-[#fcfcf9]/50">
                   ← Workspaces
                 </Link>

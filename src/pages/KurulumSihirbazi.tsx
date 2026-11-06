@@ -74,7 +74,7 @@ export default function KurulumSihirbazi() {
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border">
         <div className="max-w-3xl mx-auto px-6 py-5">
-          <Link to="/app" className="eyebrow text-foreground">KONUM</Link>
+          <Link to="/app" className="eyebrow text-foreground">KonumOS</Link>
         </div>
       </header>
 

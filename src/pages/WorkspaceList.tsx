@@ -31,7 +31,7 @@ export default function WorkspaceList() {
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="eyebrow text-foreground">KONUM</Link>
+          <Link to="/" className="eyebrow text-foreground">KonumOS</Link>
           <Link to="/app/konsol" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Agency Console
           </Link>

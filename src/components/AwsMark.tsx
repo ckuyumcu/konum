@@ -1,9 +1,9 @@
-// AIWork School mark — rounded-square "A" badge + wordmark.
+// AI Work School mark — rounded-square "A" badge + wordmark.
 // Each family site picks its own accent color; the mark itself stays identical.
 export default function AwsMark({
   accent = '#ff6a3d', // badge background (site-specific accent)
   ink = '#181818', // letter color
-  text = 'An AIWork School company',
+  text = 'An AI Work School company',
   dark = false, // true on dark backgrounds
   size = 'md', // 'sm' | 'md'
 }: {

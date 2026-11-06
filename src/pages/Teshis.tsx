@@ -53,7 +53,7 @@ export default function Teshis() {
 
       <header className="border-b border-border relative">
         <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="eyebrow text-foreground">KONUM</Link>
+          <Link to="/" className="eyebrow text-foreground">KonumOS</Link>
           <Link to="/#pilot" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
             Early access →
           </Link>
@@ -239,7 +239,7 @@ export default function Teshis() {
 
       <footer className="border-t border-border py-8 relative">
         <p className="max-w-3xl mx-auto px-6 text-xs text-muted-foreground">
-          © 2026 KonumOS, an AIWork School company. Free analyses are limited to 3 per day per visitor, 100 per day in total.
+          © 2026 KonumOS, an AI Work School company. Free analyses are limited to 3 per day per visitor, 100 per day in total.
         </p>
       </footer>
     </div>

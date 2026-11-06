@@ -42,7 +42,7 @@ export default function Giris() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md"
       >
-        <p className="eyebrow text-[#ff3500] mb-4">KONUM</p>
+        <p className="eyebrow text-[#ff3500] mb-4">KonumOS</p>
         <h1 className="font-display text-4xl leading-tight mb-3">
           Sign in to the marketing operating system
         </h1>
