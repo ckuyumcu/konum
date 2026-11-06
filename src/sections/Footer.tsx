@@ -22,7 +22,7 @@ export default function Footer() {
               A product marketing workspace in preview. Prepare drafts, review sources and export approved content.
             </p>
             <div className="mt-4">
-              <AwsMark accent="#ff6a3d" ink="#181818" dark text="An AIWork School company" />
+              <AwsMark accent="#ff6a3d" ink="#181818" dark text="An AI Work School company" />
             </div>
           </div>
           <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Footer navigation">
@@ -42,12 +42,12 @@ export default function Footer() {
           <p className="font-semibold text-[#fcfcf9]">Who builds KonumOS</p>
           <p className="mt-1.5">
             KonumOS is designed and built by <span className="font-semibold text-[#fcfcf9]">Cem Kuyumcu</span>, an energy
-            &amp; construction engineer, inside AIWork School. Questions, pilot requests or a wrong number you spotted
+            &amp; construction engineer, inside AI Work School. Questions, pilot requests or a wrong number you spotted
             on this page: <a href="mailto:hello@konumos.com" className="underline decoration-[#fcfcf9]/40 hover:text-[#fcfcf9]">hello@konumos.com</a>
           </p>
         </div>
         <div className="mt-12 pt-6 border-t border-[#fcfcf9]/15 flex flex-col md:flex-row justify-between gap-3 text-xs text-[#fcfcf9]/45">
-          <span>© 2026 KonumOS, an AIWork School company — product preview. Demo data is simulated.</span>
+          <span>© 2026 KonumOS, an AI Work School company — product preview. Demo data is simulated.</span>
           <span>This page makes no market-size or revenue claims; unverified assumptions are tested in the pilot program.</span>
         </div>
       </div>
