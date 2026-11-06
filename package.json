@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "node --import ./scripts/offline-tests.mjs --import tsx server/tests/run.ts",
-    "test:readiness": "node --import ./scripts/offline-tests.mjs --import tsx --test server/production-auth.test.ts server/yedek.test.ts server/agents/scanner.test.ts",
+    "test:readiness": "node --import ./scripts/offline-tests.mjs --import tsx --test server/production-auth.test.ts server/yedek.test.ts server/agents/scanner.test.ts server/diagnosis-flow.test.ts",
     "test:scanner": "node --import tsx --test server/agents/scanner.test.ts",
     "test:yedek": "node --import tsx --test server/yedek.test.ts"
   },
