@@ -14,7 +14,7 @@ const links = [
 
 function Logo() {
   return (
-    <a href="#top" className="flex items-center gap-2.5 group" aria-label="KonumOS home">
+    <a href="#top" className="flex shrink-0 items-center gap-2.5 group" aria-label="KonumOS home">
       <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" className="transition-transform duration-500 group-hover:rotate-180">
         <circle cx="12" cy="15" r="9" fill="hsl(14 100% 50%)" />
         <circle cx="21" cy="15" r="5.5" fill="none" stroke="hsl(0 0% 9.4%)" strokeWidth="2.5" />
@@ -41,21 +41,21 @@ export default function Header() {
         scrolled ? 'bg-[#fcfcf9]/85 backdrop-blur-md border-b border-border' : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto max-w-7xl px-5 md:px-8 h-16 grid grid-cols-2 md:grid-cols-3 items-center">
+      <div className="mx-auto max-w-7xl px-5 md:px-8 h-16 flex items-center justify-between gap-4">
         <Logo />
-        <nav className="hidden md:flex items-center justify-center gap-6" aria-label="Main navigation">
+        <nav className="hidden xl:flex flex-1 items-center justify-center gap-3" aria-label="Main navigation">
           {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="text-sm font-semibold text-foreground/70 hover:text-foreground transition-colors duration-150"
+              className="whitespace-nowrap text-[13px] font-semibold text-foreground/70 hover:text-foreground transition-colors duration-150"
             >
               {l.label}
             </a>
           ))}
         </nav>
-        <div className="flex items-center justify-end gap-3">
-          <span className="hidden lg:inline-flex" aria-hidden="false">
+        <div className="flex shrink-0 items-center justify-end gap-3">
+          <span className="hidden 2xl:inline-flex" aria-hidden="false">
             <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AI Work School" />
           </span>
           <a
@@ -66,7 +66,7 @@ export default function Header() {
           </a>
           <button
             type="button"
-            className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-background cursor-pointer"
+            className="xl:hidden inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-background cursor-pointer"
             aria-expanded={open}
             aria-label={open ? 'Close menu' : 'Open menu'}
             onClick={() => setOpen((v) => !v)}
@@ -82,7 +82,7 @@ export default function Header() {
         </div>
       </div>
       {open && (
-        <nav className="md:hidden border-t border-border bg-[#fcfcf9] px-5 py-4 flex flex-col gap-1" aria-label="Mobile navigation">
+        <nav className="xl:hidden border-t border-border bg-[#fcfcf9] px-5 py-4 flex flex-col gap-1" aria-label="Mobile navigation">
           {links.map((l) => (
             <a
               key={l.href}
