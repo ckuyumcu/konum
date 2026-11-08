@@ -1,93 +1,96 @@
-# Konum — Yayına Alma Kılavuzu (app.askthousand.com)
+# KonumOS — Mevcut Yayın ve Güvenli Sürüm Değişikliği
 
-Bu kılavuz, Konum'un davetli pilotunun app.askthousand.com altında yayına alınması için gereken
-adımları sıralar. Hedef mimari: küçük VPS (Ubuntu) + Caddy (otomatik HTTPS) + systemd servisi +
-gecelik SQLite yedeği. Tahmini maliyet: ~6$/ay (Hetzner CX11 veya eşdeğeri).
+Bu kılavuz mevcut KonumOS Render yayını içindir. AskThousand ayrı üründür;
+eski `app.askthousand.com` / VPS / Caddy kurulum tarifi bu yayının talimatı değildir.
 
-## 1. Sunucu (bir kere)
+## Mevcut hizmet
 
-1. Hetzner/Render benzeri bir Ubuntu 24.04 VPS aç (1 vCPU / 2 GB yeter).
-2. DNS: `app.askthousand.com` için A kaydı → sunucunun IPv4 adresi. (Yayılma 5-30 dk.)
-3. Sunucuda:
-   ```sh
-   sudo apt update && sudo apt install -y nodejs npm caddy sqlite3
-   sudo useradd -r -m -d /opt/konum -s /bin/bash konum || true
-   sudo mkdir -p /opt/konum && sudo chown konum:konum /opt/konum
-   ```
+- Depo: https://github.com/ckuyumcu/konum ; yayın dalı: `main`.
+- Ürün adresi: https://konumos.com
+- Mevcut servis: https://konum-y47v.onrender.com
+- Render paneli: https://dashboard.render.com/web/srv-dbetc7ivcj2c73e3nuv0
+- 8 Kasım 2026 kontrolünde hizmet Free; PR önizlemeleri kapalıdır.
+  Plan ve önizleme ayarları zamanla değişebilir, işlemden önce panelden doğrulanır.
 
-## 2. Uygulamanın kurulması
+Bu belge yeni sunucu, disk, plan veya abonelik açılmasını; DNS değişikliğini;
+yeniden başlatmayı veya dağıtımı başlatmayı yetkilendirmez. Birleştirmeler
+otomatik yayın tetikleyebileceğinden belge değişiklikleri de yayın kapısından geçer.
 
-```sh
-sudo -u konum git clone <repo-url> /opt/konum/app
-cd /opt/konum/app
-sudo -u konum npm ci
-sudo -u konum npm run build
-```
+## Uygulama ve API yolları
 
-Çalıştırma: `server/` Express-Hono uygulaması Vite build çıktısını statik olarak sunar
-(tek süreç yeter; ayrı frontend sunucusu yok).
+`server/serve.ts`, `dist/` içindeki arayüzü ve aynı süreçte API'yi sunar.
+Dışarıdan gelen `/api` öneki kaldırılarak istek `server/app.ts` uygulamasına iletilir.
 
-## 3. Ortam değişkenleri (/opt/konum/app/.env)
-
-```
-KONUM_ENV=production
-KONUM_PLATFORM_SAHIBI=cem@aiworkschool.com
-PORT=3000
-# ANTHROPIC_API_KEY buraya YAZILMAZ — Ayarlar ekranından girilir, ~/.konum/secrets.json'a düşer
-```
-
-## 4. systemd servisi (/etc/systemd/system/konum.service)
-
-```
-[Unit]
-Description=Konum
-After=network.target
-
-[Service]
-User=konum
-WorkingDirectory=/opt/konum/app
-EnvironmentFile=/opt/konum/app/.env
-ExecStart=/usr/bin/npm start
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
+Sağlık denetimi:
 
 ```sh
-sudo systemctl enable --now konum
+curl --fail --silent --show-error https://konum-y47v.onrender.com/api/health
 ```
 
-## 5. Caddy (otomatik HTTPS) — /etc/caddy/Caddyfile
+Beklenen: HTTP 200, JSON içerik türü ve aşağıdaki alanlar:
 
-```
-app.askthousand.com {
-    reverse_proxy 127.0.0.1:3000
-}
+```json
+{"ok":true,"servis":"konum-api"}
 ```
 
-```sh
-sudo systemctl reload caddy
-```
+`/health` dış yolu API öneki taşımadığı için SPA arayüzüne düşebilir ve HTML ile
+HTTP 200 dönebilir. Bu sonuç backend sağlığı kabul edilmez.
+API sağlık yanıtı da ödeme, model bağlantısı, rapor doğruluğu, veri kalıcılığı
+veya müşteri teslimatının kabulü değildir.
 
-Caddy sertifikayı kendisi alır ve yeniler. KONUM_ENV=production olduğu için oturum çerezi
-yalnız HTTPS üzerinden taşınır.
+## Mevcut yapılandırma
 
-## 6. Yedekleme
+İşlem öncesi gerçek servis yapılandırmasını doğrulayın; aşağıdaki adlar kaynak
+davranışını anlatır, mevcut gizli değerleri açıklamaz veya değiştirme talimatı vermez.
 
-```sh
-sudo -u konum crontab -e
-# 0 4 * * * /opt/konum/app/scripts/yedekle.sh
-```
+| Alan | Kaynaktaki davranış |
+|---|---|
+| `PORT` | Sunucu portu; varsayılan 3000. |
+| `KONUM_ENV` | `production` üretim modunu etkinleştirir. Kaynak `NODE_ENV=production` ve Render ortamını da üretim sayar. |
+| `KONUM_PLATFORM_SAHIBI` | Gerçek sahibin e-postası. Üretimde örnek kişi/yerel adres atanmaz. |
+| `KONUM_PILOT_DAVET` | Üretim ilk sahip daveti için özel değer gerekir; belgelenmiş geliştirme daveti üretimde reddedilir. Gerçek davet burada veya sohbette paylaşılmaz. |
+| `KONUM_DATA_DIR` / `KONUM_DB_PATH` | SQLite konumu; `KONUM_DB_PATH` verilmişse dosya yolunu o belirler. Bir değişken tanımlamak tek başına kalıcı disk sağlamaz. |
+| `KONUM_SECRET_DIR` | Gizli dosyanın dizini; varsayılan kullanıcı evindeki `.konum`. Veritabanından ayrı değerlendirilir. |
+| `ANTHROPIC_API_KEY` | Ortam değişkeni veya mevcut Ayarlar akışıyla alınabilir. Anahtar git'e, log'a, belgeye veya ekran görüntüsüne yazılmaz. |
+| `KONUM_YEDEK_ANAHTARI` | İsteğe bağlı korumalı yedek uçları için kullanılır; tanımsızsa uçlar kapalıdır. |
 
-14 günlük geriye dönük yedek tutulur (veritabanı + gizli dosyalar).
+Üretimde sahip/davet kontrolü için geliştirme girişini kullanmayın. Gerçek
+kullanıcı daveti, model çağrısı veya ücretli anahtar denemesi kabul kontrolüne
+otomatik eklenmez.
 
-## 7. Yayın öncesi son kontrol listesi
+## Veri koruma ve yayın kapısı
 
-- [ ] `curl https://app.askthousand.com/health` → {"ok":true}
-- [ ] Giriş sayfası HTTPS'te açılıyor, çerez DevTools'ta `Secure` bayraklı
-- [ ] Yanlış davet kodu 11 kez denenince 429 dönüyor
-- [ ] Yeni davet, Konsol ekranından üretiliyor (tohum davet yalnızca ilk kurulumda)
-- [ ] Yedek betiği elle bir kez çalıştırıldı ve dosya oluştu
-- [ ] Landing'de /privacy ve /terms açılıyor
+Free dosya sistemi kalıcı müşteri depolaması sayılmaz. Yeni sürüm veya restart
+öncesinde o andaki veri durumu doğrulanır; geçmişte veri bulunmaması bugün de
+bulunmadığının kanıtı değildir.
+
+1. Canlı commit'i, aday commit'i ve değişen dosyaları kaydedin.
+2. Mevcut kullanıcı/müşteri verisi ve korunacak yapılandırmayı yetkili yoldan belirleyin.
+3. Veri varsa tutarlı tam SQLite yedeği ve ayrı konumda geri yükleme/bütünlük kontrolünü tamamlayın.
+   Aktif WAL veritabanını yalnız ana dosyayı kopyalayarak yedeklenmiş saymayın.
+4. Kaynak geri dönüşü ile veritabanı geri yüklemesini ayrı planlayın.
+   Git commit'i kullanıcı verisinin yedeği değildir.
+5. Veritabanı, gizli yapılandırma, erişim ve geri yükleme sorumluluğunu belirleyin.
+   Yedekler herkese açık depoya veya kamusal çıktıya konmaz.
+6. Veri kalıcılığı ve geri dönüş doğrulanmadan kullanıcı verisi taşıyan hizmette yayın/restart yapmayın.
+   Yeni ücretli disk/plan veya harcama için ayrıca yetki gerekir.
+
+Mevcut kaynakta korumalı yedek yolu `/api/admin/yedek`, özet yolu
+`/api/admin/yedek/ozet` şeklindedir. Bu yolların kaynakta bulunması, canlıda
+açık olduklarını veya bir yedeğin alınıp geri yüklendiğini kanıtlamaz.
+Yetkisiz istek, anahtar tahmini veya anahtarı URL'ye yazma yoktur.
+
+## Yayın ve son kullanıcı kabulü
+
+- [ ] Güncel dal/commit, gerçek korunacak veri ve geri dönüş koşulları doğrulandı.
+- [ ] Değişikliğe uygun derleme ve mevcut ağsız kontroller geçti; eski sonuç yeni test sayılmadı.
+- [ ] Yayın yetkisi ve mevcut maliyet sınırı içinde kalındı.
+- [ ] Yayın sonrası gerçek canlı commit aday sürümle eşleşiyor.
+- [ ] `/api/health` HTTP 200 ve beklenen JSON döndürüyor.
+- [ ] Ürün adresi, menü, mobil görünüm, hukuki bağlantılar ve hata/boş durumlar kontrol edildi.
+- [ ] Giriş ve izinler, onaylı test hesabı veya ağsız fixture ile kontrol edildi; gerçek müşteriye test daveti gönderilmedi.
+- [ ] Simülasyon etiketi ve skorun sınırı ekran/raporda korunuyor.
+- [ ] Ücretli model, ödeme, kayıt/davet ve teslim testlerinin hangisinin gerçekten yapıldığı ayrı kaydedildi.
+
+Yayın başarılı, kaynak düzeltildi ve ücretli müşteri teslimi kabul edildi
+durumları birbirinin yerine kullanılmaz.
