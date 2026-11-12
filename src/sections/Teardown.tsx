@@ -2,44 +2,30 @@ import { motion } from 'framer-motion'
 
 const easeOut = [0.16, 1, 0.3, 1] as const
 
-// v2 Section 8 (Phase 1, item 3): competitor brand names removed; format is
-// "common market approach → KonumOS's difference". No competitor is praised in any card.
 const lessons = [
   {
-    from: 'Common approach: white-label dashboards',
-    lesson: 'A multi-client console makes the agency the hero.',
-    ours: 'KonumOS runs under the agency\'s own brand; the platform stays invisible, the agency shines.',
-    span: 'lg:col-span-4',
-  },
-  {
-    from: 'Common approach: single customer database',
-    lesson: 'One source of truth feeds every output.',
-    ours: 'For us that source is Strategy Memory — not a transaction log, but a memory of decisions.',
-    span: 'lg:col-span-4',
-  },
-  {
-    from: 'Common approach: brand voice settings',
-    lesson: 'Without a defined brand voice, AI output goes generic.',
-    ours: 'Brand rules and Auditor checks flag potential issues for human review; they do not replace the final editorial check.',
-    span: 'lg:col-span-4',
-  },
-  {
-    from: 'Common approach: content calendars',
-    lesson: 'Calendar and queue discipline is continuity itself.',
-    ours: 'Execution Studio prepares channel variations for review and export; people decide what to publish.',
+    from: 'Your page → Message Map',
+    lesson: 'See what supports your offer.',
+    ours: 'Review the main claim, supporting material and three suggestions for a public product page. Choose what needs a closer look.',
     span: 'lg:col-span-6',
   },
   {
-    from: 'Common approach: autonomous ad execution',
-    lesson: 'Autonomy looks attractive; unapproved spend is risky.',
-    ours: 'In KonumOS v1 nothing touches your accounts: it produces publish-ready packages, and the final touch stays human.',
+    from: 'One question → A/B plan',
+    lesson: 'Give the next test a clear question.',
+    ours: 'Set the message variants and measurement plan. Enter observed results manually or by CSV; a simulated preference is not a campaign result.',
     span: 'lg:col-span-6',
   },
   {
-    from: 'Common approach: variation factories',
-    lesson: 'Producing variations is easy; knowing which one won and why is valuable.',
-    ours: 'The Evidence Engine workflow organizes hypotheses and supporting sources for review. An exported file is not proof of a campaign result.',
-    span: 'lg:col-span-12',
+    from: 'Approved strategy → Channel drafts',
+    lesson: 'Keep the offer consistent across channels.',
+    ours: 'Prepare email, social and ad variations from the approved strategy. Review the wording and supporting sources before exporting.',
+    span: 'lg:col-span-6',
+  },
+  {
+    from: 'Test result → Decision history',
+    lesson: 'Keep the reason for the next change.',
+    ours: 'Record what was tested, where the result came from and what was approved. Keep simulated material separate from observed results.',
+    span: 'lg:col-span-6',
   },
 ]
 
@@ -54,7 +40,7 @@ export default function Teardown() {
           transition={{ duration: 0.5, ease: easeOut }}
           className="eyebrow text-[#c52a00] mb-4"
         >
-          What we learned from the market
+          From one page to the next decision
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 22 }}
@@ -63,7 +49,7 @@ export default function Teardown() {
           transition={{ duration: 0.55, ease: easeOut, delay: 0.06 }}
           className="font-display font-black text-4xl sm:text-5xl leading-[1.05] max-w-[24ch]"
         >
-          Nobody can see closed-source code — but the <span className="hl">playbooks</span> are out in the open.
+          Give every message <span className="hl">a reason to be tested.</span>
         </motion.h2>
         <motion.p
           initial={{ opacity: 0, y: 18 }}
@@ -72,10 +58,8 @@ export default function Teardown() {
           transition={{ duration: 0.5, ease: easeOut, delay: 0.12 }}
           className="mt-6 max-w-[68ch] text-lg text-foreground/70"
         >
-          We analyzed the public product pages, documentation, and pricing logic of the common approaches in the
-          marketing software market. We took the proven patterns, inverted their weaknesses — and rebuilt everything{' '}
-          <strong className="text-foreground">with our own original code</strong>. No copying, no plagiarism:
-          competitive analysis and engineering.
+          Start with the page you already have. Use the Message Map to choose a question, then keep the test plan,
+          observed results and approved drafts connected in your workspace.
         </motion.p>
 
         <div className="mt-14 grid lg:grid-cols-12 gap-5">
@@ -93,7 +77,6 @@ export default function Teardown() {
               </p>
               <h3 className="font-display font-bold text-xl md:text-[1.35rem] leading-snug mb-3">{l.lesson}</h3>
               <p className="text-sm text-foreground/70 leading-relaxed mt-auto pt-2 border-t border-border/70">
-                <span className="font-bold text-foreground">In KonumOS: </span>
                 {l.ours}
               </p>
             </motion.article>
@@ -107,8 +90,8 @@ export default function Teardown() {
           transition={{ duration: 0.6 }}
           className="mt-10 text-xs text-foreground/50 max-w-[80ch]"
         >
-          Note: the observations above are based on publicly available product information; market features may change.
-          Each card will be re-verified against current sources before launch.
+          Message Map is a public entry point. Workspace access is offered through a separately confirmed pilot.
+          In v1, you run campaigns and publish exports yourself; KonumOS does not operate your ad accounts or spend your budget.
         </motion.p>
       </div>
     </section>
