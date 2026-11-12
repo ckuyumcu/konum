@@ -55,7 +55,7 @@ export default function Teshis() {
         <div className="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link to="/" className="eyebrow text-foreground">KonumOS</Link>
           <Link to="/#pilot" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            Early access →
+            Workspace pilot →
           </Link>
         </div>
       </header>
@@ -78,11 +78,37 @@ export default function Teshis() {
           transition={{ duration: 0.5, ease: easeOut, delay: 0.14 }}
           className="text-lg text-foreground/70 mb-10 max-w-[58ch]"
         >
-          Drop your product page URL. We scan it and hand you a blunt report: your core claim, the proof you already
-          show, the claims you can&apos;t back up — and three concrete fixes. Free, 3 analyses a day.
+          Start with a public product page. Review its main claim, the supporting material and three changes you could test.
+          Free, 3 analyses a day. No account or email required.
         </motion.p>
 
         {!sonuc ? (
+          <>
+          <details className="mb-6 rounded-xl border border-border bg-white/60 p-5">
+            <summary className="cursor-pointer font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
+              See an illustrative Message Map
+            </summary>
+            <div className="mt-5 grid gap-4 text-sm leading-relaxed">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Example only · no scan or AI request is started
+              </p>
+              <dl className="grid gap-4">
+                <div>
+                  <dt className="font-semibold">Claim on the example page</dt>
+                  <dd className="mt-1 text-foreground/75">Freshly roasted coffee, delivered weekly.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold">Supporting material to look for</dt>
+                  <dd className="mt-1 text-foreground/75">A roast date, dispatch timing and the delivery area. Missing details become questions to check.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold">A change to test</dt>
+                  <dd className="mt-1 text-foreground/75">Explain when the coffee is roasted and dispatched, using only details you can verify.</dd>
+                </div>
+              </dl>
+              <p className="text-muted-foreground">A Message Map suggests what to review next. It does not prove that a message will increase sales.</p>
+            </div>
+          </details>
           <motion.form
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -94,14 +120,16 @@ export default function Teshis() {
               <span className="text-sm font-semibold">Product page URL</span>
               <input
                 required
-                type="text"
+                type="url"
                 inputMode="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://yourproduct.com"
+                aria-describedby="message-map-url-help"
                 className="h-12 rounded-lg border-2 border-foreground/25 bg-[#fcfcf9] px-4 text-base font-medium placeholder:text-foreground/35 focus:border-foreground focus:outline-none"
               />
             </label>
+            <p id="message-map-url-help" className="-mt-2 text-xs text-muted-foreground">Use a public http:// or https:// page, without sign-in or private access links.</p>
             <label className="grid gap-1.5">
               <span className="text-sm font-semibold">
                 Email <span className="font-normal text-muted-foreground">(optional — stored with this analysis)</span>
@@ -142,6 +170,7 @@ export default function Teshis() {
               We respect robots.txt and only read the public page. No email is required to see your report.
             </p>
           </motion.form>
+          </>
         ) : (
           <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: easeOut }} className="grid gap-6">
             <div className="rounded-xl border border-border bg-white/60 p-7">
