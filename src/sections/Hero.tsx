@@ -53,10 +53,10 @@ export default function Hero() {
               transition={{ duration: 0.6, ease: easeOut, delay: 0.08 }}
               className="font-display font-black text-[13vw] sm:text-6xl lg:text-7xl xl:text-[5.2rem] leading-[0.98]"
             >
-              Everyone ships copy now.
+              Start with your product page.
               <br />
-              <span className="gradient-text">The winner proves</span>{' '}
-              <em className="not-italic text-[#c52a00] inline-block wiggle-hover cursor-default">&ldquo;why&nbsp;me?&rdquo;</em>
+              <span className="gradient-text">Choose the message</span>{' '}
+              <em className="not-italic text-[#c52a00] inline-block wiggle-hover cursor-default">worth testing.</em>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 22 }}
@@ -64,10 +64,9 @@ export default function Hero() {
               transition={{ duration: 0.6, ease: easeOut, delay: 0.2 }}
               className="mt-6 max-w-[62ch] text-lg text-foreground/70"
             >
-              Here&apos;s the deal: you keep the strategy and the story — the parts only a person can own.{' '}
-              <strong className="text-foreground">This preview shows the workflow</strong>: research hypotheses, drafts and approval.
-              Demo activity is simulated, and a hypothesis is not proof. In v1, you run any real tests and publish the exports yourself;
-              KonumOS does not spend your budget or act in your accounts.
+              Get a free Message Map for a public product page: its main claim, the evidence behind it, and three suggestions to review.{' '}
+              <strong className="text-foreground">Choose one change to test next.</strong>{' '}
+              The workspace keeps your hypotheses, test results and approved drafts together.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 18 }}
@@ -76,19 +75,19 @@ export default function Hero() {
               className="mt-8 flex flex-wrap items-center gap-4"
             >
               <a
-                href="#pilot"
+                href="/teshis"
                 className="btn-glow inline-flex items-center rounded-md px-6 py-3.5 text-base font-bold active:scale-[0.97]"
               >
-                Join early access
+                Get a free Message Map
                 <svg width="16" height="16" viewBox="0 0 16 16" className="ml-2" aria-hidden="true">
                   <path d="M2 8h11M9 3.5L13.5 8 9 12.5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </a>
               <a
-                href="#how"
+                href="#pilot"
                 className="inline-flex items-center rounded-md border-2 border-foreground/20 px-6 py-3 text-base font-bold transition-all duration-150 hover:border-foreground active:scale-[0.97]"
               >
-                See how it works
+                Ask about the workspace pilot
               </a>
             </motion.div>
             <motion.p
@@ -97,7 +96,8 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="mt-5 text-sm text-foreground/50"
             >
-              Preview release. Pilot scope and availability are confirmed individually.
+              Demo activity is simulated. Suggestions are not proof of sales. In v1, you run real tests and publish approved exports yourself.
+              Workspace pilot scope and availability are confirmed individually.
             </motion.p>
           </div>
 
