@@ -28,10 +28,11 @@ export default function Footer() {
           <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Footer navigation">
             <a href="#problem" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">The Problem</a>
             <a href="#how" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">How it works</a>
-            <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">What we learned</a>
+            <a href="#teardown" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">From page to test</a>
             <a href="#demo" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Workflow demo</a>
             <a href="#math" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot scope</a>
             <a href="#pilot" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Pilot program</a>
+            <a href="/teshis" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Free Message Map</a>
             <a href="#faq" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">FAQ</a>
             <a href="/about.html" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Product &amp; limits</a>
             <a href="/privacy" className="text-[#fcfcf9]/70 hover:text-[#fcfcf9] transition-colors duration-150">Privacy notice</a>
