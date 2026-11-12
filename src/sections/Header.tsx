@@ -4,7 +4,7 @@ import AwsMark from '../components/AwsMark'
 const links = [
   { href: '#problem', label: 'The Problem' },
   { href: '#how', label: 'How it works' },
-  { href: '#teardown', label: 'What we learned' },
+  { href: '#teardown', label: 'From page to test' },
   { href: '#demo', label: 'Workflow demo' },
   { href: '#math', label: 'Pilot scope' },
   { href: '#pilot', label: 'Pilot' },
@@ -59,10 +59,10 @@ export default function Header() {
             <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AI Work School" />
           </span>
           <a
-            href="#pilot"
+            href="/teshis"
             className="hidden md:inline-flex items-center rounded-md bg-foreground text-background px-4 py-2 text-sm font-bold transition-all duration-150 hover:bg-[#c52a00] active:scale-[0.97]"
           >
-            Early access
+            Free Message Map
           </a>
           <button
             type="button"
@@ -94,11 +94,11 @@ export default function Header() {
             </a>
           ))}
           <a
-            href="#pilot"
+            href="/teshis"
             onClick={() => setOpen(false)}
             className="mt-2 inline-flex items-center justify-center rounded-md bg-foreground text-background px-4 py-3 text-sm font-bold active:scale-[0.97]"
           >
-            Early access
+            Free Message Map
           </a>
         </nav>
       )}
