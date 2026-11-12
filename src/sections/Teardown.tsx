@@ -73,7 +73,7 @@ export default function Teardown() {
               className={`${l.span} rounded-xl border border-border bg-[#fcfcf9] p-6 md:p-7 flex flex-col`}
             >
               <p className="font-mono text-xs font-bold uppercase tracking-widest text-foreground/45 mb-3">
-                {l.from} <span className="text-[#c52a00]">→</span> lesson
+                {l.from}
               </p>
               <h3 className="font-display font-bold text-xl md:text-[1.35rem] leading-snug mb-3">{l.lesson}</h3>
               <p className="text-sm text-foreground/70 leading-relaxed mt-auto pt-2 border-t border-border/70">
