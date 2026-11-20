@@ -1,27 +1,19 @@
 .konum-brand {
-  display: inline-flex;
+  display: inline-block;
+  width: 128px;
+  max-width: 100%;
   vertical-align: middle;
-  align-items: center;
-  flex-direction: column;
-  gap: 3px;
-  color: #14224a;
-  font: 700 15px/1.1 system-ui, sans-serif;
-  white-space: nowrap;
-  letter-spacing: 0;
-  text-transform: none;
 }
 .konum-brand img {
   display: block;
-  width: 82px;
+  width: 100%;
   height: auto;
 }
-.konum-brand-dark { color: #fff; }
-.konum-brand-dark img { filter: brightness(0) invert(1); }
 .konum-parent-brand {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   text-decoration: none;
 }
-.konum-parent-brand .konum-brand { font-size: 12px; }
-.konum-parent-brand img { width: 60px; }
+.konum-parent-brand .konum-brand { width: 110px; }
+.konum-compact-brand .konum-brand { width: clamp(94px, 26vw, 112px); }

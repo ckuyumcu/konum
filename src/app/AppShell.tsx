@@ -1,4 +1,5 @@
 import BrandMark from '../components/BrandMark'
+import AwsMark from '../components/AwsMark'
 import { createContext, useContext, useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useParams } from "react-router";
 import { trpc } from "../lib/trpc";
@@ -110,7 +111,7 @@ export default function AppShell() {
           </div>
           <nav className="flex-1 py-4" aria-label="Modules">{navListesi}</nav>
           <div className="px-5 py-4 border-t border-white/10 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AI Work School company</p>
+            <AwsMark dark text="An AI Work School company" />
             <Link to="/app" className="block text-xs text-[#fcfcf9]/50 hover:text-[#fcfcf9] transition-colors">
               ← Workspaces
             </Link>
@@ -140,7 +141,7 @@ export default function AppShell() {
               </div>
               <nav className="flex-1 py-4 overflow-auto" aria-label="Modules">{navListesi}</nav>
               <div className="px-5 py-4 border-t border-white/10 space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AI Work School company</p>
+                <AwsMark dark text="An AI Work School company" />
                 <Link to="/app" onClick={() => setMenuAcik(false)} className="block text-xs text-[#fcfcf9]/50">
                   ← Workspaces
                 </Link>
@@ -161,7 +162,7 @@ export default function AppShell() {
                 <path d="M4 7h16M4 12h16M4 17h16" />
               </svg>
             </button>
-            <Link to="/" aria-label="KonumOS home" className="md:hidden shrink-0 [&_img]:w-14 [&_.konum-brand]:text-xs"><BrandMark /></Link>
+            <Link to="/" aria-label="KonumOS home" className="md:hidden shrink-0 konum-compact-brand"><BrandMark /></Link>
             <p className="text-sm flex-1 min-w-0 truncate">
               <span className="text-muted-foreground">Workspace:</span>{" "}
               <strong>{musteriAdi || "…"}</strong>
