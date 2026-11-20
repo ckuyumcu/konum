@@ -4,7 +4,7 @@
   align-items: center;
   flex-direction: column;
   gap: 3px;
-  color: #14224c;
+  color: #14224a;
   font: 700 15px/1.1 system-ui, sans-serif;
   white-space: nowrap;
   letter-spacing: 0;
@@ -15,5 +15,13 @@
   width: 82px;
   height: auto;
 }
-.konum-brand-dark { color: #fcfcf9; }
+.konum-brand-dark { color: #fff; }
 .konum-brand-dark img { filter: brightness(0) invert(1); }
+.konum-parent-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+.konum-parent-brand .konum-brand { font-size: 12px; }
+.konum-parent-brand img { width: 60px; }

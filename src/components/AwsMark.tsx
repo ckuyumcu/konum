@@ -1,13 +1,16 @@
+import BrandMark from './BrandMark'
+
 export default function AwsMark({ text, dark = false }: { text: string; dark?: boolean }) {
   return (
     <a
       href="https://aiworkschool.com"
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 text-xs font-semibold hover:underline ${dark ? 'text-[#fcfcf9]/80' : 'text-foreground/80'}`}
+      className="konum-parent-brand"
+      aria-label={text}
+      title={text}
     >
-      <img src="/brand/eagle.png" width="590" height="180" alt="" className={`w-9 h-auto ${dark ? 'brightness-0 invert' : ''}`} />
-      {text}
+      <BrandMark name="AI Work School" dark={dark} />
     </a>
   )
 }
