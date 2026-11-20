@@ -1,0 +1,19 @@
+.konum-brand {
+  display: inline-block;
+  width: 128px;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.konum-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.konum-parent-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+.konum-parent-brand .konum-brand { width: 110px; }
+.konum-compact-brand .konum-brand { width: clamp(94px, 26vw, 112px); }

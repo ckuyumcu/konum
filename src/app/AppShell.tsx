@@ -1,3 +1,5 @@
+import BrandMark from '../components/BrandMark'
+import AwsMark from '../components/AwsMark'
 import { createContext, useContext, useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useParams } from "react-router";
 import { trpc } from "../lib/trpc";
@@ -105,11 +107,11 @@ export default function AppShell() {
         {/* Desktop: left vertical navigation */}
         <aside className="hidden md:flex w-60 shrink-0 bg-[#181818] text-[#fcfcf9] flex-col min-h-dvh">
           <div className="px-5 py-5 border-b border-white/10">
-            <Link to="/" className="eyebrow text-[#fcfcf9]">KonumOS</Link>
+            <Link to="/" aria-label="KonumOS home"><BrandMark dark /></Link>
           </div>
           <nav className="flex-1 py-4" aria-label="Modules">{navListesi}</nav>
           <div className="px-5 py-4 border-t border-white/10 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AI Work School company</p>
+            <AwsMark dark text="An AI Work School company" />
             <Link to="/app" className="block text-xs text-[#fcfcf9]/50 hover:text-[#fcfcf9] transition-colors">
               ← Workspaces
             </Link>
@@ -126,7 +128,7 @@ export default function AppShell() {
             />
             <aside className="absolute inset-y-0 left-0 w-64 bg-[#181818] text-[#fcfcf9] flex flex-col">
               <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
-                <span className="eyebrow">KonumOS</span>
+                <BrandMark dark />
                 <button
                   onClick={() => setMenuAcik(false)}
                   aria-label="Close"
@@ -139,7 +141,7 @@ export default function AppShell() {
               </div>
               <nav className="flex-1 py-4 overflow-auto" aria-label="Modules">{navListesi}</nav>
               <div className="px-5 py-4 border-t border-white/10 space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#fcfcf9]/35">An AI Work School company</p>
+                <AwsMark dark text="An AI Work School company" />
                 <Link to="/app" onClick={() => setMenuAcik(false)} className="block text-xs text-[#fcfcf9]/50">
                   ← Workspaces
                 </Link>
@@ -160,12 +162,13 @@ export default function AppShell() {
                 <path d="M4 7h16M4 12h16M4 17h16" />
               </svg>
             </button>
+            <Link to="/" aria-label="KonumOS home" className="md:hidden shrink-0 konum-compact-brand"><BrandMark /></Link>
             <p className="text-sm flex-1 min-w-0 truncate">
               <span className="text-muted-foreground">Workspace:</span>{" "}
               <strong>{musteriAdi || "…"}</strong>
             </p>
             <p
-              className={`shrink-0 text-xs font-bold uppercase tracking-widest ${
+              className={`max-w-24 sm:max-w-none text-right text-xs font-bold uppercase tracking-widest ${
                 bellekOnayli ? "text-[#0d6e3f]" : "text-[#c52a00]"
               }`}
             >
