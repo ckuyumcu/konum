@@ -6,7 +6,6 @@ import { konumApi } from './server/vite-plugin'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
   plugins: [inspectAttr(), react(), konumApi()],
   server: {
     port: 3000,
