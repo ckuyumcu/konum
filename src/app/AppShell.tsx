@@ -161,12 +161,13 @@ export default function AppShell() {
                 <path d="M4 7h16M4 12h16M4 17h16" />
               </svg>
             </button>
+            <Link to="/" aria-label="KonumOS home" className="md:hidden shrink-0 [&_img]:w-14 [&_.konum-brand]:text-xs"><BrandMark /></Link>
             <p className="text-sm flex-1 min-w-0 truncate">
               <span className="text-muted-foreground">Workspace:</span>{" "}
               <strong>{musteriAdi || "…"}</strong>
             </p>
             <p
-              className={`shrink-0 text-xs font-bold uppercase tracking-widest ${
+              className={`max-w-24 sm:max-w-none text-right text-xs font-bold uppercase tracking-widest ${
                 bellekOnayli ? "text-[#0d6e3f]" : "text-[#c52a00]"
               }`}
             >
