@@ -1,3 +1,4 @@
+import BrandMark from '../components/BrandMark'
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
@@ -74,7 +75,7 @@ export default function KurulumSihirbazi() {
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border">
         <div className="max-w-3xl mx-auto px-6 py-5">
-          <Link to="/app" className="eyebrow text-foreground">KonumOS</Link>
+          <Link to="/app" aria-label="KonumOS workspaces"><BrandMark /></Link>
         </div>
       </header>
 

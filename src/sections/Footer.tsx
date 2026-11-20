@@ -1,3 +1,4 @@
+import BrandMark from '../components/BrandMark'
 import AwsMark from '../components/AwsMark'
 
 export default function Footer() {
@@ -11,18 +12,12 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-10">
           <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <svg width="28" height="28" viewBox="0 0 30 30" aria-hidden="true">
-                <circle cx="12" cy="15" r="9" fill="#ff3500" />
-                <circle cx="21" cy="15" r="5.5" fill="none" stroke="#fcfcf9" strokeWidth="2.5" />
-              </svg>
-              <span className="font-display font-bold text-xl">KonumOS</span>
-            </div>
+            <a href="#top" className="mb-4 inline-block" aria-label="KonumOS home"><BrandMark dark /></a>
             <p className="text-sm text-[#fcfcf9]/60 max-w-[42ch]">
               A product marketing workspace in preview. Prepare drafts, review sources and export approved content.
             </p>
             <div className="mt-4">
-              <AwsMark accent="#ff6a3d" ink="#181818" dark text="An AI Work School company" />
+              <AwsMark dark text="An AI Work School company" />
             </div>
           </div>
           <nav className="grid grid-cols-2 gap-x-14 gap-y-3 text-sm" aria-label="Footer navigation">

@@ -1,8 +1,9 @@
+import BrandMark from '../components/BrandMark'
 export default function Privacy() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <main className="mx-auto max-w-3xl px-5 md:px-8 py-16 md:py-24">
-        <p className="eyebrow text-[#c52a00] mb-3">KonumOS — legal</p>
+        <a href="/" className="inline-block mb-5" aria-label="KonumOS home"><BrandMark /></a>
         <h1 className="font-display font-black text-4xl leading-tight mb-8">Privacy notice</h1>
 
         <div className="space-y-6 text-foreground/80 leading-relaxed">

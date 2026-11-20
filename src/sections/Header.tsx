@@ -1,3 +1,4 @@
+import BrandMark from '../components/BrandMark'
 import { useEffect, useState } from 'react'
 import AwsMark from '../components/AwsMark'
 
@@ -11,18 +12,6 @@ const links = [
   { href: '#faq', label: 'FAQ' },
   { href: '/teshis', label: 'Free scan' },
 ]
-
-function Logo() {
-  return (
-    <a href="#top" className="flex shrink-0 items-center gap-2.5 group" aria-label="KonumOS home">
-      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true" className="transition-transform duration-500 group-hover:rotate-180">
-        <circle cx="12" cy="15" r="9" fill="hsl(14 100% 50%)" />
-        <circle cx="21" cy="15" r="5.5" fill="none" stroke="hsl(0 0% 9.4%)" strokeWidth="2.5" />
-      </svg>
-      <span className="font-display font-bold text-xl tracking-tight">KonumOS</span>
-    </a>
-  )
-}
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
@@ -42,7 +31,7 @@ export default function Header() {
       }`}
     >
       <div className="mx-auto max-w-7xl px-5 md:px-8 h-16 flex items-center justify-between gap-4">
-        <Logo />
+        <a href="#top" className="shrink-0" aria-label="KonumOS home"><BrandMark /></a>
         <nav className="hidden xl:flex flex-1 items-center justify-center gap-3" aria-label="Main navigation">
           {links.map((l) => (
             <a
@@ -56,7 +45,7 @@ export default function Header() {
         </nav>
         <div className="flex shrink-0 items-center justify-end gap-3">
           <span className="hidden 2xl:inline-flex" aria-hidden="false">
-            <AwsMark accent="#ffb020" ink="#181818" size="sm" text="by AI Work School" />
+            <AwsMark text="by AI Work School" />
           </span>
           <a
             href="#pilot"

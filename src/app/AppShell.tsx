@@ -1,3 +1,4 @@
+import BrandMark from '../components/BrandMark'
 import { createContext, useContext, useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useParams } from "react-router";
 import { trpc } from "../lib/trpc";
@@ -105,7 +106,7 @@ export default function AppShell() {
         {/* Desktop: left vertical navigation */}
         <aside className="hidden md:flex w-60 shrink-0 bg-[#181818] text-[#fcfcf9] flex-col min-h-dvh">
           <div className="px-5 py-5 border-b border-white/10">
-            <Link to="/" className="eyebrow text-[#fcfcf9]">KonumOS</Link>
+            <Link to="/" aria-label="KonumOS home"><BrandMark dark /></Link>
           </div>
           <nav className="flex-1 py-4" aria-label="Modules">{navListesi}</nav>
           <div className="px-5 py-4 border-t border-white/10 space-y-2">
@@ -126,7 +127,7 @@ export default function AppShell() {
             />
             <aside className="absolute inset-y-0 left-0 w-64 bg-[#181818] text-[#fcfcf9] flex flex-col">
               <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
-                <span className="eyebrow">KonumOS</span>
+                <BrandMark dark />
                 <button
                   onClick={() => setMenuAcik(false)}
                   aria-label="Close"
